@@ -222,7 +222,7 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'household-pick-btn';
-      btn.textContent = h.members.map(m => m.name).join(' & ');
+      btn.textContent = oxfordJoin(h.members.map(m => m.name));
       btn.addEventListener('click', () => loadHousehold(h));
       householdPicker.appendChild(btn);
     });
@@ -451,6 +451,13 @@
   function cssAttrEscape(s) {
     // Escape for use inside a CSS attribute selector value (we wrap in double quotes).
     return String(s).replace(/(["\\])/g, '\\$1');
+  }
+
+  function oxfordJoin(names) {
+    if (names.length === 0) return '';
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return names[0] + ' & ' + names[1];
+    return names.slice(0, -1).join(', ') + ', & ' + names[names.length - 1];
   }
 
 })();
