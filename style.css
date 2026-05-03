@@ -4,13 +4,17 @@
    ============================================================ */
 
 :root {
-  --color-bg: #fafafa;
-  --color-bg-alt: #f1ede7;
-  --color-text: #1f1f1f;
-  --color-muted: #6b6b6b;
-  --color-accent: #284b63;
-  --color-accent-hover: #1c3548;
-  --color-border: #d8d8d8;
+  --color-bg: #efe7d8;
+  --color-bg-alt: #e8ddd0;
+  --color-text: #2b1f1a;
+  --color-muted: #7a6e60;
+  --color-accent: #c8362c;
+  --color-accent-hover: #a02a23;
+  --color-border: #d8c8b0;
+  --color-yellow: #e0c656;
+  --color-lavender: #bca9c7;
+  --color-cobalt: #1e4a98;
+  --color-sage: #6b8554;
   --max-width: 880px;
   --radius: 6px;
   --space-xs: .5rem;
@@ -67,7 +71,7 @@ p { margin: 0 0 var(--space-sm); }
   justify-content: space-between;
   height: var(--header-height);
   padding: 0 var(--space-sm);
-  background: rgba(250, 250, 250, .96);
+  background: rgba(239, 231, 216, .92);
   backdrop-filter: saturate(180%) blur(8px);
   border-bottom: 1px solid var(--color-border);
 }
