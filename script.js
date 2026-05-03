@@ -24,7 +24,7 @@
   ];
 
   let i = 0;
-  const FRAME_MS = 1000 / 12; // 12fps
+  const FRAME_MS = 1000 / 3; // 3fps
 
   function tick() {
     i = (i + 1) % FONTS.length;
