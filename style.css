@@ -225,6 +225,9 @@ p { margin: 0 0 var(--space-sm); }
 }
 
 /* ---------- Countdown / flip clock ---------- */
+/* Hidden 2026-05-03 — Mike not feeling it. Remove the next rule to bring back. */
+.countdown { display: none !important; }
+
 .countdown {
   display: flex;
   gap: .55rem;
