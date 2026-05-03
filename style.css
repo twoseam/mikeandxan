@@ -170,7 +170,7 @@ p { margin: 0 0 var(--space-sm); }
   text-align: center;
   padding: var(--space-md) var(--space-sm);
 }
-.hero-inner { max-width: 640px; }
+.hero-inner { max-width: 640px; display: flex; flex-direction: column; align-items: center; }
 
 .hero-title {
   position: relative;
@@ -240,7 +240,7 @@ p { margin: 0 0 var(--space-sm); }
     0 6px 12px -4px rgba(43, 31, 26, .25),
     0 2px 4px rgba(43, 31, 26, .15);
 }
-.hero-strip.kicker      { transform: rotate(-1.6deg); color: var(--color-accent); }
+.hero-strip.kicker      { transform: rotate(-1.6deg); color: var(--color-accent); margin-bottom: var(--space-sm); }
 .hero-strip.hero-date   { transform: rotate(.9deg); }
 .hero-strip.hero-time   { transform: rotate(-.7deg); font-size: 1.25rem; }
 .hero-strip.hero-place  { transform: rotate(1.3deg); }
