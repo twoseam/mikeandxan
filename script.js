@@ -4,6 +4,48 @@
    ============================================================ */
 
 /* ============================================================
+   Hero ampersand — cycles through six font styles at ~12fps
+   with a tiny per-frame transform jitter. Lo-fi cut-out feel.
+   Pauses if the user prefers reduced motion.
+   ============================================================ */
+(function () {
+  'use strict';
+  const amp = document.querySelector('.hero-amp');
+  if (!amp) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const FONTS = [
+    '"Fraunces", serif',
+    '"Playfair Display", serif',
+    '"DM Serif Display", serif',
+    '"Bodoni Moda", serif',
+    '"Pinyon Script", cursive',
+    '"Special Elite", monospace',
+  ];
+
+  let i = 0;
+  const FRAME_MS = 1000 / 12; // 12fps
+
+  function tick() {
+    i = (i + 1) % FONTS.length;
+    amp.style.fontFamily = FONTS[i];
+    // Subtle wiggle: ±3px translate, ±4° rotate, ±5% scale.
+    const tx = (Math.random() * 6 - 3).toFixed(2);
+    const ty = (Math.random() * 6 - 3).toFixed(2);
+    const rot = (Math.random() * 8 - 4).toFixed(2);
+    const scale = (1 + (Math.random() * 0.1 - 0.05)).toFixed(3);
+    amp.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${scale})`;
+  }
+
+  // Wait for fonts to be loaded before cycling, so first frames don't fall back.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => setInterval(tick, FRAME_MS));
+  } else {
+    setInterval(tick, FRAME_MS);
+  }
+})();
+
+/* ============================================================
    Hero countdown — proper flip-clock cards counting down to the
    wedding (Saturday Nov 14, 2026, 5:30pm CST / UTC-6).
 
