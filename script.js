@@ -100,7 +100,29 @@
     setStatus(submitStatus, 'Submitting your RSVP…', '');
 
     try {
-      await submitRsvp(submission);
+      const result = await submitRsvp(submission);
+
+      if (result && result.error === 'duplicate') {
+        const who = result.alreadySubmittedFor || 'someone in your household';
+        setStatus(
+          submitStatus,
+          `It looks like an RSVP for ${who} has already been submitted. If you need to change your response, please email us at hello@mikeandxan.com and we'll take care of it.`,
+          'error'
+        );
+        return;
+      }
+
+      if (!result || !result.ok) {
+        setStatus(
+          submitStatus,
+          (result && result.error)
+            ? `Submission failed: ${result.error}. Please email hello@mikeandxan.com if it keeps happening.`
+            : "Submission failed — please try again, or email hello@mikeandxan.com.",
+          'error'
+        );
+        return;
+      }
+
       stepConfirm.hidden = true;
       stepThanks.hidden = false;
       stepThanks.scrollIntoView({ behavior: 'smooth', block: 'start' });
