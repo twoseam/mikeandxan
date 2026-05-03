@@ -37,6 +37,8 @@
   const submitStatus = document.getElementById('submit-status');
   const householdContainer = document.getElementById('household-members');
   const householdPicker = document.getElementById('household-picker');
+  const editRsvpBtn = document.getElementById('edit-rsvp-btn');
+  const submitBtn = document.getElementById('rsvp-submit-btn');
   const stepFind = form.querySelector('[data-step="1"]');
   const stepPicker = form.querySelector('[data-step="picker"]');
   const stepConfirm = form.querySelector('[data-step="2"]');
@@ -50,6 +52,11 @@
     { value: 'gluten-free', label: 'Gluten Free' },
     { value: 'other', label: 'Other (please specify)' }
   ];
+
+  // Holds the household whose halt screen is showing, so the Edit button
+  // can re-render the form pre-filled with that household's previous answers.
+  let pendingEditHousehold = null;
+  let editingMode = false;
 
   // ---- Lookup step ----
   lookupBtn.addEventListener('click', async () => {
@@ -91,6 +98,19 @@
     }
   });
 
+  // ---- Edit RSVP button on the halt screen ----
+  if (editRsvpBtn) {
+    editRsvpBtn.addEventListener('click', () => {
+      if (!pendingEditHousehold) return;
+      editingMode = true;
+      renderHousehold(pendingEditHousehold, pendingEditHousehold.existing);
+      stepAlready.hidden = true;
+      stepConfirm.hidden = false;
+      if (submitBtn) submitBtn.textContent = 'Update RSVP';
+      stepConfirm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
   // ---- Submit step ----
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -98,7 +118,7 @@
     const submission = collectSubmission();
     if (!submission) return;
 
-    setStatus(submitStatus, 'Submitting your RSVP…', '');
+    setStatus(submitStatus, editingMode ? 'Updating your RSVP…' : 'Submitting your RSVP…', '');
 
     try {
       const result = await submitRsvp(submission);
@@ -125,6 +145,12 @@
       }
 
       stepConfirm.hidden = true;
+      const thanksHeading = stepThanks.querySelector('h3');
+      const thanksBody = stepThanks.querySelector('p');
+      if (editingMode) {
+        if (thanksHeading) thanksHeading.textContent = 'Updated!';
+        if (thanksBody) thanksBody.textContent = "Your RSVP has been updated. Thanks for letting us know.";
+      }
       stepThanks.hidden = false;
       stepThanks.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
@@ -149,9 +175,11 @@
 
   function loadHousehold(household) {
     if (household && household.alreadySubmitted) {
-      showAlreadySubmitted(household.alreadySubmittedFor);
+      showAlreadySubmitted(household);
       return;
     }
+    editingMode = false;
+    if (submitBtn) submitBtn.textContent = 'Submit RSVP';
     renderHousehold(household);
     stepFind.hidden = true;
     stepPicker.hidden = true;
@@ -159,9 +187,10 @@
     stepConfirm.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function showAlreadySubmitted(who) {
+  function showAlreadySubmitted(household) {
+    pendingEditHousehold = household;
     const target = document.getElementById('already-submitted-name');
-    if (target) target.textContent = who || 'someone in your household';
+    if (target) target.textContent = household.alreadySubmittedFor || 'someone in your household';
     stepFind.hidden = true;
     stepPicker.hidden = true;
     stepConfirm.hidden = true;
@@ -175,14 +204,23 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'household-pick-btn';
-      btn.textContent = h.label || h.members.map(m => m.name).join(' & ');
+      const memberLine = h.members.map(m => m.name).join(' & ');
+      btn.textContent = h.address ? `${h.address} — ${memberLine}` : memberLine;
       btn.addEventListener('click', () => loadHousehold(h));
       householdPicker.appendChild(btn);
     });
   }
 
-  function renderHousehold(household) {
+  function renderHousehold(household, existing) {
     householdContainer.innerHTML = '';
+
+    if (household.address) {
+      const heading = document.createElement('p');
+      heading.className = 'household-address';
+      heading.textContent = household.address;
+      householdContainer.appendChild(heading);
+    }
+
     household.members.forEach((member, i) => {
       const memberId = 'm' + i;
       const wrap = document.createElement('div');
@@ -221,6 +259,54 @@
         otherField.classList.toggle('is-shown', select.value === 'other');
       });
     });
+
+    if (existing) {
+      prefillExisting(existing);
+    } else {
+      // Reset household-level fields in case the user came back from a previous render
+      const emailEl = document.getElementById('email');
+      const phoneEl = document.getElementById('phone');
+      const songEl = document.getElementById('song-request');
+      const notesEl = document.getElementById('notes');
+      if (emailEl) emailEl.value = '';
+      if (phoneEl) phoneEl.value = '';
+      if (songEl) songEl.value = '';
+      if (notesEl) notesEl.value = '';
+      form.querySelectorAll('input[name="contact-method"]').forEach(r => { r.checked = false; });
+    }
+  }
+
+  function prefillExisting(existing) {
+    (existing.members || []).forEach((m, i) => {
+      const memberEl = householdContainer.querySelector(`[data-member-index="${i}"]`);
+      if (!memberEl) return;
+      if (m.attending === 'yes' || m.attending === 'no') {
+        const radio = memberEl.querySelector(`input[type="radio"][value="${m.attending}"]`);
+        if (radio) radio.checked = true;
+      }
+      const select = memberEl.querySelector('select');
+      const otherInput = memberEl.querySelector('.dietary-other');
+      if (select && m.dietary) {
+        select.value = m.dietary;
+        if (m.dietary === 'other' && otherInput) {
+          otherInput.value = m.dietaryOther || '';
+          otherInput.classList.add('is-shown');
+        }
+      }
+    });
+
+    const emailEl = document.getElementById('email');
+    const phoneEl = document.getElementById('phone');
+    const songEl = document.getElementById('song-request');
+    const notesEl = document.getElementById('notes');
+    if (emailEl) emailEl.value = existing.email || '';
+    if (phoneEl) phoneEl.value = existing.phone || '';
+    if (songEl) songEl.value = existing.songRequest || '';
+    if (notesEl) notesEl.value = existing.notes || '';
+    if (existing.contactMethod) {
+      const radio = form.querySelector(`input[name="contact-method"][value="${cssAttrEscape(existing.contactMethod)}"]`);
+      if (radio) radio.checked = true;
+    }
   }
 
   function collectSubmission() {
@@ -255,10 +341,32 @@
       return null;
     }
 
+    const email = (document.getElementById('email').value || '').trim();
+    const phone = (document.getElementById('phone').value || '').trim();
+    const contactMethodInput = form.querySelector('input[name="contact-method"]:checked');
+    const contactMethod = contactMethodInput ? contactMethodInput.value : '';
+
+    if (!email) {
+      setStatus(submitStatus, "Please add an email so we can be in touch.", 'error');
+      return null;
+    }
+    if (!contactMethod) {
+      setStatus(submitStatus, "Please choose a preferred contact method.", 'error');
+      return null;
+    }
+    if ((contactMethod === 'Phone call' || contactMethod === 'Text message') && !phone) {
+      setStatus(submitStatus, "Please add a phone number, or choose Email as the preferred contact method.", 'error');
+      return null;
+    }
+
     return {
       members,
+      email,
+      phone,
+      contactMethod,
       songRequest: (document.getElementById('song-request').value || '').trim(),
       notes: (document.getElementById('notes').value || '').trim(),
+      editing: editingMode,
       submittedAt: new Date().toISOString()
     };
   }
@@ -271,6 +379,7 @@
       return {
         households: [{
           label: query + ' (mock household)',
+          address: '123 Mock Street',
           members: [{ name: query }, { name: 'Mock Partner' }]
         }]
       };
@@ -300,6 +409,11 @@
     return String(s).replace(/[&<>"']/g, (c) => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
+  }
+
+  function cssAttrEscape(s) {
+    // Escape for use inside a CSS attribute selector value (we wrap in double quotes).
+    return String(s).replace(/(["\\])/g, '\\$1');
   }
 
 })();

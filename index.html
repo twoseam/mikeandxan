@@ -62,10 +62,22 @@
           </div>
 
           <div class="form-step" data-step="2" hidden aria-label="Confirm attendance">
-            <p class="household-label">Your party:</p>
             <div id="household-members"></div>
 
             <fieldset class="form-extras">
+              <label for="email">Email <span class="hint">(required — for confirmation and pre-wedding logistics)</span></label>
+              <input type="email" id="email" name="email" autocomplete="email" required />
+
+              <label for="phone">Phone <span class="hint">(optional)</span></label>
+              <input type="tel" id="phone" name="phone" autocomplete="tel" />
+
+              <fieldset class="contact-method">
+                <legend>Preferred contact method <span class="hint">(required)</span></legend>
+                <label><input type="radio" name="contact-method" value="Email" /> Email</label>
+                <label><input type="radio" name="contact-method" value="Phone call" /> Phone call</label>
+                <label><input type="radio" name="contact-method" value="Text message" /> Text message</label>
+              </fieldset>
+
               <label for="song-request">Song request <span class="hint">(optional)</span></label>
               <input type="text" id="song-request" name="song-request" placeholder="Artist — Song" />
 
@@ -73,14 +85,15 @@
               <textarea id="notes" name="notes" rows="3"></textarea>
             </fieldset>
 
-            <button type="submit" class="btn btn-primary">Submit RSVP</button>
+            <button type="submit" class="btn btn-primary" id="rsvp-submit-btn">Submit RSVP</button>
             <p id="submit-status" class="form-status" role="status" aria-live="polite"></p>
           </div>
 
           <div class="form-step" data-step="already-submitted" hidden aria-label="Already submitted">
             <h3>You've already RSVP'd</h3>
-            <p>It looks like an RSVP for <strong id="already-submitted-name">someone in your household</strong> has already been submitted.</p>
-            <p>If you need to change your response, please email us at <a href="mailto:hello@mikeandxan.com">hello@mikeandxan.com</a> and we'll take care of it.</p>
+            <p>An RSVP for <strong id="already-submitted-name">someone in your household</strong> has already been submitted.</p>
+            <p>If anything's changed, you can update your response below. Or email us at <a href="mailto:hello@mikeandxan.com">hello@mikeandxan.com</a>.</p>
+            <button type="button" id="edit-rsvp-btn" class="btn btn-primary">Edit our RSVP</button>
           </div>
 
           <div class="form-step" data-step="3" hidden aria-label="Thank you">

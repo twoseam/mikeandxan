@@ -296,6 +296,36 @@ p { margin: 0 0 var(--space-sm); }
   margin: var(--space-md) 0 0;
 }
 
+.household-address {
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin: 0 0 var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--color-bg-alt);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.contact-method {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-sm);
+  margin: var(--space-sm) 0;
+  background: #fff;
+}
+.contact-method legend {
+  font-weight: 500;
+  padding: 0 .35rem;
+}
+.contact-method label {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin-right: var(--space-sm);
+  font-weight: 400;
+  cursor: pointer;
+}
+
 /* ---------- Details / FAQ ---------- */
 
 .callout {
