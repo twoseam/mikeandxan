@@ -1,12 +1,13 @@
 /* ============================================================
    Mike & Xan — Wedding Site
-   Frontend JS: nav toggle + RSVP form (no backend wired yet)
+   Frontend JS: nav toggle + RSVP form
    ============================================================ */
 
 (function () {
   'use strict';
 
-  // --- Apps Script endpoint (filled in once we deploy the script) ---
+  // --- Apps Script endpoint ---
+  // Paste the deployment URL here once the Apps Script web app is deployed.
   // Example: 'https://script.google.com/macros/s/AKfyc.../exec'
   const APPS_SCRIPT_URL = '';
 
@@ -20,7 +21,6 @@
       navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
 
-    // Close the menu when a nav link is tapped (so smooth-scroll feels right on mobile)
     primaryNav.addEventListener('click', (e) => {
       if (e.target.tagName === 'A') {
         primaryNav.classList.remove('is-open');
@@ -38,7 +38,9 @@
   const lookupStatus = document.getElementById('lookup-status');
   const submitStatus = document.getElementById('submit-status');
   const householdContainer = document.getElementById('household-members');
+  const householdPicker = document.getElementById('household-picker');
   const stepFind = form.querySelector('[data-step="1"]');
+  const stepPicker = form.querySelector('[data-step="picker"]');
   const stepConfirm = form.querySelector('[data-step="2"]');
   const stepThanks = form.querySelector('[data-step="3"]');
 
@@ -60,8 +62,10 @@
     setStatus(lookupStatus, 'Looking up your invitation…', '');
 
     try {
-      const household = await lookupHousehold(q);
-      if (!household || !household.members || household.members.length === 0) {
+      const result = await lookupHouseholds(q);
+      const households = (result && result.households) || [];
+
+      if (households.length === 0) {
         setStatus(
           lookupStatus,
           "We couldn't find that name. Try your full name as it appears on your invitation, or include a partner's name.",
@@ -70,15 +74,19 @@
         return;
       }
 
-      renderHousehold(household);
-      stepFind.hidden = true;
-      stepConfirm.hidden = false;
-      stepConfirm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (households.length === 1) {
+        loadHousehold(households[0]);
+      } else {
+        renderPicker(households);
+        stepFind.hidden = true;
+        stepPicker.hidden = false;
+        stepPicker.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } catch (err) {
       console.error(err);
       setStatus(
         lookupStatus,
-        "Something went wrong looking up your invitation. Please try again, or contact Mike.",
+        "Something went wrong looking up your invitation. Please try again, or contact Mike & Xan at hello@mikeandxan.com.",
         'error'
       );
     }
@@ -89,7 +97,7 @@
     e.preventDefault();
 
     const submission = collectSubmission();
-    if (!submission) return; // collectSubmission sets its own error
+    if (!submission) return;
 
     setStatus(submitStatus, 'Submitting your RSVP…', '');
 
@@ -102,7 +110,7 @@
       console.error(err);
       setStatus(
         submitStatus,
-        "Something went wrong submitting your RSVP. Please try again, or contact Mike.",
+        "Something went wrong submitting your RSVP. Please try again, or contact Mike & Xan at hello@mikeandxan.com.",
         'error'
       );
     }
@@ -116,6 +124,26 @@
     el.classList.remove('is-error', 'is-ok');
     if (kind === 'error') el.classList.add('is-error');
     if (kind === 'ok') el.classList.add('is-ok');
+  }
+
+  function loadHousehold(household) {
+    renderHousehold(household);
+    stepFind.hidden = true;
+    stepPicker.hidden = true;
+    stepConfirm.hidden = false;
+    stepConfirm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderPicker(households) {
+    householdPicker.innerHTML = '';
+    households.forEach((h) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'household-pick-btn';
+      btn.textContent = h.label || h.members.map(m => m.name).join(' & ');
+      btn.addEventListener('click', () => loadHousehold(h));
+      householdPicker.appendChild(btn);
+    });
   }
 
   function renderHousehold(household) {
@@ -152,7 +180,6 @@
 
       householdContainer.appendChild(wrap);
 
-      // Show/hide the "other" text field when "other" is chosen.
       const select = wrap.querySelector('select');
       const otherField = wrap.querySelector('.dietary-other');
       select.addEventListener('change', () => {
@@ -201,17 +228,16 @@
     };
   }
 
-  // ---- Backend calls (Apps Script — placeholders until deployed) ----
+  // ---- Backend calls (Apps Script) ----
 
-  async function lookupHousehold(query) {
+  async function lookupHouseholds(query) {
     if (!APPS_SCRIPT_URL) {
-      // Backend not wired up yet — return a mock so the form is testable end-to-end.
       console.warn('APPS_SCRIPT_URL not set — using mock household for testing.');
       return {
-        members: [
-          { name: query },
-          { name: query.split(' ').slice(0, -1).join(' ') + ' (partner — placeholder)' }
-        ]
+        households: [{
+          label: query + ' (mock household)',
+          members: [{ name: query }, { name: 'Mock Partner' }]
+        }]
       };
     }
     const url = APPS_SCRIPT_URL + '?action=lookup&name=' + encodeURIComponent(query);
@@ -228,7 +254,7 @@
     }
     const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoid CORS preflight
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'submit', payload: submission })
     });
     if (!res.ok) throw new Error('Submit failed: ' + res.status);

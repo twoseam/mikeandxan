@@ -235,6 +235,30 @@ p { margin: 0 0 var(--space-sm); }
   font-weight: 600;
   margin-bottom: var(--space-sm);
 }
+
+#household-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+.household-pick-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-sm);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.household-pick-btn:hover,
+.household-pick-btn:focus {
+  border-color: var(--color-accent);
+  background: var(--color-bg-alt);
+}
 .household-member {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
