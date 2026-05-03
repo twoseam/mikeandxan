@@ -464,6 +464,36 @@ p { margin: 0 0 var(--space-sm); }
   text-overflow: ellipsis;
   flex: 1;
 }
+.dev-edit-row-deleted {
+  background: #fff0f0;
+  border-color: #f88;
+}
+.dev-edit-row-deleted .dev-edit-row-label {
+  color: #b00;
+  text-decoration: line-through;
+}
+
+.dev-delete-badge {
+  position: absolute;
+  z-index: 10000;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #d62828;
+  color: #fff;
+  font: 700 14px/1 -apple-system, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dev-delete-badge:hover {
+  background: #ff3b30;
+  transform: scale(1.1);
+}
 .household-member {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);

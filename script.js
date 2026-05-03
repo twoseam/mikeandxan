@@ -586,7 +586,8 @@
     /^172\.(1[6-9]|2\d|3[01])\./.test(host);
   if (!isDev) return;
 
-  const edits = new Map(); // element → { originalText, originalHTML }
+  const edits = new Map(); // element → { originalText, originalHTML, originalOuterHTML, isDeleted }
+  const deleteBadges = new Map(); // element → badge DOM node
   let widget = null;
 
   document.addEventListener('click', (e) => {
@@ -613,7 +614,8 @@
       edits.set(el, {
         originalText: el.textContent,
         originalHTML: el.innerHTML,
-        originalOuterHTML: el.outerHTML
+        originalOuterHTML: el.outerHTML,
+        isDeleted: false
       });
     }
     el.contentEditable = 'true';
@@ -628,7 +630,76 @@
     sel.addRange(range);
 
     el.addEventListener('blur', onBlur, { once: true });
+    showDeleteBadge(el);
     showWidget();
+  }
+
+  function showDeleteBadge(el) {
+    if (deleteBadges.has(el)) {
+      positionBadge(el, deleteBadges.get(el));
+      return;
+    }
+    const badge = document.createElement('button');
+    badge.type = 'button';
+    badge.className = 'dev-delete-badge';
+    badge.title = 'Delete this element entirely';
+    badge.textContent = '×';
+    badge.addEventListener('mousedown', (e) => {
+      // Prevent the editable element from losing focus before the click fires.
+      e.preventDefault();
+    });
+    badge.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      deleteElement(el);
+    });
+    document.body.appendChild(badge);
+    deleteBadges.set(el, badge);
+    positionBadge(el, badge);
+  }
+
+  function positionBadge(el, badge) {
+    const rect = el.getBoundingClientRect();
+    badge.style.top = (rect.top + window.scrollY - 12) + 'px';
+    badge.style.left = (rect.right + window.scrollX - 12) + 'px';
+  }
+
+  function repositionAllBadges() {
+    deleteBadges.forEach((badge, el) => {
+      if (!document.contains(el)) {
+        badge.remove();
+        deleteBadges.delete(el);
+      } else {
+        positionBadge(el, badge);
+      }
+    });
+  }
+
+  window.addEventListener('scroll', repositionAllBadges, { passive: true });
+  window.addEventListener('resize', repositionAllBadges, { passive: true });
+
+  function deleteElement(el) {
+    if (!edits.has(el)) {
+      edits.set(el, {
+        originalText: el.textContent,
+        originalHTML: el.innerHTML,
+        originalOuterHTML: el.outerHTML,
+        isDeleted: true
+      });
+    } else {
+      edits.get(el).isDeleted = true;
+    }
+    el.dataset.devDeleted = 'true';
+    el.style.display = 'none';
+    el.contentEditable = 'false';
+    el.classList.remove('dev-editing');
+
+    const badge = deleteBadges.get(el);
+    if (badge) {
+      badge.remove();
+      deleteBadges.delete(el);
+    }
+    updateWidget();
   }
 
   function onBlur(e) {
@@ -636,8 +707,13 @@
     el.classList.remove('dev-editing');
     el.contentEditable = 'false';
     const original = edits.get(el);
-    if (original && el.textContent === original.originalText) {
+    if (original && !original.isDeleted && el.textContent === original.originalText) {
       edits.delete(el);
+      const badge = deleteBadges.get(el);
+      if (badge) {
+        badge.remove();
+        deleteBadges.delete(el);
+      }
     }
     updateWidget();
   }
@@ -677,19 +753,25 @@
     list.innerHTML = '';
     edits.forEach((data, el) => {
       const row = document.createElement('div');
-      row.className = 'dev-edit-row';
+      row.className = 'dev-edit-row' + (data.isDeleted ? ' dev-edit-row-deleted' : '');
 
       const xBtn = document.createElement('button');
       xBtn.type = 'button';
       xBtn.className = 'dev-edit-row-undo';
       xBtn.title = 'Revert this change';
-      xBtn.textContent = '×';
+      xBtn.textContent = '↶';
       xBtn.onclick = () => undoOne(el);
 
       const label = document.createElement('div');
       label.className = 'dev-edit-row-label';
-      label.title = data.originalText.trim() + ' → ' + el.textContent.trim();
-      label.textContent = el.textContent.trim();
+      const preview = data.originalText.trim().slice(0, 60);
+      if (data.isDeleted) {
+        label.title = 'DELETED: ' + data.originalText.trim();
+        label.textContent = 'deleted: ' + preview;
+      } else {
+        label.title = data.originalText.trim() + ' → ' + el.textContent.trim();
+        label.textContent = el.textContent.trim();
+      }
 
       row.appendChild(xBtn);
       row.appendChild(label);
@@ -701,10 +783,20 @@
   function undoOne(el) {
     const data = edits.get(el);
     if (!data) return;
-    el.innerHTML = data.originalHTML;
+    if (data.isDeleted) {
+      el.style.display = '';
+      delete el.dataset.devDeleted;
+    } else {
+      el.innerHTML = data.originalHTML;
+    }
     el.contentEditable = 'false';
     el.classList.remove('dev-editing');
     edits.delete(el);
+    const badge = deleteBadges.get(el);
+    if (badge) {
+      badge.remove();
+      deleteBadges.delete(el);
+    }
     updateWidget();
   }
 
@@ -741,7 +833,7 @@
     edits.forEach((data, el) => {
       payload.edits.push({
         originalOuterHTML: data.originalOuterHTML,
-        newOuterHTML: el.outerHTML
+        newOuterHTML: data.isDeleted ? '' : el.outerHTML
       });
       editList.push({ el, data });
     });
@@ -834,11 +926,18 @@
     }
     if (!skipConfirm && !confirm('Undo all ' + edits.size + ' changes?')) return;
     edits.forEach((data, el) => {
-      el.innerHTML = data.originalHTML;
+      if (data.isDeleted) {
+        el.style.display = '';
+        delete el.dataset.devDeleted;
+      } else {
+        el.innerHTML = data.originalHTML;
+      }
       el.contentEditable = 'false';
       el.classList.remove('dev-editing');
     });
     edits.clear();
+    deleteBadges.forEach((badge) => badge.remove());
+    deleteBadges.clear();
     updateWidget();
     const out = document.getElementById('dev-edit-output');
     if (out) { out.hidden = true; out.innerHTML = ''; }
