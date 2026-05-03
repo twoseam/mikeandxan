@@ -59,6 +59,16 @@
   let editingMode = false;
 
   // ---- Lookup step ----
+  // Pressing Enter inside the lookup field would otherwise submit the whole
+  // form (because there's a type="submit" button further down in the DOM),
+  // which fires the RSVP submit handler before any household is loaded.
+  lookupInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      lookupBtn.click();
+    }
+  });
+
   lookupBtn.addEventListener('click', async () => {
     const q = (lookupInput.value || '').trim();
     if (q.length < 2) {
@@ -114,6 +124,10 @@
   // ---- Submit step ----
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    // Belt-and-suspenders: only run the submit logic when the confirmation
+    // step is actually on screen.
+    if (stepConfirm.hidden) return;
 
     const submission = collectSubmission();
     if (!submission) return;
@@ -213,13 +227,6 @@
 
   function renderHousehold(household, existing) {
     householdContainer.innerHTML = '';
-
-    if (household.address) {
-      const heading = document.createElement('p');
-      heading.className = 'household-address';
-      heading.textContent = household.address;
-      householdContainer.appendChild(heading);
-    }
 
     household.members.forEach((member, i) => {
       const memberId = 'm' + i;
@@ -354,7 +361,7 @@
       setStatus(submitStatus, "Please choose a preferred contact method.", 'error');
       return null;
     }
-    if ((contactMethod === 'Phone call' || contactMethod === 'Text message') && !phone) {
+    if (contactMethod === 'Text message' && !phone) {
       setStatus(submitStatus, "Please add a phone number, or choose Email as the preferred contact method.", 'error');
       return null;
     }
