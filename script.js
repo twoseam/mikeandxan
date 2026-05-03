@@ -57,6 +57,9 @@
   // can re-render the form pre-filled with that household's previous answers.
   let pendingEditHousehold = null;
   let editingMode = false;
+  // Tracks how many times we've shown the multi-match picker. After the
+  // user has been here once and tried again, we offer a "contact us" out.
+  let pickerVisitCount = 0;
 
   // ---- Lookup step ----
   // Pressing Enter inside the lookup field would otherwise submit the whole
@@ -93,6 +96,7 @@
       if (households.length === 1) {
         loadHousehold(households[0]);
       } else {
+        pickerVisitCount++;
         renderPicker(households);
         stepFind.hidden = true;
         stepPicker.hidden = false;
@@ -222,6 +226,30 @@
       btn.addEventListener('click', () => loadHousehold(h));
       householdPicker.appendChild(btn);
     });
+
+    const noneBtn = document.createElement('button');
+    noneBtn.type = 'button';
+    noneBtn.className = 'household-pick-btn picker-back-btn';
+    noneBtn.textContent = 'None of the above — try again';
+    noneBtn.addEventListener('click', backToLookup);
+    householdPicker.appendChild(noneBtn);
+
+    if (pickerVisitCount >= 2) {
+      const contactLink = document.createElement('a');
+      contactLink.className = 'household-pick-btn picker-contact-link';
+      contactLink.href = 'mailto:hello@mikeandxan.com';
+      contactLink.textContent = "Don't see your name? Contact us.";
+      householdPicker.appendChild(contactLink);
+    }
+  }
+
+  function backToLookup() {
+    stepPicker.hidden = true;
+    stepFind.hidden = false;
+    setStatus(lookupStatus, '', '');
+    lookupInput.focus();
+    lookupInput.select();
+    stepFind.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function renderHousehold(household, existing) {

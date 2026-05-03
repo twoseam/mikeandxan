@@ -259,6 +259,16 @@ p { margin: 0 0 var(--space-sm); }
   border-color: var(--color-accent);
   background: var(--color-bg-alt);
 }
+.picker-back-btn,
+.picker-contact-link {
+  margin-top: var(--space-sm);
+  font-style: italic;
+  color: var(--color-muted, #666);
+  text-decoration: none;
+}
+.picker-contact-link {
+  display: block;
+}
 .household-member {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
