@@ -264,7 +264,7 @@
 
       if (member.isPlusOne) {
         wrap.innerHTML = `
-          <div class="member-name">Plus 1?</div>
+          <div class="member-name">Are you bringing a +1?</div>
 
           <div class="attending-toggle">
             <label>
