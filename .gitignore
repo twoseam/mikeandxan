@@ -1,0 +1,19 @@
+# Claude working files — never push to public repo
+Z-Claude/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editor noise
+.vscode/
+.idea/
+*.swp
+
+# Env / secrets (for later when we wire up Vercel/Resend/Sheets)
+.env
+.env.local
+.env.*.local
+
+# Node (if we ever add tooling)
+node_modules/
