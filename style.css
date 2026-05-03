@@ -179,9 +179,9 @@ p { margin: 0 0 var(--space-sm); }
   position: absolute;
   inset: 0;
   z-index: -2;
-  background: url("assets/old-apartment.jpg") center / cover no-repeat;
+  background: url("assets/old-apartment.jpg") center 20% / cover no-repeat;
   filter: grayscale(1) contrast(1.7) brightness(1.05);
-  opacity: .55;
+  opacity: .5;
 }
 .section-hero::after {
   content: "";
@@ -189,6 +189,7 @@ p { margin: 0 0 var(--space-sm); }
   inset: 0;
   z-index: -1;
   background:
+    radial-gradient(ellipse 55% 55% at center, rgba(239, 231, 216, .85) 0%, rgba(239, 231, 216, .35) 60%, rgba(239, 231, 216, 0) 100%),
     radial-gradient(circle, rgba(43, 31, 26, .55) 1px, transparent 1.5px) 0 0 / 4px 4px,
     radial-gradient(circle, rgba(43, 31, 26, .55) 1px, transparent 1.5px) 2px 2px / 4px 4px,
     linear-gradient(rgba(239, 231, 216, .35), rgba(239, 231, 216, .55));
@@ -216,6 +217,8 @@ p { margin: 0 0 var(--space-sm); }
   font-variation-settings: "SOFT" 100, "opsz" 144;
   font-size: clamp(4.0rem, 14.0vw, 6.9rem);
   letter-spacing: -.01em;
+  color: var(--color-bg);
+  text-shadow: 0 1px 0 rgba(43, 31, 26, .25), 0 0 18px rgba(43, 31, 26, .35);
 }
 .hero-amp {
   position: absolute;
