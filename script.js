@@ -1242,26 +1242,235 @@
     widget = null;
   }
 
-  // Floating mobile-preview button — opens current page in a 390x844 popup
-  // so media queries actually fire at phone width (DevTools device mode is more
-  // accurate, but this is one click).
-  const mobileBtn = document.createElement('button');
-  mobileBtn.id = 'dev-mobile-toggle';
-  mobileBtn.type = 'button';
-  mobileBtn.title = 'Open this page at iPhone width (390×844)';
-  mobileBtn.textContent = '📱';
-  Object.assign(mobileBtn.style, {
-    position: 'fixed', right: '16px', bottom: '16px', zIndex: '9999',
-    width: '44px', height: '44px', borderRadius: '50%',
-    border: '0', background: '#fff', fontSize: '22px',
-    boxShadow: '0 4px 12px rgba(0,0,0,.2)', cursor: 'pointer',
-  });
-  mobileBtn.addEventListener('click', () => {
-    window.open(location.href, 'mobile-preview',
-      'width=390,height=844,resizable=yes,scrollbars=yes');
-  });
+  // ---------- Floating dev buttons (mobile preview + palette tool) ----------
+
+  function makeDevBtn(emoji, title, bottom, onClick) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.title = title;
+    b.textContent = emoji;
+    Object.assign(b.style, {
+      position: 'fixed', right: '16px', bottom: bottom + 'px', zIndex: '9999',
+      width: '44px', height: '44px', borderRadius: '50%',
+      border: '0', background: '#fff', fontSize: '22px',
+      boxShadow: '0 4px 12px rgba(0,0,0,.2)', cursor: 'pointer',
+    });
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
-    document.body.appendChild(mobileBtn);
+    document.body.appendChild(makeDevBtn('📱', 'iPhone preview (390×844)', 16, () => {
+      window.open(location.href, 'mobile-preview',
+        'width=390,height=844,resizable=yes,scrollbars=yes');
+    }));
+    document.body.appendChild(makeDevBtn('🎨', 'Palette tool', 70, togglePalettePanel));
   });
+
+  // ---------- Palette tool ----------
+
+  const PALETTE_VARS = [
+    { name: '--color-bg',           label: 'Page background' },
+    { name: '--color-bg-alt',       label: 'Section alt bg' },
+    { name: '--color-text',         label: 'Text' },
+    { name: '--color-muted',        label: 'Muted text' },
+    { name: '--color-accent',       label: 'Accent (primary)' },
+    { name: '--color-accent-hover', label: 'Accent hover' },
+    { name: '--color-border',       label: 'Borders' },
+    { name: '--color-yellow',       label: 'Yellow' },
+    { name: '--color-lavender',     label: 'Lavender' },
+    { name: '--color-cobalt',       label: 'Cobalt' },
+    { name: '--color-sage',         label: 'Sage' },
+  ];
+
+  let palettePanel = null;
+  // Defaults = values at first page load. Last-saved = current source-of-truth from server's POV.
+  const paletteDefaults = {};
+  const paletteLastSaved = {};
+
+  function readVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+  function writeVar(name, value) {
+    document.documentElement.style.setProperty(name, value);
+  }
+  function snapshotPalette() {
+    PALETTE_VARS.forEach((v) => {
+      const cur = readVar(v.name);
+      if (!(v.name in paletteDefaults)) paletteDefaults[v.name] = cur;
+      paletteLastSaved[v.name] = cur;
+    });
+  }
+  function toHex(value) {
+    // Color picker requires #rrggbb. If value is already hex, normalize. Else best-effort.
+    const v = (value || '').trim();
+    if (/^#[0-9a-f]{6}$/i.test(v)) return v.toLowerCase();
+    if (/^#[0-9a-f]{3}$/i.test(v)) {
+      return '#' + v.slice(1).split('').map((c) => c + c).join('').toLowerCase();
+    }
+    // Fallback — let the browser parse via a temp element.
+    const tmp = document.createElement('div');
+    tmp.style.color = v;
+    document.body.appendChild(tmp);
+    const rgb = getComputedStyle(tmp).color;
+    tmp.remove();
+    const m = rgb.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+    if (!m) return '#000000';
+    return '#' + [m[1], m[2], m[3]].map((n) => parseInt(n, 10).toString(16).padStart(2, '0')).join('');
+  }
+
+  function togglePalettePanel() {
+    if (palettePanel) {
+      palettePanel.remove();
+      palettePanel = null;
+      return;
+    }
+    snapshotPalette();
+    palettePanel = buildPalettePanel();
+    document.body.appendChild(palettePanel);
+  }
+
+  function buildPalettePanel() {
+    const panel = document.createElement('div');
+    panel.id = 'dev-palette-panel';
+    Object.assign(panel.style, {
+      position: 'fixed', right: '16px', bottom: '124px',
+      width: '360px', maxHeight: '70vh', overflow: 'auto',
+      background: '#fff', borderRadius: '12px', padding: '12px 14px',
+      boxShadow: '0 12px 36px rgba(0,0,0,.25)', zIndex: '9998',
+      fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+      fontSize: '13px', color: '#1f1f1f',
+    });
+
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:600;';
+    header.innerHTML = '<span>🎨 Palette</span>';
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '×';
+    closeBtn.style.cssText = 'border:0;background:transparent;font-size:20px;cursor:pointer;line-height:1;';
+    closeBtn.onclick = togglePalettePanel;
+    header.appendChild(closeBtn);
+    panel.appendChild(header);
+
+    PALETTE_VARS.forEach((v) => panel.appendChild(buildRow(v)));
+
+    const resetBtn = document.createElement('button');
+    resetBtn.type = 'button';
+    resetBtn.textContent = 'Reset all to defaults';
+    resetBtn.style.cssText = 'width:100%;padding:8px;margin-top:6px;border:1px solid #d0d0d0;border-radius:6px;background:#f6f6f6;cursor:pointer;font-size:12px;';
+    resetBtn.onclick = () => {
+      Object.entries(paletteDefaults).forEach(([k, val]) => {
+        writeVar(k, val);
+        const row = panel.querySelector(`[data-row="${k}"]`);
+        if (row) syncRowInputs(row, val);
+      });
+    };
+    panel.appendChild(resetBtn);
+
+    const note = document.createElement('div');
+    note.style.cssText = 'margin-top:6px;font-size:11px;color:#888;';
+    note.textContent = 'Save writes to style.css. Undo reverts visual only (last saved). Reset reverts visual to first-load defaults.';
+    panel.appendChild(note);
+
+    return panel;
+  }
+
+  function buildRow(v) {
+    const row = document.createElement('div');
+    row.dataset.row = v.name;
+    row.style.cssText = 'display:flex;align-items:center;gap:6px;margin:6px 0;padding:6px;border:1px solid #ececec;border-radius:6px;';
+
+    const cur = readVar(v.name);
+    const hex = toHex(cur);
+
+    const swatch = document.createElement('input');
+    swatch.type = 'color';
+    swatch.value = hex;
+    swatch.style.cssText = 'width:34px;height:34px;border:0;padding:0;background:transparent;cursor:pointer;';
+
+    const labelWrap = document.createElement('div');
+    labelWrap.style.cssText = 'flex:1;min-width:0;';
+    const label = document.createElement('div');
+    label.textContent = v.label;
+    label.style.cssText = 'font-weight:600;font-size:12px;line-height:1.2;';
+    const sub = document.createElement('div');
+    sub.textContent = v.name;
+    sub.style.cssText = 'font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#999;line-height:1.2;';
+    labelWrap.appendChild(label);
+    labelWrap.appendChild(sub);
+
+    const text = document.createElement('input');
+    text.type = 'text';
+    text.value = cur;
+    text.style.cssText = 'width:80px;padding:4px 6px;border:1px solid #d0d0d0;border-radius:4px;font-family:ui-monospace,Menlo,monospace;font-size:11px;';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.textContent = '💾';
+    saveBtn.title = 'Save to style.css';
+    saveBtn.style.cssText = 'border:0;background:transparent;cursor:pointer;font-size:16px;padding:2px;';
+
+    const undoBtn = document.createElement('button');
+    undoBtn.type = 'button';
+    undoBtn.textContent = '↺';
+    undoBtn.title = 'Revert to last saved';
+    undoBtn.style.cssText = 'border:0;background:transparent;cursor:pointer;font-size:16px;padding:2px;';
+
+    swatch.addEventListener('input', () => {
+      writeVar(v.name, swatch.value);
+      text.value = swatch.value;
+    });
+    text.addEventListener('change', () => {
+      writeVar(v.name, text.value);
+      swatch.value = toHex(text.value);
+    });
+    saveBtn.addEventListener('click', async () => {
+      const value = readVar(v.name);
+      saveBtn.disabled = true;
+      saveBtn.textContent = '…';
+      try {
+        const res = await fetch('/dev-save-css', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ edits: [{ name: v.name, value }] }),
+        });
+        const data = await res.json();
+        const r = (data.results || [])[0];
+        if (r && r.ok) {
+          paletteLastSaved[v.name] = value;
+          saveBtn.textContent = '✓';
+          setTimeout(() => { saveBtn.textContent = '💾'; saveBtn.disabled = false; }, 800);
+        } else {
+          saveBtn.textContent = '✗';
+          alert('Save failed: ' + ((r && r.error) || 'unknown'));
+          setTimeout(() => { saveBtn.textContent = '💾'; saveBtn.disabled = false; }, 1200);
+        }
+      } catch (err) {
+        saveBtn.textContent = '✗';
+        alert('Save failed: ' + err.message);
+        setTimeout(() => { saveBtn.textContent = '💾'; saveBtn.disabled = false; }, 1200);
+      }
+    });
+    undoBtn.addEventListener('click', () => {
+      const last = paletteLastSaved[v.name];
+      if (!last) return;
+      writeVar(v.name, last);
+      syncRowInputs(row, last);
+    });
+
+    row.appendChild(swatch);
+    row.appendChild(labelWrap);
+    row.appendChild(text);
+    row.appendChild(saveBtn);
+    row.appendChild(undoBtn);
+    return row;
+  }
+
+  function syncRowInputs(row, value) {
+    const swatch = row.querySelector('input[type="color"]');
+    const text = row.querySelector('input[type="text"]');
+    if (swatch) swatch.value = toHex(value);
+    if (text) text.value = value;
+  }
 
 })();
