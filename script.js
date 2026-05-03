@@ -218,8 +218,7 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'household-pick-btn';
-      const memberLine = h.members.map(m => m.name).join(' & ');
-      btn.textContent = h.address ? `${h.address} — ${memberLine}` : memberLine;
+      btn.textContent = h.members.map(m => m.name).join(' & ');
       btn.addEventListener('click', () => loadHousehold(h));
       householdPicker.appendChild(btn);
     });
@@ -355,6 +354,10 @@
 
     if (!email) {
       setStatus(submitStatus, "Please add an email so we can be in touch.", 'error');
+      return null;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setStatus(submitStatus, "That email doesn't look right — please double-check.", 'error');
       return null;
     }
     if (!contactMethod) {
