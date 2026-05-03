@@ -285,6 +285,7 @@ p { margin: 0 0 var(--space-sm); }
   gap: var(--space-sm);
   justify-content: center;
   flex-wrap: wrap;
+  margin-top: var(--space-md);
 }
 
 /* ---------- Countdown / flip clock ---------- */
