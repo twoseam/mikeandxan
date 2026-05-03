@@ -29,12 +29,16 @@
     '"Carattere", cursive',
   ];
 
+  // Weighted glyph pool — & dominates, "and" / "+" appear occasionally.
+  const GLYPHS = ['&', '&', '&', '&', '&', '&', '&', 'and', '+'];
+
   let i = 0;
   const FRAME_MS = 1000 / 3; // 3fps
 
   function tick() {
     i = (i + 1) % FONTS.length;
     amp.style.fontFamily = FONTS[i];
+    amp.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
     // Subtle wiggle: ±3px translate, ±4° rotate, ±5% scale.
     const tx = (Math.random() * 6 - 3).toFixed(2);
     const ty = (Math.random() * 6 - 3).toFixed(2);
