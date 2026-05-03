@@ -652,6 +652,7 @@
         '<button type="button" id="dev-edit-close" title="Close (keeps edits in DOM)">×</button>' +
       '</div>' +
       '<div class="dev-edit-count">No changes yet</div>' +
+      '<div class="dev-edit-list"></div>' +
       '<div class="dev-edit-actions">' +
         '<button type="button" id="dev-edit-save">Save to file</button>' +
         '<button type="button" id="dev-edit-undo">Undo all</button>' +
@@ -667,11 +668,44 @@
   function updateWidget() {
     if (!widget) return;
     const n = edits.size;
-    const countEl = widget.querySelector('.dev-edit-count');
-    countEl.textContent =
+    widget.querySelector('.dev-edit-count').textContent =
       n === 0 ? 'No changes yet — Cmd-click any text to edit.' :
-      n === 1 ? '1 pending change.' :
-      n + ' pending changes.';
+      n === 1 ? '1 pending change:' :
+      n + ' pending changes:';
+
+    const list = widget.querySelector('.dev-edit-list');
+    list.innerHTML = '';
+    edits.forEach((data, el) => {
+      const row = document.createElement('div');
+      row.className = 'dev-edit-row';
+
+      const xBtn = document.createElement('button');
+      xBtn.type = 'button';
+      xBtn.className = 'dev-edit-row-undo';
+      xBtn.title = 'Revert this change';
+      xBtn.textContent = '×';
+      xBtn.onclick = () => undoOne(el);
+
+      const label = document.createElement('div');
+      label.className = 'dev-edit-row-label';
+      label.title = data.originalText.trim() + ' → ' + el.textContent.trim();
+      label.textContent = el.textContent.trim();
+
+      row.appendChild(xBtn);
+      row.appendChild(label);
+      list.appendChild(row);
+    });
+    list.hidden = n === 0;
+  }
+
+  function undoOne(el) {
+    const data = edits.get(el);
+    if (!data) return;
+    el.innerHTML = data.originalHTML;
+    el.contentEditable = 'false';
+    el.classList.remove('dev-editing');
+    edits.delete(el);
+    updateWidget();
   }
 
   function describePath(el) {
