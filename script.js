@@ -257,40 +257,91 @@
     household.members.forEach((member, i) => {
       const memberId = 'm' + i;
       const wrap = document.createElement('div');
-      wrap.className = 'household-member';
+      wrap.className = 'household-member' + (member.isPlusOne ? ' household-member-plusone' : '');
       wrap.dataset.memberIndex = String(i);
       wrap.dataset.memberName = member.name;
+      if (member.isPlusOne) wrap.dataset.isPlusOne = 'true';
 
-      wrap.innerHTML = `
-        <div class="member-name">${escapeHtml(member.name)}</div>
+      if (member.isPlusOne) {
+        const inviterName = (i > 0 && household.members[i - 1])
+          ? household.members[i - 1].name
+          : 'this guest';
+        wrap.innerHTML = `
+          <div class="member-name">Plus one for ${escapeHtml(inviterName)}</div>
 
-        <div class="attending-toggle">
-          <label>
-            <input type="radio" name="attending-${memberId}" value="yes" />
-            Will attend
-          </label>
-          <label>
-            <input type="radio" name="attending-${memberId}" value="no" />
-            Cannot attend
-          </label>
-        </div>
+          <div class="attending-toggle">
+            <label>
+              <input type="radio" name="bringing-${memberId}" value="yes" />
+              Yes, bringing a +1
+            </label>
+            <label>
+              <input type="radio" name="bringing-${memberId}" value="no" />
+              No, just ${escapeHtml(inviterName)}
+            </label>
+          </div>
 
-        <div class="dietary-row">
-          <label for="dietary-${memberId}">Dietary preference (optional)</label>
-          <select id="dietary-${memberId}" name="dietary-${memberId}">
-            ${DIETARY_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
-          </select>
-          <input type="text" class="dietary-other" id="dietary-other-${memberId}" placeholder="Tell us more (e.g. nut allergy)" />
-        </div>
-      `;
+          <div class="plusone-details" hidden>
+            <label for="plusone-name-${memberId}">+1's name</label>
+            <input type="text" id="plusone-name-${memberId}" class="plusone-name" placeholder="First and last name" />
 
-      householdContainer.appendChild(wrap);
+            <div class="dietary-row">
+              <label for="dietary-${memberId}">Dietary preference (optional)</label>
+              <select id="dietary-${memberId}" name="dietary-${memberId}">
+                ${DIETARY_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
+              </select>
+              <input type="text" class="dietary-other" id="dietary-other-${memberId}" placeholder="Tell us more (e.g. nut allergy)" />
+            </div>
+          </div>
+        `;
 
-      const select = wrap.querySelector('select');
-      const otherField = wrap.querySelector('.dietary-other');
-      select.addEventListener('change', () => {
-        otherField.classList.toggle('is-shown', select.value === 'other');
-      });
+        householdContainer.appendChild(wrap);
+
+        const details = wrap.querySelector('.plusone-details');
+        const bringingRadios = wrap.querySelectorAll(`input[name="bringing-${memberId}"]`);
+        bringingRadios.forEach(r => {
+          r.addEventListener('change', () => {
+            const yes = wrap.querySelector(`input[name="bringing-${memberId}"]:checked`);
+            details.hidden = !(yes && yes.value === 'yes');
+          });
+        });
+
+        const select = wrap.querySelector('select');
+        const otherField = wrap.querySelector('.dietary-other');
+        select.addEventListener('change', () => {
+          otherField.classList.toggle('is-shown', select.value === 'other');
+        });
+      } else {
+        wrap.innerHTML = `
+          <div class="member-name">${escapeHtml(member.name)}</div>
+
+          <div class="attending-toggle">
+            <label>
+              <input type="radio" name="attending-${memberId}" value="yes" />
+              Will attend
+            </label>
+            <label>
+              <input type="radio" name="attending-${memberId}" value="no" />
+              Cannot attend
+            </label>
+          </div>
+
+          <div class="dietary-row">
+            <label for="dietary-${memberId}">Dietary preference (optional)</label>
+            <select id="dietary-${memberId}" name="dietary-${memberId}">
+              ${DIETARY_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
+            </select>
+            <input type="text" class="dietary-other" id="dietary-other-${memberId}" placeholder="Tell us more (e.g. nut allergy)" />
+          </div>
+        `;
+
+        householdContainer.appendChild(wrap);
+
+        const select = wrap.querySelector('select');
+        const otherField = wrap.querySelector('.dietary-other');
+        select.addEventListener('change', () => {
+          otherField.classList.toggle('is-shown', select.value === 'other');
+        });
+      }
     });
 
     if (existing) {
@@ -313,10 +364,25 @@
     (existing.members || []).forEach((m, i) => {
       const memberEl = householdContainer.querySelector(`[data-member-index="${i}"]`);
       if (!memberEl) return;
-      if (m.attending === 'yes' || m.attending === 'no') {
+
+      if (memberEl.dataset.isPlusOne === 'true') {
+        const memberId = 'm' + i;
+        if (m.bringingPlusOne === 'yes' || m.bringingPlusOne === 'no') {
+          const radio = memberEl.querySelector(`input[name="bringing-${memberId}"][value="${m.bringingPlusOne}"]`);
+          if (radio) {
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change'));
+          }
+        }
+        if (m.bringingPlusOne === 'yes' && m.actualName) {
+          const nameInput = memberEl.querySelector('.plusone-name');
+          if (nameInput) nameInput.value = m.actualName;
+        }
+      } else if (m.attending === 'yes' || m.attending === 'no') {
         const radio = memberEl.querySelector(`input[type="radio"][value="${m.attending}"]`);
         if (radio) radio.checked = true;
       }
+
       const select = memberEl.querySelector('select');
       const otherInput = memberEl.querySelector('.dietary-other');
       if (select && m.dietary) {
@@ -351,26 +417,63 @@
 
     const members = [];
     let missingAttending = false;
+    let missingBringing = false;
+    let missingPlusOneName = false;
 
     memberEls.forEach((el) => {
       const i = el.dataset.memberIndex;
       const name = el.dataset.memberName;
-      const attendingInput = el.querySelector(`input[name="attending-m${i}"]:checked`);
+      const isPlusOne = el.dataset.isPlusOne === 'true';
       const dietaryEl = el.querySelector(`#dietary-m${i}`);
       const dietaryOtherEl = el.querySelector(`#dietary-other-m${i}`);
 
-      if (!attendingInput) missingAttending = true;
-
-      members.push({
-        name,
-        attending: attendingInput ? attendingInput.value : null,
-        dietary: dietaryEl ? dietaryEl.value : '',
-        dietaryOther: dietaryOtherEl ? dietaryOtherEl.value.trim() : ''
-      });
+      if (isPlusOne) {
+        const bringingInput = el.querySelector(`input[name="bringing-m${i}"]:checked`);
+        if (!bringingInput) {
+          missingBringing = true;
+          return;
+        }
+        const bringing = bringingInput.value;
+        let actualName = '';
+        if (bringing === 'yes') {
+          const nameInput = el.querySelector('.plusone-name');
+          actualName = nameInput ? nameInput.value.trim() : '';
+          if (!actualName) {
+            missingPlusOneName = true;
+            return;
+          }
+        }
+        members.push({
+          name,
+          isPlusOne: true,
+          bringingPlusOne: bringing,
+          actualName,
+          attending: bringing === 'yes' ? 'yes' : 'no',
+          dietary: bringing === 'yes' && dietaryEl ? dietaryEl.value : '',
+          dietaryOther: bringing === 'yes' && dietaryOtherEl ? dietaryOtherEl.value.trim() : ''
+        });
+      } else {
+        const attendingInput = el.querySelector(`input[name="attending-m${i}"]:checked`);
+        if (!attendingInput) missingAttending = true;
+        members.push({
+          name,
+          attending: attendingInput ? attendingInput.value : null,
+          dietary: dietaryEl ? dietaryEl.value : '',
+          dietaryOther: dietaryOtherEl ? dietaryOtherEl.value.trim() : ''
+        });
+      }
     });
 
     if (missingAttending) {
       setStatus(submitStatus, "Please mark each guest as attending or not attending.", 'error');
+      return null;
+    }
+    if (missingBringing) {
+      setStatus(submitStatus, "Please answer whether you're bringing a plus one.", 'error');
+      return null;
+    }
+    if (missingPlusOneName) {
+      setStatus(submitStatus, "Please add your plus one's name (or change the answer to no).", 'error');
       return null;
     }
 

@@ -598,6 +598,25 @@ p { margin: 0 0 var(--space-sm); }
 }
 .household-member .dietary-other.is-shown { display: block; }
 
+.household-member-plusone {
+  border-style: dashed;
+  background: var(--color-bg-alt, #fafafa);
+}
+.household-member-plusone .member-name {
+  font-style: italic;
+  color: var(--color-muted, #666);
+}
+.plusone-details {
+  margin-top: .5rem;
+  padding-top: .5rem;
+  border-top: 1px dashed var(--color-border);
+}
+.plusone-details .plusone-name {
+  display: block;
+  width: 100%;
+  margin-bottom: .5rem;
+}
+
 .form-extras {
   border: 0;
   padding: 0;
