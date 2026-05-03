@@ -180,6 +180,7 @@ p { margin: 0 0 var(--space-sm); }
   gap: .15em;
   line-height: 1;
   isolation: isolate;
+  margin-bottom: var(--space-md);
 }
 .hero-name {
   position: relative;
