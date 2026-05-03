@@ -23,7 +23,7 @@
   if (!root) return;
 
   const slots = {};
-  ['months', 'days', 'hours', 'minutes'].forEach(unit => {
+  ['months', 'days', 'hours', 'minutes', 'seconds'].forEach(unit => {
     const card = root.querySelector(`.flip-card[data-unit="${unit}"]`);
     if (!card) return;
     slots[unit] = {
@@ -38,9 +38,9 @@
 
   function update() {
     const now = new Date();
-    let months, days, hours, minutes;
+    let months, days, hours, minutes, seconds;
     if (target <= now) {
-      months = days = hours = minutes = 0;
+      months = days = hours = minutes = seconds = 0;
     } else {
       months = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
       if (
@@ -63,12 +63,15 @@
       hours = Math.floor(remaining / (60 * 60 * 1000));
       remaining -= hours * 60 * 60 * 1000;
       minutes = Math.floor(remaining / (60 * 1000));
+      remaining -= minutes * 60 * 1000;
+      seconds = Math.floor(remaining / 1000);
     }
 
     flipTo(slots.months,  months);
     flipTo(slots.days,    days);
     flipTo(slots.hours,   hours);
     flipTo(slots.minutes, minutes);
+    flipTo(slots.seconds, seconds);
   }
 
   function flipTo(slot, value) {
@@ -99,7 +102,7 @@
   }
 
   update();
-  setInterval(update, 30 * 1000);
+  setInterval(update, 1000);
 })();
 
 (function () {
