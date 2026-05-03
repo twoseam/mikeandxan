@@ -567,3 +567,191 @@
   }
 
 })();
+
+/* ============================================================
+   Dev copy-editor — Cmd/Ctrl+Click any text on the page to edit
+   it inline. A small widget in the corner tracks pending changes
+   and lets you copy the diff so the source files can be updated.
+   Only runs on localhost / private LAN — never on the public site.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  const host = window.location.hostname;
+  const isDev =
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    /^192\.168\./.test(host) ||
+    /^10\./.test(host) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+  if (!isDev) return;
+
+  const edits = new Map(); // element → { originalText, originalHTML }
+  let widget = null;
+
+  document.addEventListener('click', (e) => {
+    if (!e.metaKey && !e.ctrlKey) return;
+    const target = e.target;
+    if (!isEditable(target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    makeEditable(target);
+  }, true);
+
+  function isEditable(el) {
+    if (!el || el.nodeType !== 1) return false;
+    const tag = el.tagName;
+    if (['INPUT', 'TEXTAREA', 'SELECT', 'OPTION', 'IMG', 'SVG'].indexOf(tag) !== -1) return false;
+    if (el.closest('#dev-edit-widget')) return false;
+    if (el.isContentEditable) return false;
+    if (!el.textContent || !el.textContent.trim()) return false;
+    return true;
+  }
+
+  function makeEditable(el) {
+    if (!edits.has(el)) {
+      edits.set(el, { originalText: el.textContent, originalHTML: el.innerHTML });
+    }
+    el.contentEditable = 'true';
+    el.classList.add('dev-editing');
+    el.focus();
+
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    el.addEventListener('blur', onBlur, { once: true });
+    showWidget();
+  }
+
+  function onBlur(e) {
+    const el = e.target;
+    el.classList.remove('dev-editing');
+    el.contentEditable = 'false';
+    const original = edits.get(el);
+    if (original && el.textContent === original.originalText) {
+      edits.delete(el);
+    }
+    updateWidget();
+  }
+
+  function showWidget() {
+    if (widget) return updateWidget();
+    widget = document.createElement('div');
+    widget.id = 'dev-edit-widget';
+    widget.innerHTML =
+      '<div class="dev-edit-header">' +
+        '<span>✎ Copy editor</span>' +
+        '<button type="button" id="dev-edit-close" title="Close">×</button>' +
+      '</div>' +
+      '<div class="dev-edit-count">No changes yet</div>' +
+      '<div class="dev-edit-actions">' +
+        '<button type="button" id="dev-edit-save">Save / show changes</button>' +
+        '<button type="button" id="dev-edit-undo">Undo all</button>' +
+      '</div>' +
+      '<div id="dev-edit-output" hidden></div>';
+    document.body.appendChild(widget);
+    document.getElementById('dev-edit-save').onclick = showChanges;
+    document.getElementById('dev-edit-undo').onclick = undoAll;
+    document.getElementById('dev-edit-close').onclick = closeWidget;
+    updateWidget();
+  }
+
+  function updateWidget() {
+    if (!widget) return;
+    const n = edits.size;
+    const countEl = widget.querySelector('.dev-edit-count');
+    countEl.textContent =
+      n === 0 ? 'No changes yet — Cmd-click any text to edit.' :
+      n === 1 ? '1 pending change.' :
+      n + ' pending changes.';
+  }
+
+  function describePath(el) {
+    const parts = [];
+    let cur = el;
+    while (cur && cur !== document.body && parts.length < 5) {
+      let p = cur.tagName.toLowerCase();
+      if (cur.id) {
+        p += '#' + cur.id;
+      } else if (typeof cur.className === 'string') {
+        const cls = cur.className.split(/\s+/)
+          .filter(c => c && !c.startsWith('dev-'))
+          .slice(0, 2)
+          .join('.');
+        if (cls) p += '.' + cls;
+      }
+      parts.unshift(p);
+      cur = cur.parentElement;
+    }
+    return parts.join(' > ');
+  }
+
+  function showChanges() {
+    const out = document.getElementById('dev-edit-output');
+    out.innerHTML = '';
+    if (edits.size === 0) {
+      out.textContent = 'No changes to show.';
+      out.hidden = false;
+      return;
+    }
+
+    const lines = [];
+    let i = 1;
+    edits.forEach((data, el) => {
+      lines.push('=== Change ' + (i++) + ' ===');
+      lines.push('Element: ' + describePath(el));
+      lines.push('Before: ' + data.originalText.trim());
+      lines.push('After:  ' + el.textContent.trim());
+      lines.push('');
+    });
+    const text = lines.join('\n');
+
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.rows = Math.min(20, lines.length + 2);
+    ta.spellcheck = false;
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.textContent = 'Copy to clipboard';
+    copyBtn.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = 'Copied!';
+      } catch {
+        ta.select();
+        document.execCommand('copy');
+        copyBtn.textContent = 'Copied (fallback)';
+      }
+      setTimeout(() => { copyBtn.textContent = 'Copy to clipboard'; }, 1500);
+    };
+
+    out.appendChild(ta);
+    out.appendChild(copyBtn);
+    out.hidden = false;
+  }
+
+  function undoAll() {
+    if (edits.size === 0) return;
+    if (!confirm('Undo all ' + edits.size + ' changes?')) return;
+    edits.forEach((data, el) => {
+      el.innerHTML = data.originalHTML;
+      el.contentEditable = 'false';
+      el.classList.remove('dev-editing');
+    });
+    edits.clear();
+    updateWidget();
+    const out = document.getElementById('dev-edit-output');
+    if (out) { out.hidden = true; out.innerHTML = ''; }
+  }
+
+  function closeWidget() {
+    if (widget) widget.remove();
+    widget = null;
+  }
+
+})();
