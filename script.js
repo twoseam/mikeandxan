@@ -455,3 +455,109 @@
   }
 
 })();
+
+/* ============================================================
+   Email-link popover — globally intercept clicks on any mailto:
+   anchor and offer the user a choice between opening their mail
+   app or copying the address.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  let activePopover = null;
+  let activeOutsideHandler = null;
+
+  document.addEventListener('click', (e) => {
+    const anchor = e.target.closest('a[href^="mailto:"]');
+    if (!anchor) return;
+    if (anchor.closest('.email-popover')) return;
+    e.preventDefault();
+    showEmailMenu(anchor);
+  });
+
+  function showEmailMenu(anchor) {
+    closePopover();
+
+    const email = anchor.getAttribute('href').replace(/^mailto:/i, '').split('?')[0];
+
+    const popover = document.createElement('div');
+    popover.className = 'email-popover';
+
+    const mailtoLink = document.createElement('a');
+    mailtoLink.href = 'mailto:' + email;
+    mailtoLink.className = 'email-popover-option';
+    mailtoLink.textContent = 'Open in email app';
+    mailtoLink.addEventListener('click', () => {
+      // Let the browser handle the mailto. Close after.
+      setTimeout(closePopover, 0);
+    });
+    popover.appendChild(mailtoLink);
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'email-popover-option';
+    copyBtn.textContent = 'Copy address (' + email + ')';
+    copyBtn.addEventListener('click', async () => {
+      const ok = await copyToClipboard(email);
+      copyBtn.textContent = ok ? 'Copied!' : 'Copy failed — ' + email;
+      if (ok) setTimeout(closePopover, 900);
+    });
+    popover.appendChild(copyBtn);
+
+    document.body.appendChild(popover);
+
+    const rect = anchor.getBoundingClientRect();
+    const popWidth = popover.offsetWidth;
+    let left = rect.left + window.scrollX;
+    if (left + popWidth > window.scrollX + document.documentElement.clientWidth - 8) {
+      left = window.scrollX + document.documentElement.clientWidth - popWidth - 8;
+    }
+    popover.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+    popover.style.left = Math.max(8, left) + 'px';
+
+    activePopover = popover;
+
+    activeOutsideHandler = (ev) => {
+      if (activePopover && !activePopover.contains(ev.target)) {
+        closePopover();
+      }
+    };
+    setTimeout(() => {
+      document.addEventListener('click', activeOutsideHandler);
+    }, 0);
+  }
+
+  function closePopover() {
+    if (activePopover) {
+      activePopover.remove();
+      activePopover = null;
+    }
+    if (activeOutsideHandler) {
+      document.removeEventListener('click', activeOutsideHandler);
+      activeOutsideHandler = null;
+    }
+  }
+
+  async function copyToClipboard(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (_) { /* fall through to fallback */ }
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (_) {
+      return false;
+    }
+  }
+
+})();
