@@ -263,20 +263,17 @@
       if (member.isPlusOne) wrap.dataset.isPlusOne = 'true';
 
       if (member.isPlusOne) {
-        const inviterName = (i > 0 && household.members[i - 1])
-          ? household.members[i - 1].name
-          : 'this guest';
         wrap.innerHTML = `
-          <div class="member-name">Plus one for ${escapeHtml(inviterName)}</div>
+          <div class="member-name">Plus 1?</div>
 
           <div class="attending-toggle">
             <label>
               <input type="radio" name="bringing-${memberId}" value="yes" />
-              Yes, bringing a +1
+              Yes
             </label>
             <label>
               <input type="radio" name="bringing-${memberId}" value="no" />
-              No, just ${escapeHtml(inviterName)}
+              No
             </label>
           </div>
 
