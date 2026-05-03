@@ -177,7 +177,7 @@ p { margin: 0 0 var(--space-sm); }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .15em;
+  gap: .35em;
   line-height: 1;
   isolation: isolate;
   margin-bottom: calc(var(--space-md) * 1.6);
