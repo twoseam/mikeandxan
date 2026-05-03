@@ -3,6 +3,71 @@
    Frontend JS: nav toggle + RSVP form
    ============================================================ */
 
+/* ============================================================
+   Hero countdown — Months / Days / Hours / Minutes until the
+   wedding (Saturday Nov 14, 2026, 5:30pm Central / CST = UTC-6).
+   ============================================================ */
+(function () {
+  'use strict';
+  const target = new Date('2026-11-14T17:30:00-06:00');
+  const root = document.getElementById('countdown');
+  if (!root) return;
+  const els = {
+    months:  root.querySelector('[data-unit="months"]'),
+    days:    root.querySelector('[data-unit="days"]'),
+    hours:   root.querySelector('[data-unit="hours"]'),
+    minutes: root.querySelector('[data-unit="minutes"]')
+  };
+
+  function update() {
+    const now = new Date();
+    if (target <= now) {
+      setNum(els.months, 0);
+      setNum(els.days, 0);
+      setNum(els.hours, 0);
+      setNum(els.minutes, 0);
+      return;
+    }
+    let months = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
+    if (target.getDate() < now.getDate() ||
+        (target.getDate() === now.getDate() &&
+         (target.getHours() < now.getHours() ||
+          (target.getHours() === now.getHours() && target.getMinutes() < now.getMinutes())))) {
+      months -= 1;
+    }
+    if (months < 0) months = 0;
+
+    const after = new Date(now);
+    after.setMonth(after.getMonth() + months);
+
+    let remainingMs = target - after;
+    const dayMs = 24 * 60 * 60 * 1000;
+    const days = Math.floor(remainingMs / dayMs);
+    remainingMs -= days * dayMs;
+    const hours = Math.floor(remainingMs / (60 * 60 * 1000));
+    remainingMs -= hours * 60 * 60 * 1000;
+    const minutes = Math.floor(remainingMs / (60 * 1000));
+
+    setNum(els.months, months);
+    setNum(els.days, days);
+    setNum(els.hours, hours);
+    setNum(els.minutes, minutes);
+  }
+
+  function setNum(el, value) {
+    if (!el) return;
+    const formatted = String(value).padStart(2, '0');
+    if (el.textContent === formatted) return;
+    el.classList.remove('is-flipping');
+    void el.offsetWidth;
+    el.classList.add('is-flipping');
+    el.textContent = formatted;
+  }
+
+  update();
+  setInterval(update, 30 * 1000);
+})();
+
 (function () {
   'use strict';
 

@@ -210,6 +210,66 @@ p { margin: 0 0 var(--space-sm); }
   flex-wrap: wrap;
 }
 
+/* ---------- Countdown ---------- */
+.countdown {
+  display: flex;
+  gap: var(--space-xs);
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: var(--space-sm) 0 var(--space-md);
+}
+.countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #1a1a1a 50%, #0c0c0c 100%);
+  color: #fff;
+  border-radius: 8px;
+  padding: .6rem .9rem .55rem;
+  min-width: 78px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .25), inset 0 1px 0 rgba(255, 255, 255, .04);
+  position: relative;
+}
+.countdown-unit::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 50%;
+  height: 1px;
+  background: rgba(0, 0, 0, .55);
+  pointer-events: none;
+}
+.countdown-num {
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  perspective: 400px;
+  transform-style: preserve-3d;
+}
+.countdown-num.is-flipping {
+  animation: countdown-flip .55s ease-in-out;
+}
+@keyframes countdown-flip {
+  0%   { transform: rotateX(0deg);   }
+  50%  { transform: rotateX(-90deg); }
+  100% { transform: rotateX(0deg);   }
+}
+.countdown-label {
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  margin-top: .35rem;
+  color: #9aa0a6;
+}
+@media (max-width: 480px) {
+  .countdown-unit { min-width: 60px; padding: .5rem .55rem .45rem; }
+  .countdown-num  { font-size: 1.6rem; }
+  .countdown-label { font-size: .6rem; letter-spacing: .12em; }
+}
+
 /* ---------- Details sub-blocks ---------- */
 .details-block + .details-block {
   margin-top: var(--space-md);
