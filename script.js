@@ -7,9 +7,7 @@
   'use strict';
 
   // --- Apps Script endpoint ---
-  // Paste the deployment URL here once the Apps Script web app is deployed.
-  // Example: 'https://script.google.com/macros/s/AKfyc.../exec'
-  const APPS_SCRIPT_URL = '';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyMb-WTUEot-fa5LroXVE28lJZ4IWuNvf2-Qz4-UwEfop-vu4D-28GjxmIVjiXBo5vJJg/exec';
 
   // --- Mobile nav toggle ---
   const navToggle = document.querySelector('.nav-toggle');
