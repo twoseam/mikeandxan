@@ -163,12 +163,37 @@ p { margin: 0 0 var(--space-sm); }
 /* ---------- Hero ---------- */
 
 .section-hero {
+  position: relative;
+  isolation: isolate;
   min-height: calc(100vh - var(--header-height));
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: var(--space-md) var(--space-sm);
+  overflow: hidden;
+}
+/* Xerox / halftone hero photo — heavy contrast B&W with a dot screen overlay */
+.section-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url("assets/old-apartment.jpg") center / cover no-repeat;
+  filter: grayscale(1) contrast(1.7) brightness(1.05);
+  opacity: .55;
+}
+.section-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle, rgba(43, 31, 26, .55) 1px, transparent 1.5px) 0 0 / 4px 4px,
+    radial-gradient(circle, rgba(43, 31, 26, .55) 1px, transparent 1.5px) 2px 2px / 4px 4px,
+    linear-gradient(rgba(239, 231, 216, .35), rgba(239, 231, 216, .55));
+  mix-blend-mode: multiply;
+  pointer-events: none;
 }
 .hero-inner { max-width: 640px; display: flex; flex-direction: column; align-items: center; }
 
@@ -189,7 +214,7 @@ p { margin: 0 0 var(--space-sm); }
   font-family: var(--font-display);
   font-weight: 800;
   font-variation-settings: "SOFT" 100, "opsz" 144;
-  font-size: clamp(3.1rem, 10.8vw, 5.3rem);
+  font-size: clamp(4.0rem, 14.0vw, 6.9rem);
   letter-spacing: -.01em;
 }
 .hero-amp {
@@ -201,7 +226,7 @@ p { margin: 0 0 var(--space-sm); }
   justify-content: center;
   font-style: italic;
   font-weight: 700;
-  font-size: clamp(8.2rem, 27.4vw, 13.7rem);
+  font-size: clamp(10.7rem, 35.6vw, 17.8rem);
   line-height: 1;
   color: var(--color-accent);
   pointer-events: none;
@@ -229,7 +254,7 @@ p { margin: 0 0 var(--space-sm); }
   margin: 0;
   padding: .35em .9em;
   font-family: var(--font-mono);
-  font-size: 1.05rem;
+  font-size: .95rem;
   letter-spacing: .01em;
   line-height: 1.3;
   color: var(--color-text);
@@ -242,7 +267,7 @@ p { margin: 0 0 var(--space-sm); }
 }
 .hero-strip.kicker      { transform: rotate(-1.6deg); color: var(--color-accent); margin-bottom: var(--space-sm); }
 .hero-strip.hero-date   { transform: rotate(.9deg); }
-.hero-strip.hero-time   { transform: rotate(-.7deg); font-size: 1.25rem; }
+.hero-strip.hero-time   { transform: rotate(-.7deg); font-size: 1.13rem; }
 .hero-strip.hero-place  { transform: rotate(1.3deg); }
 .hero-note {
   font-size: .9rem;
