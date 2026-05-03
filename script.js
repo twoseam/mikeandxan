@@ -912,9 +912,20 @@
     const payload = { edits: [] };
     const editList = [];
     edits.forEach((data, el) => {
+      let newHTML;
+      if (data.isDeleted) {
+        newHTML = '';
+      } else {
+        // Strip dev-editor artifacts before serializing.
+        el.removeAttribute('contenteditable');
+        el.removeAttribute('spellcheck');
+        el.classList.remove('dev-editing');
+        if (el.classList.length === 0) el.removeAttribute('class');
+        newHTML = el.outerHTML;
+      }
       payload.edits.push({
         originalOuterHTML: data.originalOuterHTML,
-        newOuterHTML: data.isDeleted ? '' : el.outerHTML
+        newOuterHTML: newHTML
       });
       editList.push({ el, data });
     });
