@@ -85,6 +85,10 @@ p { margin: 0 0 var(--space-sm); }
   letter-spacing: -.01em;
   font-variation-settings: "SOFT" 100, "opsz" 144;
 }
+.brand-amp {
+  color: var(--color-accent);
+  font-style: italic;
+}
 
 .nav-toggle {
   display: inline-flex;
