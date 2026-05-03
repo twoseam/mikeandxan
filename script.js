@@ -610,7 +610,11 @@
 
   function makeEditable(el) {
     if (!edits.has(el)) {
-      edits.set(el, { originalText: el.textContent, originalHTML: el.innerHTML });
+      edits.set(el, {
+        originalText: el.textContent,
+        originalHTML: el.innerHTML,
+        originalOuterHTML: el.outerHTML
+      });
     }
     el.contentEditable = 'true';
     el.classList.add('dev-editing');
@@ -645,16 +649,16 @@
     widget.innerHTML =
       '<div class="dev-edit-header">' +
         '<span>✎ Copy editor</span>' +
-        '<button type="button" id="dev-edit-close" title="Close">×</button>' +
+        '<button type="button" id="dev-edit-close" title="Close (keeps edits in DOM)">×</button>' +
       '</div>' +
       '<div class="dev-edit-count">No changes yet</div>' +
       '<div class="dev-edit-actions">' +
-        '<button type="button" id="dev-edit-save">Save / show changes</button>' +
+        '<button type="button" id="dev-edit-save">Save to file</button>' +
         '<button type="button" id="dev-edit-undo">Undo all</button>' +
       '</div>' +
       '<div id="dev-edit-output" hidden></div>';
     document.body.appendChild(widget);
-    document.getElementById('dev-edit-save').onclick = showChanges;
+    document.getElementById('dev-edit-save').onclick = saveChangesToFile;
     document.getElementById('dev-edit-undo').onclick = undoAll;
     document.getElementById('dev-edit-close').onclick = closeWidget;
     updateWidget();
@@ -690,15 +694,92 @@
     return parts.join(' > ');
   }
 
-  function showChanges() {
+  async function saveChangesToFile() {
     const out = document.getElementById('dev-edit-output');
     out.innerHTML = '';
     if (edits.size === 0) {
-      out.textContent = 'No changes to show.';
-      out.hidden = false;
+      renderOutput(out, 'No changes to save.');
       return;
     }
 
+    const payload = { edits: [] };
+    const editList = [];
+    edits.forEach((data, el) => {
+      payload.edits.push({
+        originalOuterHTML: data.originalOuterHTML,
+        newOuterHTML: el.outerHTML
+      });
+      editList.push({ el, data });
+    });
+
+    renderOutput(out, 'Saving…');
+
+    let resp;
+    try {
+      const res = await fetch('/dev-save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      resp = await res.json();
+    } catch (err) {
+      renderOutput(out,
+        'Save failed: ' + err.message + '\n\n' +
+        'Make sure dev-server.py is running (not the basic http.server).\n' +
+        'Run from the project root: python3 dev-server.py\n\n' +
+        showDiffText()
+      );
+      return;
+    }
+
+    const lines = [];
+    const results = (resp && resp.results) || [];
+    let okCount = 0;
+    results.forEach((r, idx) => {
+      if (r.ok) {
+        okCount++;
+        lines.push('✓ Change ' + (idx + 1) + ' written to ' + r.file);
+      } else {
+        lines.push('✗ Change ' + (idx + 1) + ' failed: ' + r.error);
+        if (r.snippet) lines.push('   snippet: ' + r.snippet);
+      }
+    });
+    lines.push('');
+    lines.push(okCount + ' of ' + results.length + ' changes saved.');
+    if (okCount === results.length) {
+      // Clear pending edits since they're all on disk now.
+      edits.clear();
+      updateWidget();
+      lines.push('Refresh the page to see the saved version from disk.');
+    }
+    renderOutput(out, lines.join('\n'));
+  }
+
+  function renderOutput(out, text) {
+    out.innerHTML = '';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'dev-output-close';
+    closeBtn.title = 'Discard all pending changes';
+    closeBtn.textContent = '×';
+    closeBtn.onclick = () => {
+      undoAll(true);
+    };
+    out.appendChild(closeBtn);
+
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.rows = Math.min(20, text.split('\n').length + 2);
+    ta.spellcheck = false;
+    ta.readOnly = true;
+    out.appendChild(ta);
+
+    out.hidden = false;
+  }
+
+  function showDiffText() {
     const lines = [];
     let i = 1;
     edits.forEach((data, el) => {
@@ -708,36 +789,16 @@
       lines.push('After:  ' + el.textContent.trim());
       lines.push('');
     });
-    const text = lines.join('\n');
-
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.rows = Math.min(20, lines.length + 2);
-    ta.spellcheck = false;
-
-    const copyBtn = document.createElement('button');
-    copyBtn.type = 'button';
-    copyBtn.textContent = 'Copy to clipboard';
-    copyBtn.onclick = async () => {
-      try {
-        await navigator.clipboard.writeText(text);
-        copyBtn.textContent = 'Copied!';
-      } catch {
-        ta.select();
-        document.execCommand('copy');
-        copyBtn.textContent = 'Copied (fallback)';
-      }
-      setTimeout(() => { copyBtn.textContent = 'Copy to clipboard'; }, 1500);
-    };
-
-    out.appendChild(ta);
-    out.appendChild(copyBtn);
-    out.hidden = false;
+    return lines.join('\n');
   }
 
-  function undoAll() {
-    if (edits.size === 0) return;
-    if (!confirm('Undo all ' + edits.size + ' changes?')) return;
+  function undoAll(skipConfirm) {
+    if (edits.size === 0) {
+      const out = document.getElementById('dev-edit-output');
+      if (out) { out.hidden = true; out.innerHTML = ''; }
+      return;
+    }
+    if (!skipConfirm && !confirm('Undo all ' + edits.size + ' changes?')) return;
     edits.forEach((data, el) => {
       el.innerHTML = data.originalHTML;
       el.contentEditable = 'false';

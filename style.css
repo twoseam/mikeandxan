@@ -389,6 +389,7 @@ p { margin: 0 0 var(--space-sm); }
   color: #666;
 }
 #dev-edit-output {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -399,9 +400,29 @@ p { margin: 0 0 var(--space-sm); }
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 6px;
+  padding-right: 28px;
   resize: vertical;
   width: 100%;
   box-sizing: border-box;
+}
+.dev-output-close {
+  position: absolute !important;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  color: #b00 !important;
+  border: 1px solid #fcc !important;
+  background: #fff5f5 !important;
+  z-index: 1;
+}
+.dev-output-close:hover {
+  background: #ffe3e3 !important;
+  border-color: #f88 !important;
 }
 .household-member {
   border: 1px solid var(--color-border);
