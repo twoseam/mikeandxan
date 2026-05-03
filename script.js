@@ -40,6 +40,7 @@
   const stepFind = form.querySelector('[data-step="1"]');
   const stepPicker = form.querySelector('[data-step="picker"]');
   const stepConfirm = form.querySelector('[data-step="2"]');
+  const stepAlready = form.querySelector('[data-step="already-submitted"]');
   const stepThanks = form.querySelector('[data-step="3"]');
 
   const DIETARY_OPTIONS = [
@@ -147,11 +148,25 @@
   }
 
   function loadHousehold(household) {
+    if (household && household.alreadySubmitted) {
+      showAlreadySubmitted(household.alreadySubmittedFor);
+      return;
+    }
     renderHousehold(household);
     stepFind.hidden = true;
     stepPicker.hidden = true;
     stepConfirm.hidden = false;
     stepConfirm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function showAlreadySubmitted(who) {
+    const target = document.getElementById('already-submitted-name');
+    if (target) target.textContent = who || 'someone in your household';
+    stepFind.hidden = true;
+    stepPicker.hidden = true;
+    stepConfirm.hidden = true;
+    stepAlready.hidden = false;
+    stepAlready.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function renderPicker(households) {
