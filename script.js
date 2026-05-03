@@ -1242,4 +1242,26 @@
     widget = null;
   }
 
+  // Floating mobile-preview button — opens current page in a 390x844 popup
+  // so media queries actually fire at phone width (DevTools device mode is more
+  // accurate, but this is one click).
+  const mobileBtn = document.createElement('button');
+  mobileBtn.id = 'dev-mobile-toggle';
+  mobileBtn.type = 'button';
+  mobileBtn.title = 'Open this page at iPhone width (390×844)';
+  mobileBtn.textContent = '📱';
+  Object.assign(mobileBtn.style, {
+    position: 'fixed', right: '16px', bottom: '16px', zIndex: '9999',
+    width: '44px', height: '44px', borderRadius: '50%',
+    border: '0', background: '#fff', fontSize: '22px',
+    boxShadow: '0 4px 12px rgba(0,0,0,.2)', cursor: 'pointer',
+  });
+  mobileBtn.addEventListener('click', () => {
+    window.open(location.href, 'mobile-preview',
+      'width=390,height=844,resizable=yes,scrollbars=yes');
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.appendChild(mobileBtn);
+  });
+
 })();
