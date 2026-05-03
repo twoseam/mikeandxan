@@ -180,8 +180,8 @@ p { margin: 0 0 var(--space-sm); }
   inset: 0;
   z-index: -2;
   background: url("assets/old-apartment.jpg") center 20% / cover no-repeat;
-  filter: grayscale(1) contrast(1.7) brightness(1.05);
-  opacity: .5;
+  filter: grayscale(1) contrast(1.9) brightness(1.4);
+  opacity: .45;
 }
 .section-hero::after {
   content: "";
