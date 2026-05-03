@@ -180,8 +180,8 @@ p { margin: 0 0 var(--space-sm); }
   inset: 0;
   z-index: -2;
   background: url("assets/old-apartment-altcrop.jpg") center 20% / cover no-repeat;
-  filter: grayscale(1) contrast(1.9) brightness(1.4);
-  opacity: .45;
+  filter: grayscale(1) contrast(2.3) brightness(1.2);
+  opacity: .55;
 }
 .section-hero::after {
   content: "";
