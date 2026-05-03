@@ -200,7 +200,7 @@ p { margin: 0 0 var(--space-sm); }
   justify-content: center;
   font-style: italic;
   font-weight: 700;
-  font-size: clamp(6rem, 20vw, 10rem);
+  font-size: clamp(7.2rem, 24vw, 12rem);
   line-height: 1;
   color: var(--color-accent);
   pointer-events: none;

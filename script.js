@@ -21,6 +21,12 @@
     '"Bodoni Moda", serif',
     '"Pinyon Script", cursive',
     '"Special Elite", monospace',
+    '"Italianno", cursive',
+    '"Yeseva One", serif',
+    '"Abril Fatface", serif',
+    '"Cormorant Garamond", serif',
+    '"Petit Formal Script", cursive',
+    '"Carattere", cursive',
   ];
 
   let i = 0;
