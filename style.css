@@ -236,6 +236,29 @@ p { margin: 0 0 var(--space-sm); }
   margin-bottom: var(--space-sm);
 }
 
+.lookup-heading {
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+  display: block;
+}
+.lookup-name-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+.lookup-sub-label {
+  display: block;
+  font-size: 0.9em;
+  margin-bottom: 4px;
+  color: var(--color-muted, #666);
+}
+@media (max-width: 480px) {
+  .lookup-name-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
 #household-picker {
   display: flex;
   flex-direction: column;

@@ -31,7 +31,8 @@
   const form = document.getElementById('rsvp-form');
   if (!form) return;
 
-  const lookupInput = document.getElementById('lookup-name');
+  const lookupFirstInput = document.getElementById('lookup-first');
+  const lookupLastInput = document.getElementById('lookup-last');
   const lookupBtn = document.getElementById('lookup-btn');
   const lookupStatus = document.getElementById('lookup-status');
   const submitStatus = document.getElementById('submit-status');
@@ -62,22 +63,26 @@
   let pickerVisitCount = 0;
 
   // ---- Lookup step ----
-  // Pressing Enter inside the lookup field would otherwise submit the whole
-  // form (because there's a type="submit" button further down in the DOM),
-  // which fires the RSVP submit handler before any household is loaded.
-  lookupInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      lookupBtn.click();
-    }
+  // Pressing Enter inside either lookup field would otherwise submit the
+  // whole form (because there's a type="submit" button further down in the
+  // DOM), which fires the RSVP submit handler before any household is loaded.
+  [lookupFirstInput, lookupLastInput].forEach(input => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        lookupBtn.click();
+      }
+    });
   });
 
   lookupBtn.addEventListener('click', async () => {
-    const q = (lookupInput.value || '').trim();
-    if (q.length < 2) {
-      setStatus(lookupStatus, 'Please type your name.', 'error');
+    const first = (lookupFirstInput.value || '').trim();
+    const last = (lookupLastInput.value || '').trim();
+    if (!first || !last) {
+      setStatus(lookupStatus, 'Please enter both your first and last name.', 'error');
       return;
     }
+    const q = first + ' ' + last;
     setStatus(lookupStatus, 'Looking up your invitation…', '');
 
     try {
@@ -247,8 +252,8 @@
     stepPicker.hidden = true;
     stepFind.hidden = false;
     setStatus(lookupStatus, '', '');
-    lookupInput.focus();
-    lookupInput.select();
+    lookupFirstInput.focus();
+    lookupFirstInput.select();
     stepFind.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 

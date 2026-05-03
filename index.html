@@ -50,8 +50,17 @@
         <form id="rsvp-form" class="rsvp-form" novalidate>
 
           <div class="form-step" data-step="1" aria-label="Find your invitation">
-            <label for="lookup-name">Start by typing your first and last name</label>
-            <input type="text" id="lookup-name" name="lookup-name" autocomplete="name" placeholder="e.g. Sarah Smith" />
+            <label class="lookup-heading">Find your invitation by name</label>
+            <div class="lookup-name-fields">
+              <div>
+                <label for="lookup-first" class="lookup-sub-label">First name</label>
+                <input type="text" id="lookup-first" name="lookup-first" autocomplete="given-name" required />
+              </div>
+              <div>
+                <label for="lookup-last" class="lookup-sub-label">Last name</label>
+                <input type="text" id="lookup-last" name="lookup-last" autocomplete="family-name" required />
+              </div>
+            </div>
             <button type="button" id="lookup-btn" class="btn btn-primary">Find my invitation</button>
             <p id="lookup-status" class="form-status" role="status" aria-live="polite"></p>
           </div>
