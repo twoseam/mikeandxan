@@ -146,14 +146,32 @@ p { margin: 0 0 var(--space-sm); }
 /* ---------- Hero ---------- */
 
 .section-hero {
+  position: relative;
   min-height: calc(100vh - var(--header-height));
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: var(--space-md) var(--space-sm);
+  overflow: hidden;
 }
-.hero-inner { max-width: 640px; }
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  background: url("assets/old-apartment.jpg") center/cover no-repeat;
+  z-index: 0;
+}
+.hero-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(250,250,250,.55) 0%, rgba(250,250,250,.75) 65%, rgba(250,250,250,.92) 100%);
+}
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+}
 .kicker {
   text-transform: uppercase;
   letter-spacing: .15em;
