@@ -569,6 +569,87 @@
 })();
 
 /* ============================================================
+   Maps-link popover — clicks on any .maps-link anchor open a
+   small menu offering Apple Maps or Google Maps.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  let activePopover = null;
+  let activeOutsideHandler = null;
+
+  document.addEventListener('click', (e) => {
+    const anchor = e.target.closest('a.maps-link');
+    if (!anchor) return;
+    if (anchor.closest('.maps-popover')) return;
+    e.preventDefault();
+    showMapsMenu(anchor);
+  });
+
+  function showMapsMenu(anchor) {
+    closePopover();
+
+    const query = anchor.getAttribute('data-maps-query') || anchor.textContent.trim();
+    const encoded = encodeURIComponent(query);
+
+    const popover = document.createElement('div');
+    popover.className = 'email-popover maps-popover';
+
+    const apple = document.createElement('a');
+    apple.href = 'https://maps.apple.com/?q=' + encoded;
+    apple.target = '_blank';
+    apple.rel = 'noopener';
+    apple.className = 'email-popover-option';
+    apple.textContent = 'Open in Apple Maps';
+    apple.addEventListener('click', () => setTimeout(closePopover, 0));
+    popover.appendChild(apple);
+
+    const google = document.createElement('a');
+    google.href = 'https://www.google.com/maps/search/?api=1&query=' + encoded;
+    google.target = '_blank';
+    google.rel = 'noopener';
+    google.className = 'email-popover-option';
+    google.textContent = 'Open in Google Maps';
+    google.addEventListener('click', () => setTimeout(closePopover, 0));
+    popover.appendChild(google);
+
+    document.body.appendChild(popover);
+
+    const rect = anchor.getBoundingClientRect();
+    const popWidth = popover.offsetWidth;
+    let left = rect.left + window.scrollX;
+    if (left + popWidth > window.scrollX + document.documentElement.clientWidth - 8) {
+      left = window.scrollX + document.documentElement.clientWidth - popWidth - 8;
+    }
+    popover.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+    popover.style.left = Math.max(8, left) + 'px';
+
+    activePopover = popover;
+
+    activeOutsideHandler = (ev) => {
+      if (activePopover && !activePopover.contains(ev.target)) {
+        closePopover();
+      }
+    };
+    setTimeout(() => {
+      document.addEventListener('click', activeOutsideHandler);
+    }, 0);
+  }
+
+  function closePopover() {
+    if (activePopover) {
+      activePopover.remove();
+      activePopover = null;
+    }
+    if (activeOutsideHandler) {
+      document.removeEventListener('click', activeOutsideHandler);
+      activeOutsideHandler = null;
+    }
+  }
+
+})();
+
+/* ============================================================
    Dev copy-editor — Cmd/Ctrl+Click any text on the page to edit
    it inline. A small widget in the corner tracks pending changes
    and lets you copy the diff so the source files can be updated.
