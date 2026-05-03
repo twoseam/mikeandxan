@@ -105,7 +105,6 @@
         renderPicker(households);
         stepFind.hidden = true;
         stepPicker.hidden = false;
-        stepPicker.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     } catch (err) {
       console.error(err);
@@ -126,7 +125,6 @@
       stepAlready.hidden = true;
       stepConfirm.hidden = false;
       if (submitBtn) submitBtn.textContent = 'Update RSVP';
-      stepConfirm.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
 
@@ -175,7 +173,6 @@
         if (thanksBody) thanksBody.textContent = "Your RSVP has been updated. Thanks for letting us know.";
       }
       stepThanks.hidden = false;
-      stepThanks.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
       console.error(err);
       setStatus(
@@ -207,7 +204,6 @@
     stepFind.hidden = true;
     stepPicker.hidden = true;
     stepConfirm.hidden = false;
-    stepConfirm.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function showAlreadySubmitted(household) {
@@ -218,7 +214,6 @@
     stepPicker.hidden = true;
     stepConfirm.hidden = true;
     stepAlready.hidden = false;
-    stepAlready.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function renderPicker(households) {
@@ -254,7 +249,6 @@
     setStatus(lookupStatus, '', '');
     lookupFirstInput.focus();
     lookupFirstInput.select();
-    stepFind.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function renderHousehold(household, existing) {
