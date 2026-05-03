@@ -210,6 +210,52 @@ p { margin: 0 0 var(--space-sm); }
   flex-wrap: wrap;
 }
 
+/* ---------- Our Story timeline ---------- */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 28px;
+  position: relative;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--color-border);
+}
+.timeline-event {
+  position: relative;
+  margin-bottom: var(--space-md);
+}
+.timeline-event::before {
+  content: '';
+  position: absolute;
+  left: -28px;
+  top: 6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-bg-alt, #fff);
+}
+.timeline-date {
+  font-weight: 600;
+  color: var(--color-accent);
+  font-size: 0.95em;
+  margin-bottom: 0.15rem;
+}
+.timeline-body h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1em;
+}
+.timeline-body p {
+  margin: 0;
+  color: var(--color-muted, #555);
+}
+
 /* ---------- RSVP form ---------- */
 
 .rsvp-form {
