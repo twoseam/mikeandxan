@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mike & Xan — November 14, 2026</title>
+  <meta name="description" content="The wedding of Michael and Alexandria, November 14, 2026 at The Thompson Barn in Lenexa, KS." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <a href="#home" class="brand">Mike &amp; Xan</a>
+
+    <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav id="primary-nav" class="primary-nav" aria-label="Primary">
+      <ul>
+        <li><a href="#rsvp">RSVP</a></li>
+        <li><a href="#details">Details</a></li>
+        <li><a href="#travel">Travel</a></li>
+        <li><a href="#story">Our Story</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+
+    <section id="home" class="section section-hero">
+      <div class="hero-inner">
+        <p class="kicker">We're getting married</p>
+        <h1>Mike &amp; Xan</h1>
+        <p class="hero-date">Saturday, November 14, 2026</p>
+        <p class="hero-place">The Thompson Barn &middot; Lenexa, Kansas</p>
+        <p class="hero-note">Adults-only celebration &middot; no children under 12</p>
+        <a href="#rsvp" class="btn btn-primary">RSVP</a>
+      </div>
+    </section>
+
+    <section id="rsvp" class="section">
+      <div class="section-inner">
+        <h2>RSVP</h2>
+        <p class="section-lede">Please respond by <strong>[RSVP DEADLINE — TBD]</strong>. Adults only — no children under 12.</p>
+
+        <form id="rsvp-form" class="rsvp-form" novalidate>
+
+          <div class="form-step" data-step="1" aria-label="Find your invitation">
+            <label for="lookup-name">Start by typing your first and last name</label>
+            <input type="text" id="lookup-name" name="lookup-name" autocomplete="name" placeholder="e.g. Sarah Smith" />
+            <button type="button" id="lookup-btn" class="btn btn-primary">Find my invitation</button>
+            <p id="lookup-status" class="form-status" role="status" aria-live="polite"></p>
+          </div>
+
+          <div class="form-step" data-step="2" hidden aria-label="Confirm attendance">
+            <p class="household-label">Your party:</p>
+            <div id="household-members"></div>
+
+            <fieldset class="form-extras">
+              <label for="song-request">Song request <span class="hint">(optional)</span></label>
+              <input type="text" id="song-request" name="song-request" placeholder="Artist — Song" />
+
+              <label for="notes">Notes to the couple <span class="hint">(optional — questions, +1 requests, anything we should know)</span></label>
+              <textarea id="notes" name="notes" rows="3"></textarea>
+            </fieldset>
+
+            <button type="submit" class="btn btn-primary">Submit RSVP</button>
+            <p id="submit-status" class="form-status" role="status" aria-live="polite"></p>
+          </div>
+
+          <div class="form-step" data-step="3" hidden aria-label="Thank you">
+            <h3>Thank you!</h3>
+            <p>Your RSVP is in. We can't wait to celebrate with you.</p>
+          </div>
+
+        </form>
+      </div>
+    </section>
+
+    <section id="details" class="section section-alt">
+      <div class="section-inner">
+        <h2>Event Details</h2>
+        <p><strong>Date:</strong> Saturday, November 14, 2026</p>
+        <p><strong>Venue:</strong> The Thompson Barn</p>
+        <p><strong>Address:</strong> [VENUE ADDRESS — TBD]</p>
+        <p><strong>Ceremony:</strong> [CEREMONY TIME — TBD]</p>
+        <p><strong>Reception:</strong> [RECEPTION TIME — TBD]</p>
+        <p><strong>Dress code:</strong> [DRESS CODE — TBD]</p>
+        <p class="callout">This is an adults-only celebration — no children under 12.</p>
+      </div>
+    </section>
+
+    <section id="travel" class="section">
+      <div class="section-inner">
+        <h2>Travel &amp; Accommodations</h2>
+        <p>[TRAVEL CONTENT — TBD: hotel block info, airport, parking, directions.]</p>
+      </div>
+    </section>
+
+    <section id="story" class="section section-alt">
+      <div class="section-inner">
+        <h2>Our Story</h2>
+        <p>[OUR STORY — TBD: how Michael and Alexandria met, the proposal, etc.]</p>
+      </div>
+    </section>
+
+    <section id="faq" class="section">
+      <div class="section-inner">
+        <h2>FAQ</h2>
+
+        <details>
+          <summary>Are kids invited?</summary>
+          <p>No. This is an adults-only celebration — no children under 12. We hope this gives parents a fun night out.</p>
+        </details>
+
+        <details>
+          <summary>What's the dress code?</summary>
+          <p>[DRESS CODE — TBD]</p>
+        </details>
+
+        <details>
+          <summary>Can I bring a +1?</summary>
+          <p>Our guest list is finalized to the names on each invitation. If you'd like to request a +1, please mention it in the "Notes to the couple" field on the RSVP form and we'll be in touch.</p>
+        </details>
+
+        <details>
+          <summary>Where should I stay?</summary>
+          <p>See the Travel section above — [HOTEL BLOCK INFO — TBD].</p>
+        </details>
+
+        <details>
+          <summary>Is there parking at the venue?</summary>
+          <p>[PARKING INFO — TBD]</p>
+        </details>
+      </div>
+    </section>
+
+    <section id="gallery" class="section section-alt">
+      <div class="section-inner">
+        <h2>Gallery</h2>
+        <p class="section-lede">Coming soon — engagement photos, plus a place for guests to share photos from the wedding day.</p>
+        <div class="gallery-grid" aria-hidden="true">
+          <div class="gallery-placeholder"></div>
+          <div class="gallery-placeholder"></div>
+          <div class="gallery-placeholder"></div>
+          <div class="gallery-placeholder"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>Michael &amp; Alexandria &middot; November 14, 2026 &middot; Lenexa, KS</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
