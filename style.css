@@ -173,13 +173,17 @@ p { margin: 0 0 var(--space-sm); }
 .hero-inner { max-width: 640px; }
 
 .hero-title {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .15em;
+  gap: .05em;
   line-height: 1;
+  isolation: isolate;
 }
 .hero-name {
+  position: relative;
+  z-index: 2;
   display: block;
   font-family: var(--font-display);
   font-weight: 800;
@@ -188,13 +192,19 @@ p { margin: 0 0 var(--space-sm); }
   letter-spacing: -.01em;
 }
 .hero-amp {
-  display: inline-block;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-style: italic;
   font-weight: 700;
-  font-size: clamp(3.4rem, 12vw, 5.8rem);
-  line-height: .9;
+  font-size: clamp(11rem, 38vw, 22rem);
+  line-height: 1;
   color: var(--color-accent);
-  /* JS swaps font-family at ~12fps to cycle ampersand styles */
+  pointer-events: none;
+  /* JS swaps font-family at ~3fps to cycle ampersand styles */
   font-family: var(--font-display);
   will-change: transform, font-family;
   transform-origin: center;
