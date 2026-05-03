@@ -193,6 +193,22 @@ p { margin: 0 0 var(--space-sm); }
   color: #fff;
 }
 .btn-primary:hover { background: var(--color-accent-hover); color: #fff; }
+.btn-secondary {
+  background: #fff;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+}
+.btn-secondary:hover {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+  flex-wrap: wrap;
+}
 
 /* ---------- RSVP form ---------- */
 
