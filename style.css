@@ -217,8 +217,6 @@ p { margin: 0 0 var(--space-sm); }
   font-variation-settings: "SOFT" 100, "opsz" 144;
   font-size: clamp(4.0rem, 14.0vw, 6.9rem);
   letter-spacing: -.01em;
-  color: var(--color-bg);
-  text-shadow: 0 1px 0 rgba(43, 31, 26, .25), 0 0 18px rgba(43, 31, 26, .35);
 }
 .hero-amp {
   position: absolute;
