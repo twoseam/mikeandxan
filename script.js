@@ -5,63 +5,99 @@
 
 /* ============================================================
    Hero countdown — Months / Days / Hours / Minutes until the
-   wedding (Saturday Nov 14, 2026, 5:30pm Central / CST = UTC-6).
+   wedding (Saturday Nov 14, 2026, 5:30pm CST / UTC-6).
+
+   Each card has four stacked halves:
+     .flip-static-top    — always shows current top half
+     .flip-static-bottom — shows the OLD bottom until flap-bottom
+                           lands on top of it
+     .flip-flap-top      — overlays the top, flips down 0 → -90
+                           on its bottom hinge (shows OLD)
+     .flip-flap-bottom   — overlays the bottom, flips up 90 → 0
+                           on its top hinge (shows NEW)
    ============================================================ */
 (function () {
   'use strict';
   const target = new Date('2026-11-14T17:30:00-06:00');
   const root = document.getElementById('countdown');
   if (!root) return;
-  const els = {
-    months:  root.querySelector('[data-unit="months"]'),
-    days:    root.querySelector('[data-unit="days"]'),
-    hours:   root.querySelector('[data-unit="hours"]'),
-    minutes: root.querySelector('[data-unit="minutes"]')
-  };
+
+  const cards = {};
+  ['months', 'days', 'hours', 'minutes'].forEach(unit => {
+    const card = root.querySelector(`.flip-card[data-unit="${unit}"]`);
+    if (!card) return;
+    cards[unit] = {
+      card: card,
+      staticTop:    card.querySelector('.flip-static-top span'),
+      staticBottom: card.querySelector('.flip-static-bottom span'),
+      flapTop:      card.querySelector('.flip-flap-top span'),
+      flapBottom:   card.querySelector('.flip-flap-bottom span'),
+      current:      null
+    };
+  });
 
   function update() {
     const now = new Date();
+    let months, days, hours, minutes;
     if (target <= now) {
-      setNum(els.months, 0);
-      setNum(els.days, 0);
-      setNum(els.hours, 0);
-      setNum(els.minutes, 0);
-      return;
-    }
-    let months = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
-    if (target.getDate() < now.getDate() ||
+      months = days = hours = minutes = 0;
+    } else {
+      months = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
+      if (
+        target.getDate() < now.getDate() ||
         (target.getDate() === now.getDate() &&
-         (target.getHours() < now.getHours() ||
-          (target.getHours() === now.getHours() && target.getMinutes() < now.getMinutes())))) {
-      months -= 1;
+          (target.getHours() < now.getHours() ||
+            (target.getHours() === now.getHours() && target.getMinutes() < now.getMinutes())))
+      ) {
+        months -= 1;
+      }
+      if (months < 0) months = 0;
+
+      const after = new Date(now);
+      after.setMonth(after.getMonth() + months);
+
+      let remaining = target - after;
+      const dayMs = 24 * 60 * 60 * 1000;
+      days = Math.floor(remaining / dayMs);
+      remaining -= days * dayMs;
+      hours = Math.floor(remaining / (60 * 60 * 1000));
+      remaining -= hours * 60 * 60 * 1000;
+      minutes = Math.floor(remaining / (60 * 1000));
     }
-    if (months < 0) months = 0;
 
-    const after = new Date(now);
-    after.setMonth(after.getMonth() + months);
-
-    let remainingMs = target - after;
-    const dayMs = 24 * 60 * 60 * 1000;
-    const days = Math.floor(remainingMs / dayMs);
-    remainingMs -= days * dayMs;
-    const hours = Math.floor(remainingMs / (60 * 60 * 1000));
-    remainingMs -= hours * 60 * 60 * 1000;
-    const minutes = Math.floor(remainingMs / (60 * 1000));
-
-    setNum(els.months, months);
-    setNum(els.days, days);
-    setNum(els.hours, hours);
-    setNum(els.minutes, minutes);
+    flipTo(cards.months,  months);
+    flipTo(cards.days,    days);
+    flipTo(cards.hours,   hours);
+    flipTo(cards.minutes, minutes);
   }
 
-  function setNum(el, value) {
-    if (!el) return;
-    const formatted = String(value).padStart(2, '0');
-    if (el.textContent === formatted) return;
-    el.classList.remove('is-flipping');
-    void el.offsetWidth;
-    el.classList.add('is-flipping');
-    el.textContent = formatted;
+  function flipTo(slot, value) {
+    if (!slot) return;
+    const next = String(value).padStart(2, '0');
+
+    if (slot.current === null) {
+      slot.staticTop.textContent = next;
+      slot.staticBottom.textContent = next;
+      slot.current = next;
+      return;
+    }
+    if (slot.current === next) return;
+
+    const prev = slot.current;
+    slot.flapTop.textContent = prev;
+    slot.flapBottom.textContent = next;
+    slot.staticTop.textContent = next;
+
+    slot.card.classList.remove('is-flipping');
+    void slot.card.offsetWidth;
+    slot.card.classList.add('is-flipping');
+
+    setTimeout(() => {
+      slot.staticBottom.textContent = next;
+      slot.card.classList.remove('is-flipping');
+    }, 620);
+
+    slot.current = next;
   }
 
   update();
