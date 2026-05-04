@@ -2275,3 +2275,7 @@ function initParkingMap() {
     });
   }
 }
+
+/* Photo break + heart pin sliders removed once values were locked in.
+   Values now live in the inline `style` of .photo-break.has-heart-eyes
+   in index.html. Restore from git history if re-tuning is needed. */

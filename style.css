@@ -822,28 +822,72 @@ section:not(#home) h2,
 /* ── Heart-eyes overlay (cartoon style, draws in on scroll) ── */
 .has-heart-eyes { overflow: hidden; }
 
-/* The pin layer matches the photo's box exactly (top:-12% / bottom:-12%) and
-   takes the same transform + origin, so hearts inside scale and translate
-   in lockstep with the photo. */
-.heart-pin-layer {
+/* For .has-heart-eyes breaks the photo + hearts share a single fixed-aspect
+   "stage" so the hearts stay pinned to image content as the viewport reshapes.
+   The default ::before/::after photo+halftone are suppressed in favor of
+   real child elements inside the stage. */
+.photo-break.has-heart-eyes::before,
+.photo-break.has-heart-eyes::after {
+  display: none;
+}
+.photo-break-stage {
   position: absolute;
-  top: -12%;
-  left: 0;
-  right: 0;
-  bottom: -12%;
-  z-index: 5;
-  pointer-events: none;
-  transform: translateY(var(--parallax-offset, 0)) scale(var(--break-scale, 1));
-  transform-origin: var(--break-pos, 50% 50%);
+  top: calc(50% + var(--break-pan-y, 0%));
+  left: calc(50% + var(--break-pan-x, 0%));
+  transform: translate(-50%, -50%) translateY(var(--parallax-offset, 0));
+  aspect-ratio: 3 / 4;
+  min-width: calc(100% * var(--break-scale, 1));
+  min-height: calc(100% * var(--break-scale, 1));
+  width: auto;
+  height: auto;
   will-change: transform;
+}
+.photo-break-photo {
+  position: absolute;
+  inset: 0;
+  background: var(--break-img) center / cover no-repeat;
+  filter: grayscale(1) contrast(var(--break-contrast, 1.15)) brightness(1.05);
+  opacity: 0.7;
+}
+.photo-break-halftone {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 55% at center, rgba(239, 231, 216, .85) 0%, rgba(239, 231, 216, .35) 60%, rgba(239, 231, 216, 0) 100%),
+    radial-gradient(circle, rgba(43, 31, 26, .3) 1px, transparent 1.5px) 0 0 / 4px 4px,
+    radial-gradient(circle, rgba(43, 31, 26, .3) 1px, transparent 1.5px) 2px 2px / 4px 4px,
+    linear-gradient(rgba(239, 231, 216, .35), rgba(239, 231, 216, .55));
+  mix-blend-mode: multiply;
+}
+.has-heart-eyes .heart-pin-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform: none;
+}
+.photo-break.has-heart-eyes {
+  --break-pan-x: var(--break-pan-x-d, 0%);
+  --break-pan-y: var(--break-pan-y-d, 0%);
+  --break-scale: var(--break-scale-d, 1);
+}
+@media (max-width: 720px) {
+  .photo-break.has-heart-eyes {
+    --break-pan-x: var(--break-pan-x-m, var(--break-pan-x-d, 0%));
+    --break-pan-y: var(--break-pan-y-m, var(--break-pan-y-d, 0%));
+    --break-scale: var(--break-scale-m, var(--break-scale-d, 1));
+  }
 }
 
 .heart-eye {
   position: absolute;
-  width: 80px;
-  height: 80px;
+  width: var(--heart-base-w, 9%);
+  aspect-ratio: 1;
   pointer-events: none;
   transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(var(--hs, 1));
+}
+@media (max-width: 720px) {
+  .heart-eye { width: var(--heart-base-w-m, 6%); }
 }
 .heart-eye[data-heart="1"] { left: var(--h1x, 26%); top: var(--h1y, 38%); --rot: -7deg; --hs: var(--h1s, 1); }
 .heart-eye[data-heart="2"] { left: var(--h2x, 38%); top: var(--h2y, 38%); --rot:  5deg; --hs: var(--h2s, 1); }
