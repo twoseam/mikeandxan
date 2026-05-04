@@ -490,6 +490,15 @@ section:not(#home) h2,
   padding: calc(var(--space-lg) * 2.8) var(--space-sm);
 }
 
+/* Paper divider for hero (photo) → rsvp (cream) transition */
+#rsvp {
+  margin-top: -42px;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,42 L400,42 L400,12 L370,10 L335,13 L295,11 L255,10 L215,12 L175,10 L135,13 L95,11 L55,10 L20,12 L0,11 Z' fill='%23efe7d8'/><path d='M0,22 L400,22 L400,24 L365,23 L325,25 L280,22 L235,23 L190,25 L145,22 L100,23 L60,25 L25,22 L0,24 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,24 L370,22 L330,25 L290,23 L250,22 L210,25 L170,23 L130,22 L90,25 L50,23 L20,22 L0,24 Z' fill='%23efe7d8'/><path d='M0,32 L400,32 L400,34 L380,32 L345,33 L305,35 L265,32 L225,33 L185,35 L145,32 L105,33 L65,35 L30,32 L0,34 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,34 L370,32 L335,35 L295,33 L255,32 L215,35 L175,33 L135,32 L95,35 L55,33 L20,32 L0,34 Z' fill='%23efe7d8'/></svg>") top left / 100% 42px no-repeat,
+    var(--color-bg);
+  padding-top: calc(var(--space-lg) + 42px);
+}
+
 #faq {
   padding: calc(var(--space-lg) * 2.8) var(--space-sm);
 }
@@ -861,6 +870,26 @@ section:not(#home) h2,
     linear-gradient(rgba(var(--color-bg-rgb), .35), rgba(var(--color-bg-rgb), .55));
   mix-blend-mode: multiply;
   pointer-events: none;
+}
+/* Paper-stack dividers at top + bottom of every photo break */
+.break-divider {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 42px;
+  z-index: 5;
+  pointer-events: none;
+}
+.break-divider-top {
+  top: 0;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,0 L400,0 L400,30 L370,32 L335,29 L295,31 L255,32 L215,30 L175,32 L135,29 L95,31 L55,32 L20,30 L0,31 Z' fill='%23efe7d8'/><path d='M0,18 L25,20 L60,17 L100,19 L145,20 L190,17 L235,19 L280,20 L325,17 L365,19 L400,18 L400,20 L0,20 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,18 L370,20 L330,17 L290,19 L250,20 L210,17 L170,19 L130,20 L90,17 L50,19 L20,20 L0,18 Z' fill='%23efe7d8'/><path d='M0,8 L30,10 L65,7 L105,9 L145,10 L185,7 L225,9 L265,10 L305,7 L345,9 L380,10 L400,8 L400,10 L0,10 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,8 L370,10 L335,7 L295,9 L255,10 L215,7 L175,9 L135,10 L95,7 L55,9 L20,10 L0,8 Z' fill='%23efe7d8'/></svg>") top left / 100% 42px no-repeat;
+}
+.break-divider-bottom {
+  bottom: 0;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,42 L400,42 L400,12 L370,10 L335,13 L295,11 L255,10 L215,12 L175,10 L135,13 L95,11 L55,10 L20,12 L0,11 Z' fill='%23efe7d8'/><path d='M0,22 L400,22 L400,24 L365,23 L325,25 L280,22 L235,23 L190,25 L145,22 L100,23 L60,25 L25,22 L0,24 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,24 L370,22 L330,25 L290,23 L250,22 L210,25 L170,23 L130,22 L90,25 L50,23 L20,22 L0,24 Z' fill='%23efe7d8'/><path d='M0,32 L400,32 L400,34 L380,32 L345,33 L305,35 L265,32 L225,33 L185,35 L145,32 L105,33 L65,35 L30,32 L0,34 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,34 L370,32 L335,35 L295,33 L255,32 L215,35 L175,33 L135,32 L95,35 L55,33 L20,32 L0,34 Z' fill='%23efe7d8'/></svg>") bottom left / 100% 42px no-repeat;
+}
+.photo-break.into-alt > .break-divider-bottom {
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,42 L400,42 L400,12 L370,10 L335,13 L295,11 L255,10 L215,12 L175,10 L135,13 L95,11 L55,10 L20,12 L0,11 Z' fill='%23ddd2bc'/><path d='M0,22 L400,22 L400,24 L365,23 L325,25 L280,22 L235,23 L190,25 L145,22 L100,23 L60,25 L25,22 L0,24 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,24 L370,22 L330,25 L290,23 L250,22 L210,25 L170,23 L130,22 L90,25 L50,23 L20,22 L0,24 Z' fill='%23ddd2bc'/><path d='M0,32 L400,32 L400,34 L380,32 L345,33 L305,35 L265,32 L225,33 L185,35 L145,32 L105,33 L65,35 L30,32 L0,34 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,34 L370,32 L335,35 L295,33 L255,32 L215,35 L175,33 L135,32 L95,35 L55,33 L20,32 L0,34 Z' fill='%23ddd2bc'/></svg>") bottom left / 100% 42px no-repeat;
 }
 @media (max-width: 720px) {
   .photo-break {
@@ -1288,13 +1317,13 @@ section:not(#home) h2,
   .party-grid .party-card:nth-child(8) { order: 9; } /* Jack */
 }
 @media (min-width: 541px) {
-  /* Desktop reorder: Alexandria, Michael / Ron, Jenny / Steve, Francie / Ady, Jack / Sam */
+  /* Desktop reorder: Alexandria, Michael / Steve, Francie / Ron, Jenny / Ady, Jack / Sam */
   .party-grid .party-card:nth-child(1) { order: 1; } /* Alexandria */
   .party-grid .party-card:nth-child(2) { order: 2; } /* Michael */
-  .party-grid .party-card:nth-child(3) { order: 3; } /* Ron */
-  .party-grid .party-card:nth-child(5) { order: 4; } /* Jenny */
-  .party-grid .party-card:nth-child(4) { order: 5; } /* Steve */
-  .party-grid .party-card:nth-child(6) { order: 6; } /* Francie */
+  .party-grid .party-card:nth-child(4) { order: 3; } /* Steve */
+  .party-grid .party-card:nth-child(6) { order: 4; } /* Francie */
+  .party-grid .party-card:nth-child(3) { order: 5; } /* Ron */
+  .party-grid .party-card:nth-child(5) { order: 6; } /* Jenny */
   .party-grid .party-card:nth-child(7) { order: 7; } /* Ady */
   .party-grid .party-card:nth-child(8) { order: 8; } /* Jack */
   .party-grid .party-card:nth-child(9) { order: 9; } /* Sam */
@@ -1765,135 +1794,6 @@ textarea::placeholder {
   transform: scale(1.1);
 }
 
-/* ---------- Timeline CMS panel (localhost only) ---------- */
-
-.cms-edit-btn {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  z-index: 20;
-  background: #c8362c;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 3px 8px;
-  font: 700 11px/1.6 -apple-system, sans-serif;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.timeline-event:hover .cms-edit-btn { opacity: 1; }
-
-.cms-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  z-index: 20000;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 40px 20px;
-  overflow-y: auto;
-}
-.cms-modal {
-  background: #fff;
-  border-radius: 12px;
-  padding: 28px;
-  width: 100%;
-  max-width: 560px;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  color: #111;
-}
-.cms-modal h3 { margin: 0 0 20px; font-size: 16px; }
-.cms-field { margin-bottom: 16px; }
-.cms-field label {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #666;
-  margin-bottom: 6px;
-}
-.cms-field input,
-.cms-field textarea {
-  width: 100%;
-  border: 1.5px solid #ddd;
-  border-radius: 6px;
-  padding: 8px 10px;
-  font-size: 14px;
-  color: #111;
-  box-sizing: border-box;
-  font-family: inherit;
-  transition: border-color 0.15s;
-}
-.cms-field input:focus,
-.cms-field textarea:focus { outline: none; border-color: #c8362c; }
-.cms-field textarea { resize: vertical; min-height: 90px; }
-.cms-photos-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #666;
-  margin-bottom: 10px;
-}
-.cms-photo-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin-bottom: 20px;
-}
-.cms-photo-item {
-  position: relative;
-  cursor: pointer;
-  border-radius: 4px;
-  border: 2px solid transparent;
-  background: #f5f0eb;
-  transition: border-color 0.15s;
-  overflow: visible;
-}
-.cms-photo-item img { width: 100%; display: block; }
-.cms-photo-item.selected { border-color: #c8362c; }
-.cms-photo-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 18px;
-  height: 18px;
-  background: #c8362c;
-  color: #fff;
-  font: 700 11px/18px -apple-system, sans-serif;
-  text-align: center;
-  border-radius: 50%;
-  display: none;
-  z-index: 2;
-}
-.cms-photo-item.selected .cms-photo-badge { display: block; }
-.cms-actions { display: flex; gap: 10px; margin-top: 4px; align-items: center; }
-.cms-save {
-  background: #c8362c;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 20px;
-  font: 700 14px/1 -apple-system, sans-serif;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.cms-save:hover { background: #a82920; }
-.cms-cancel {
-  background: transparent;
-  color: #666;
-  border: 1.5px solid #ddd;
-  border-radius: 6px;
-  padding: 10px 20px;
-  font: 400 14px/1 -apple-system, sans-serif;
-  cursor: pointer;
-}
-.cms-cancel:hover { border-color: #999; color: #333; }
-.cms-status { margin-top: 12px; font-size: 13px; color: #555; min-height: 20px; }
 #household-members {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
