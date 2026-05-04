@@ -559,7 +559,7 @@ section:not(#home) h2,
   z-index: 2;
   display: block;
   font-family: "new-kansas-extraswash-smbold", Georgia, serif;
-  font-weight: 800;
+  font-weight: 600;
   font-style: italic;
   font-size: clamp(4.0rem, 14.0vw, 6.9rem);
   letter-spacing: -.01em;
