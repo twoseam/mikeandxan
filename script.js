@@ -139,17 +139,18 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'auto';
 }());
 
 /* ── Polaroid discovery — probes assets/Polaroid-1.png, 2, 3…
-      until a 404, so adding new files is automatic everywhere. ── */
+      tolerates holes (deleted IDs); stops after 5 consecutive misses. ── */
 var _polaroidCache = null;
 async function getPolaroids() {
   if (_polaroidCache) return _polaroidCache;
   var found = [];
-  for (var i = 1; i <= 99; i++) {
+  var miss = 0;
+  for (var i = 1; i <= 99 && miss < 5; i++) {
     try {
       var res = await fetch('assets/Polaroid-' + i + '.png', { method: 'HEAD' });
-      if (!res.ok) break;
-      found.push('assets/Polaroid-' + i + '.png');
-    } catch (e) { break; }
+      if (res.ok) { found.push('assets/Polaroid-' + i + '.png'); miss = 0; }
+      else { miss++; }
+    } catch (e) { miss++; }
   }
   _polaroidCache = found;
   return found;
@@ -169,45 +170,22 @@ async function getPolaroids() {
   // Curated glyph × font pairs — each tick picks one from the weighted pool.
   // Edit via amp-editor.html (localhost), then paste the PAIRS array here.
   const PAIRS = [
-    { glyph: '&', font: '"DM Serif Display", serif', key: 'dm', weight: 10 },
-    { glyph: '+', font: '"DM Serif Display", serif', key: 'dm' },
-    { glyph: 'and', font: '"DM Serif Display", serif', key: 'dm' },
-    { glyph: 'Plus', font: '"DM Serif Display", serif', key: 'dm' },
-    { glyph: 'with', font: '"DM Serif Display", serif', key: 'dm' },
-    { glyph: 'loves', font: '"DM Serif Display", serif', key: 'dm' },
-    { glyph: 'marries', font: '"DM Serif Display", serif', key: 'dm' },
-    { glyph: 'y', font: '"DM Serif Display", serif', key: 'dm' },
-    { glyph: 'et', font: '"DM Serif Display", serif', key: 'dm' },
-    { glyph: 'e', font: '"DM Serif Display", serif', key: 'dm' },
-    { glyph: '&', font: '"Bodoni Moda", serif', key: 'bodoni', weight: 10 },
-    { glyph: '+', font: '"Bodoni Moda", serif', key: 'bodoni' },
-    { glyph: 'and', font: '"Bodoni Moda", serif', key: 'bodoni' },
-    { glyph: 'Plus', font: '"Bodoni Moda", serif', key: 'bodoni' },
-    { glyph: 'with', font: '"Bodoni Moda", serif', key: 'bodoni' },
-    { glyph: 'loves', font: '"Bodoni Moda", serif', key: 'bodoni' },
-    { glyph: 'marries', font: '"Bodoni Moda", serif', key: 'bodoni' },
-    { glyph: 'y', font: '"Bodoni Moda", serif', key: 'bodoni' },
-    { glyph: 'et', font: '"Bodoni Moda", serif', key: 'bodoni' },
-    { glyph: 'e', font: '"Bodoni Moda", serif', key: 'bodoni' },
-    { glyph: '&', font: '"Yeseva One", serif', key: 'yeseva', weight: 10 },
+    { glyph: '&', font: '"DM Serif Display", serif', key: 'dm' },
     { glyph: '+', font: '"Yeseva One", serif', key: 'yeseva' },
-    { glyph: 'and', font: '"Yeseva One", serif', key: 'yeseva' },
-    { glyph: 'Plus', font: '"Yeseva One", serif', key: 'yeseva' },
-    { glyph: 'with', font: '"Yeseva One", serif', key: 'yeseva' },
-    { glyph: 'loves', font: '"Yeseva One", serif', key: 'yeseva' },
-    { glyph: 'marries', font: '"Yeseva One", serif', key: 'yeseva' },
-    { glyph: 'y', font: '"Yeseva One", serif', key: 'yeseva' },
-    { glyph: 'et', font: '"Yeseva One", serif', key: 'yeseva' },
-    { glyph: 'e', font: '"Yeseva One", serif', key: 'yeseva' },
-    { glyph: '&', font: '"new-kansas-thin", serif', key: 'nk', weight: 10 },
-    { glyph: '+', font: '"new-kansas-thin", serif', key: 'nk' },
-    { glyph: 'and', font: '"new-kansas-thin", serif', key: 'nk' },
-    { glyph: 'Plus', font: '"new-kansas-thin", serif', key: 'nk' },
-    { glyph: 'with', font: '"new-kansas-thin", serif', key: 'nk' },
-    { glyph: 'loves', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: 'and', font: '"DM Serif Display", serif', key: 'dm' },
+    { glyph: 'plus', font: '"DM Serif Display", serif', key: 'dm' },
     { glyph: 'marries', font: '"new-kansas-thin", serif', key: 'nk' },
     { glyph: 'y', font: '"new-kansas-thin", serif', key: 'nk' },
     { glyph: 'et', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: '&', font: '"Bodoni Moda", serif', key: 'bodoni' },
+    { glyph: 'with', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: 'loves', font: '"Bodoni Moda", serif', key: 'bodoni' },
+    { glyph: '&', font: '"Yeseva One", serif', key: 'yeseva' },
+    { glyph: 'e', font: '"Yeseva One", serif', key: 'yeseva' },
+    { glyph: '&', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: '+', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: 'n\'', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: 'hearts', font: '"new-kansas-thin", serif', key: 'nk' },
     { glyph: 'e', font: '"new-kansas-thin", serif', key: 'nk' },
   ];
 
@@ -1763,10 +1741,13 @@ async function getPolaroids() {
   // ── Gallery grid ──
   const grid = document.querySelector('.gallery-grid');
   if (grid) {
+    const photos = Array.from(grid.querySelectorAll('img.polaroid'));
+    const galleryData = photos.map(p => ({ src: p.src, alt: p.alt }));
     grid.addEventListener('click', (e) => {
       const img = e.target.closest('img.polaroid');
       if (!img) return;
-      openLightbox(img.src, img.alt, img.getBoundingClientRect());
+      const idx = photos.indexOf(img);
+      openLightbox(img.src, img.alt, img.getBoundingClientRect(), galleryData, idx);
     });
   }
 
@@ -1869,10 +1850,93 @@ async function getPolaroids() {
     const allPhotos = stackPhotos || [{ src, alt }];
     let currentIdx  = startIdx || 0;
 
-    const bigImg = document.createElement('img');
-    bigImg.src = src;
-    bigImg.alt = alt;
-    overlay.appendChild(bigImg);
+    const stackEl = document.createElement('div');
+    stackEl.className = 'lb-stack';
+    overlay.appendChild(stackEl);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'lb-close';
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeLightbox(); });
+    overlay.appendChild(closeBtn);
+
+    const viewedCards = [];     // oldest→newest; last is current
+    const STACK_CAP   = 6;
+
+    const randRot = () => (Math.random() * 6 - 3).toFixed(2);
+
+    function makeCard(photoSrc, photoAlt) {
+      const img = document.createElement('img');
+      img.src = photoSrc;
+      img.alt = photoAlt;
+      img.className = 'lb-card';
+      const r = randRot();
+      img.dataset.baseRot = r;
+      img.style.setProperty('--rot', r + 'deg');
+      return img;
+    }
+
+    function arrangeStack() {
+      const n = viewedCards.length;
+      viewedCards.forEach((card, i) => {
+        const depth = n - 1 - i; // 0 = top/current
+        const baseRot = parseFloat(card.dataset.baseRot) || 0;
+        if (depth === 0) {
+          card.style.transform = `rotate(${baseRot}deg)`;
+          card.style.opacity   = '1';
+          card.style.zIndex    = String(50 + i);
+        } else {
+          const tx     = depth * 14;
+          const ty     = depth * 8;
+          const extra  = depth * -1.6;
+          const scale  = (1 - depth * 0.04).toFixed(3);
+          const op     = Math.max(0, 1 - depth * 0.18).toFixed(2);
+          card.style.transform = `translate(${tx}px, ${ty}px) rotate(${baseRot + extra}deg) scale(${scale})`;
+          card.style.opacity   = op;
+          card.style.zIndex    = String(50 + i);
+        }
+      });
+      // Trim oldest beyond cap
+      while (viewedCards.length > STACK_CAP) {
+        const old = viewedCards.shift();
+        old.style.opacity = '0';
+        setTimeout(() => old.remove(), 350);
+      }
+    }
+
+    function showPhoto(idx) {
+      currentIdx = idx;
+      const card = makeCard(allPhotos[idx].src, allPhotos[idx].alt);
+      card.classList.add('lb-card-incoming');
+      stackEl.appendChild(card);
+      // Force layout, then settle into position to trigger slide-in
+      requestAnimationFrame(() => {
+        viewedCards.push(card);
+        card.classList.remove('lb-card-incoming');
+        arrangeStack();
+      });
+      overlay.querySelectorAll('.lb-dot').forEach((d, i) => {
+        d.classList.toggle('is-active', i === idx);
+      });
+    }
+
+    // First card — animated from thumb position
+    const firstImg = makeCard(src, alt);
+    stackEl.appendChild(firstImg);
+    viewedCards.push(firstImg);
+
+    // Click on a card → advance
+    stackEl.addEventListener('click', (e) => {
+      const card = e.target.closest('.lb-card');
+      if (!card) return;
+      e.stopPropagation();
+      if (allPhotos.length > 1) {
+        showPhoto((currentIdx + 1) % allPhotos.length);
+      } else {
+        closeLightbox();
+      }
+    });
 
     // Stack navigation (when more than one photo)
     if (allPhotos.length > 1) {
@@ -1900,20 +1964,6 @@ async function getPolaroids() {
       overlay.appendChild(next);
       overlay.appendChild(dots);
 
-      function showPhoto(idx) {
-        currentIdx = idx;
-        bigImg.style.transition = 'opacity 0.15s ease';
-        bigImg.style.opacity = '0';
-        setTimeout(() => {
-          bigImg.src = allPhotos[idx].src;
-          bigImg.alt = allPhotos[idx].alt;
-          bigImg.style.opacity = '1';
-        }, 150);
-        overlay.querySelectorAll('.lb-dot').forEach((d, i) => {
-          d.classList.toggle('is-active', i === idx);
-        });
-      }
-
       prev.addEventListener('click', (e) => {
         e.stopPropagation();
         showPhoto((currentIdx - 1 + allPhotos.length) % allPhotos.length);
@@ -1928,7 +1978,7 @@ async function getPolaroids() {
       overlay.addEventListener('touchstart', (e) => { lbTouchX = e.touches[0].clientX; }, { passive: true });
       overlay.addEventListener('touchend', (e) => {
         const dx = e.changedTouches[0].clientX - lbTouchX;
-        if (Math.abs(dx) < 40) { closeLightbox(); return; }
+        if (Math.abs(dx) < 40) return; // tap → let click handlers run
         showPhoto((currentIdx + (dx < 0 ? 1 : -1) + allPhotos.length) % allPhotos.length);
       }, { passive: true });
 
@@ -1944,7 +1994,7 @@ async function getPolaroids() {
     document.body.style.overflow = 'hidden';
 
     requestAnimationFrame(() => {
-      const imgRect = bigImg.getBoundingClientRect();
+      const imgRect = firstImg.getBoundingClientRect();
       const thumbCx = thumbRect.left + thumbRect.width  / 2;
       const thumbCy = thumbRect.top  + thumbRect.height / 2;
       const imgCx   = imgRect.left   + imgRect.width    / 2;
@@ -1952,19 +2002,24 @@ async function getPolaroids() {
       const tx      = thumbCx - imgCx;
       const ty      = thumbCy - imgCy;
       const scale   = thumbRect.width / imgRect.width;
+      const baseRot = parseFloat(firstImg.dataset.baseRot) || 0;
 
-      bigImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
-      bigImg.style.opacity   = '0';
+      firstImg.style.transition = 'none';
+      firstImg.style.transform  = `translate(${tx}px, ${ty}px) scale(${scale}) rotate(${baseRot}deg)`;
+      firstImg.style.opacity    = '0';
 
       requestAnimationFrame(() => {
-        bigImg.style.transition = 'transform .45s cubic-bezier(0.34, 1.4, 0.64, 1), opacity .2s ease';
-        bigImg.style.transform  = 'translate(0, 0) scale(1)';
-        bigImg.style.opacity    = '1';
+        firstImg.style.transition = 'transform .45s cubic-bezier(0.34, 1.4, 0.64, 1), opacity .2s ease';
+        firstImg.style.transform  = `rotate(${baseRot}deg)`;
+        firstImg.style.opacity    = '1';
         overlay.classList.add('is-open');
       });
     });
 
-    overlay.addEventListener('click', closeLightbox);
+    overlay.addEventListener('click', (e) => {
+      // Close only if clicking the overlay background, not a card or control
+      if (e.target === overlay) closeLightbox();
+    });
     document.addEventListener('keydown', onKey);
   }
 
