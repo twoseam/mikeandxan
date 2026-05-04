@@ -169,7 +169,6 @@ async function getPolaroids() {
   const FONTS = [
     '"DM Serif Display", serif',
     '"Bodoni Moda", serif',
-    '"Special Elite", monospace',
     '"Yeseva One", serif',
     '"new-kansas-thin", serif',
   ];

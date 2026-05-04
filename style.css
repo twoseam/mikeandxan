@@ -584,6 +584,7 @@ section:not(#home) h2,
   pointer-events: none;
   /* JS swaps font-family at ~3fps to cycle ampersand styles */
   font-family: var(--font-display);
+  font-size-adjust: cap-height 0.55;
   will-change: transform, font-family;
   transform-origin: center;
   mix-blend-mode: multiply;
