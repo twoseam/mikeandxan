@@ -5,6 +5,52 @@
 
 if ('scrollRestoration' in history) history.scrollRestoration = 'auto';
 
+/* Wrap every "&" in body text with <span class="amp"> so it renders in
+   DM Serif Display Regular — keeps the brand mark consistent everywhere
+   without hand-wrapping each occurrence in HTML. Skips form fields,
+   script/style/code, and elements that already style their own "&"
+   (.brand-amp, .hero-amp, .amp). */
+(function () {
+  var SKIP_TAGS = { SCRIPT: 1, STYLE: 1, CODE: 1, PRE: 1, INPUT: 1, TEXTAREA: 1, NOSCRIPT: 1 };
+  var SKIP_CLASSES = ['amp', 'brand-amp', 'hero-amp'];
+  function shouldSkipEl(el) {
+    if (!el || el.nodeType !== 1) return false;
+    if (SKIP_TAGS[el.tagName]) return true;
+    var cl = el.classList;
+    if (cl) for (var i = 0; i < SKIP_CLASSES.length; i++) if (cl.contains(SKIP_CLASSES[i])) return true;
+    return false;
+  }
+  function walk(node) {
+    if (node.nodeType === 3) {
+      if (node.nodeValue.indexOf('&') === -1) return;
+      var parent = node.parentElement;
+      for (var p = parent; p; p = p.parentElement) if (shouldSkipEl(p)) return;
+      var parts = node.nodeValue.split(/(&)/);
+      var frag = document.createDocumentFragment();
+      for (var j = 0; j < parts.length; j++) {
+        if (parts[j] === '&') {
+          var span = document.createElement('span');
+          span.className = 'amp';
+          span.textContent = '&';
+          frag.appendChild(span);
+        } else if (parts[j]) {
+          frag.appendChild(document.createTextNode(parts[j]));
+        }
+      }
+      node.parentNode.replaceChild(frag, node);
+      return;
+    }
+    if (node.nodeType !== 1 || shouldSkipEl(node)) return;
+    var kids = Array.prototype.slice.call(node.childNodes);
+    for (var k = 0; k < kids.length; k++) walk(kids[k]);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { walk(document.body); });
+  } else {
+    walk(document.body);
+  }
+}());
+
 /* Toggle a body class once the user scrolls past the hero. Used to:
    - reveal the mobile site-header (hidden until the user starts scrolling)
    - fade out the bouncing scroll-cue arrow */

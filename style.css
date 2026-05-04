@@ -19,8 +19,8 @@
   --space-lg: 4rem;
   --header-height: 60px;
 
-  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Caprasimo", Georgia, "Times New Roman", serif;
   --font-mono: "Special Elite", "Courier Prime", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -109,6 +109,12 @@ p { margin: 0 0 var(--space-sm); }
   color: var(--color-accent);
   font-family: "DM Serif Display", serif;
   -webkit-text-stroke: 0.6px currentColor;
+}
+
+/* Every "&" in body text is auto-wrapped in <span class="amp"> by script.js
+   so it renders in DM Serif Display Regular — matches the brand mark. */
+.amp {
+  font-family: "DM Serif Display", serif;
 }
 
 .nav-toggle {
@@ -1124,34 +1130,42 @@ section:not(#home) h2,
 }
 
 .info-card {
-  border-radius: 3px;
-  padding: calc(var(--space-md) + 28px) var(--space-md) var(--space-md);
+  border-radius: 2px;
+  padding: calc(var(--space-md) + 38px) var(--space-md) var(--space-md) calc(var(--space-md) + 18px);
   position: relative;
-  background: #fff;
-  margin-top: 28px;
+  z-index: 1;
+  margin-top: 38px;
+  background:
+    /* red header stripe (top 3px) */
+    linear-gradient(to bottom, var(--color-accent) 0 3px, transparent 3px) no-repeat,
+    /* vertical red margin line on the left */
+    linear-gradient(to right, transparent 0 14px, rgba(200, 54, 44, 0.55) 14px 15px, transparent 15px) no-repeat,
+    /* subtle ruled lines */
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 27px,
+      rgba(70, 100, 180, 0.18) 27px 28px
+    ),
+    #fefcf6;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 6px 14px rgba(0,0,0,.05);
 }
+.info-cards .info-card:nth-child(1) { transform: rotate(-1.1deg); }
+.info-cards .info-card:nth-child(2) { transform: rotate(0.6deg); }
+.info-cards .info-card:nth-child(3) { transform: rotate(-0.4deg); }
 
-.info-card-badge {
+.info-card-scribble {
   position: absolute;
   top: -28px;
   left: 50%;
-  transform: translateX(-50%);
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--color-bg);
-  border: 1.5px solid var(--color-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  width: 96px;
+  height: auto;
+  pointer-events: none;
+  /* Recolor the dark scribble to tomato red — matches other accent scribbles. */
+  filter: brightness(0) invert(24%) sepia(72%) saturate(1300%) hue-rotate(342deg) brightness(97%) contrast(104%);
 }
-
-.info-card-badge img {
-  width: 70%;
-  height: 70%;
-  object-fit: contain;
-}
+.info-cards .info-card:nth-child(1) .info-card-scribble { transform: translateX(-50%) rotate(-6deg); }
+.info-cards .info-card:nth-child(2) .info-card-scribble { transform: translateX(-50%) rotate(4deg); }
+.info-cards .info-card:nth-child(3) .info-card-scribble { transform: translateX(-50%) rotate(-3deg); }
 
 .info-card-label {
   font-size: .7rem;
@@ -1225,15 +1239,46 @@ section:not(#home) h2,
 }
 
 .party-card {
-  background: #fff;
-  border-radius: 4px;
-  padding: var(--space-md);
+  position: relative;
+  z-index: 1;
+  border-radius: 2px;
+  padding: var(--space-md) var(--space-md) var(--space-md) calc(var(--space-md) + 18px);
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: var(--space-md);
   text-align: left;
+  background:
+    linear-gradient(to bottom, var(--color-accent) 0 3px, transparent 3px) no-repeat,
+    linear-gradient(to right, transparent 0 14px, rgba(200, 54, 44, 0.55) 14px 15px, transparent 15px) no-repeat,
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 27px,
+      rgba(70, 100, 180, 0.18) 27px 28px
+    ),
+    #fefcf6;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 6px 14px rgba(0,0,0,.05);
 }
+.party-grid .party-card:nth-child(5n+1) { transform: rotate(-0.9deg); }
+.party-grid .party-card:nth-child(5n+2) { transform: rotate(0.5deg); }
+.party-grid .party-card:nth-child(5n+3) { transform: rotate(-0.4deg); }
+.party-grid .party-card:nth-child(5n+4) { transform: rotate(0.8deg); }
+.party-grid .party-card:nth-child(5n)   { transform: rotate(-0.6deg); }
+
+.party-card-scribble {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  width: 38px;
+  height: auto;
+  pointer-events: none;
+  filter: brightness(0) invert(24%) sepia(72%) saturate(1300%) hue-rotate(342deg) brightness(97%) contrast(104%);
+  opacity: .7;
+  transform: rotate(-8deg);
+}
+.party-grid .party-card:nth-child(2n) .party-card-scribble { transform: rotate(7deg); }
+.party-grid .party-card:nth-child(3n) .party-card-scribble { transform: rotate(-12deg); }
+.party-grid .party-card:nth-child(1) .party-card-scribble { width: 76px; }
 
 .party-card-photo {
   width: 90px;
