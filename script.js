@@ -138,7 +138,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'auto';
   update();
 }());
 
-/* ── Polaroid discovery — probes assets/Polaroid-1.png, 2, 3…
+/* ── Polaroid discovery — probes assets/Polaroid-1.webp, 2, 3…
       tolerates holes (deleted IDs); stops after 5 consecutive misses. ── */
 var _polaroidCache = null;
 async function getPolaroids() {
@@ -147,8 +147,8 @@ async function getPolaroids() {
   var miss = 0;
   for (var i = 1; i <= 99 && miss < 5; i++) {
     try {
-      var res = await fetch('assets/Polaroid-' + i + '.png', { method: 'HEAD' });
-      if (res.ok) { found.push('assets/Polaroid-' + i + '.png'); miss = 0; }
+      var res = await fetch('assets/Polaroid-' + i + '.webp', { method: 'HEAD' });
+      if (res.ok) { found.push('assets/Polaroid-' + i + '.webp'); miss = 0; }
       else { miss++; }
     } catch (e) { miss++; }
   }
