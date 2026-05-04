@@ -121,18 +121,11 @@ async function getPolaroids() {
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   const FONTS = [
-    '"Fraunces", serif',
     '"Playfair Display", serif',
     '"DM Serif Display", serif',
     '"Bodoni Moda", serif',
-    '"Pinyon Script", cursive',
     '"Special Elite", monospace',
-    '"Italianno", cursive',
     '"Yeseva One", serif',
-    '"Abril Fatface", serif',
-    '"Cormorant Garamond", serif',
-    '"Petit Formal Script", cursive',
-    '"Carattere", cursive',
   ];
 
   // Weighted glyph pool — & dominates, "and" / "+" appear occasionally.
@@ -153,7 +146,9 @@ async function getPolaroids() {
   function tick() {
     i = (i + 1) % FONTS.length;
     amp.style.fontFamily = FONTS[i];
-    amp.textContent = pickGlyph();
+    const g = pickGlyph();
+    amp.textContent = g;
+    amp.dataset.glyph = g === '&' ? 'amp' : g === '+' ? 'plus' : 'and';
     // Subtle wiggle: ±3px translate, ±4° rotate, ±5% scale.
     const tx = (Math.random() * 6 - 3).toFixed(2);
     const ty = (Math.random() * 6 - 3).toFixed(2);

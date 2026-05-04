@@ -108,7 +108,6 @@ p { margin: 0 0 var(--space-sm); }
 .brand-amp {
   color: var(--color-accent);
   font-family: "DM Serif Display", serif;
-  font-style: italic;
   -webkit-text-stroke: 0.6px currentColor;
 }
 
@@ -530,7 +529,6 @@ section:not(#home) h2,
   align-items: center;
   gap: .6em;
   line-height: 1;
-  isolation: isolate;
   margin-bottom: calc(var(--space-md) * 1.6);
 }
 .hero-name {
@@ -554,12 +552,17 @@ section:not(#home) h2,
   font-weight: 700;
   font-size: clamp(10.7rem, 35.6vw, 17.8rem);
   line-height: 1;
+}
+.hero-amp[data-glyph="and"] { font-size: clamp(5.4rem, 18vw, 9rem); }
+.hero-amp[data-glyph="plus"] { font-size: clamp(10.7rem, 35.6vw, 17.8rem); }
+.hero-amp {
   color: var(--color-accent);
   pointer-events: none;
   /* JS swaps font-family at ~3fps to cycle ampersand styles */
   font-family: var(--font-display);
   will-change: transform, font-family;
   transform-origin: center;
+  mix-blend-mode: multiply;
 }
 .visually-hidden {
   position: absolute !important;
