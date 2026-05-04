@@ -1,0 +1,11 @@
+{
+  "name": "Mike & Xan",
+  "short_name": "Mike & Xan",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#efe7d8",
+  "theme_color": "#c8362c",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

@@ -1511,12 +1511,41 @@
   });
 }());
 
-/* ── Random registry polaroid ── */
+/* ── Random polaroids (registry + details) ── */
 (function () {
-  var img = document.getElementById('registry-polaroid');
-  if (!img) return;
-  var n = Math.floor(Math.random() * 15) + 1;
-  var tilt = (Math.random() * 6 - 3).toFixed(1);
-  img.src = 'assets/Polaroid-' + n + '.png';
-  img.style.transform = 'rotate(' + tilt + 'deg)';
+  function randomPolaroid(id) {
+    var img = document.getElementById(id);
+    if (!img) return;
+    var n = Math.floor(Math.random() * 15) + 1;
+    var tilt = (Math.random() * 6 - 3).toFixed(1);
+    img.src = 'assets/Polaroid-' + n + '.png';
+    img.style.transform = 'rotate(' + tilt + 'deg)';
+  }
+  randomPolaroid('registry-polaroid');
+  randomPolaroid('details-polaroid');
 }());
+
+/* ── Canvas favicon + web app icon — DM Serif Display italic & once fonts load ── */
+document.fonts.ready.then(function () {
+  var size = 512;
+  var canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#c8362c';
+  try { ctx.roundRect(0, 0, size, size, size * 0.15); } catch (e) { ctx.rect(0, 0, size, size); }
+  ctx.fill();
+  ctx.fillStyle = '#efe7d8';
+  ctx.strokeStyle = '#efe7d8';
+  ctx.lineWidth = 16;
+  ctx.font = 'italic 400 420px "DM Serif Display", Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('&', size / 2, size * 0.82);
+  ctx.strokeText('&', size / 2, size * 0.82);
+  var png = canvas.toDataURL('image/png');
+  var favicon = document.querySelector('link[rel="icon"]');
+  if (favicon) favicon.href = png;
+  var touch = document.querySelector('link[rel="apple-touch-icon"]');
+  if (touch) touch.href = png;
+});

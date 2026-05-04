@@ -23,6 +23,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,400..900,100;1,9..144,700..900,100&family=Special+Elite&family=Playfair+Display:ital,wght@1,700&family=DM+Serif+Display:ital@1&family=Bodoni+Moda:ital,wght@1,700..900&family=Pinyon+Script&family=Italianno&family=Yeseva+One&family=Abril+Fatface&family=Cormorant+Garamond:ital,wght@1,700&family=Petit+Formal+Script&family=Carattere&display=swap" />
 
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Mike &amp; Xan" />
+  <meta name="theme-color" content="#c8362c" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -58,6 +64,7 @@
           <span class="hero-name">Alexandria</span>
           <span class="visually-hidden">Michael and Alexandria</span>
         </h1>
+        <p class="hero-strip details-datestamp">November 14, 2026 &middot; 5 PM</p>
         <img class="scr scr-hero-hearts" src="assets/Scribbles/scribble-hearts1.svg" aria-hidden="true" data-fixed="1" style="width:280px;--sd:2s;--sco:0.45">
         <div class="countdown" id="countdown" aria-label="Time until the wedding">
           <div class="countdown-unit">
@@ -248,22 +255,32 @@
     <section id="details" class="section">
       <img class="scr scr-red" src="assets/Scribbles/scribble-arrow2.svg" aria-hidden="true" style="top:15%;right:4%;width:70px;transform:rotate(8deg);--sd:2.5s;--sco:0.5">
       <img class="scr" src="assets/Scribbles/scribble-hearts3.svg" aria-hidden="true" style="bottom:20%;left:3%;width:60px;transform:rotate(-12deg);--sd:2.2s;--dd:0.3s;--sco:0.5">
+      <div class="details-polaroid">
+        <img id="details-polaroid" src="" alt="A photo of us" aria-hidden="true">
+      </div>
       <div class="section-inner">
-        <h2>Event Details</h2>
-        <div class="details-block">
-          <p><strong>Date:</strong> Saturday, November 14, 2026</p>
-          <p><strong>Venue:</strong> The Thompson Barn</p>
-          <p><strong>Address:</strong> <a class="maps-link" href="https://www.google.com/maps/search/?api=1&amp;query=11184+Lackman+Rd%2C+Lenexa%2C+KS+66219" data-maps-query="11184 Lackman Rd, Lenexa, KS 66219">11184 Lackman Rd, Lenexa, KS 66219</a></p>
-          <p><strong>Ceremony:</strong> 5:30 pm</p>
-          <p><strong>Reception:</strong>&nbsp;6:30 pm</p>
-          <p><strong>Dress code:</strong>&nbsp;Elevated Casual (<a href="#faq">See FAQ for more info</a>)</p>
-        </div>
+        <div class="details-text">
+          <h2>Event Details</h2>
+          <div class="details-block">
+            <p><strong>Date:</strong> Saturday, November 14, 2026</p>
+            <p><strong>Venue:</strong> The Thompson Barn</p>
+            <p><strong>Address:</strong> <a class="maps-link" href="https://www.google.com/maps/search/?api=1&amp;query=11184+Lackman+Rd%2C+Lenexa%2C+KS+66219" data-maps-query="11184 Lackman Rd, Lenexa, KS 66219">11184 Lackman Rd, Lenexa, KS 66219</a></p>
+            <p><strong>Ceremony:</strong> 5:30 pm</p>
+            <p><strong>Reception:</strong>&nbsp;6:30 pm</p>
+            <p><strong>Dress code:</strong>&nbsp;Elevated Casual (<a href="#faq">See FAQ for more info</a>)</p>
+            <p class="cal-btns-label hero-strip">Add to Calendar</p>
+            <div class="cal-btns">
+              <a class="btn btn-primary" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Michael+%26+Alexandria%27s+Wedding&dates=20261114T230000Z%2F20261115T050000Z&details=Arrive+by+5%3A00+pm+%C2%B7+Ceremony+at+5%3A30+pm+%C2%B7+Reception+at+6%3A30+pm%0A%0ACheck+mikeandxan.com+for+the+latest+details%2C+travel+info%2C+and+updates+as+the+day+approaches.&location=The+Thompson+Barn%2C+11184+Lackman+Rd%2C+Lenexa%2C+KS+66219" target="_blank" rel="noopener">Google Calendar</a>
+              <a class="btn btn-primary" href="assets/wedding.ics" download>iCal / Outlook</a>
+            </div>
+          </div>
 
-        <div class="details-block">
-          <h3>Travel &amp; Accommodations</h3>
-          <p><strong>Hotel block:</strong> [HOTEL BLOCK INFO — TBD]</p>
-          <p><strong>Parking:</strong> [PARKING INFO — TBD]</p>
-          <p><strong>Airport &amp; directions:</strong> [DIRECTIONS — TBD]</p>
+          <div class="details-block">
+            <h3>Travel &amp; Accommodations</h3>
+            <p><strong>Hotel block:</strong> [HOTEL BLOCK INFO — TBD]</p>
+            <p><strong>Parking:</strong> [PARKING INFO — TBD]</p>
+            <p><strong>Airport &amp; directions:</strong> [DIRECTIONS — TBD]</p>
+          </div>
         </div>
       </div>
     </section>

@@ -1,0 +1,14 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Mike & Xan//Wedding 2026//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+SUMMARY:Michael & Alexandria's Wedding
+DTSTART;TZID=America/Chicago:20261114T170000
+DTEND;TZID=America/Chicago:20261114T230000
+LOCATION:The Thompson Barn\, 11184 Lackman Rd\, Lenexa\, KS 66219
+DESCRIPTION:Arrive by 5:00 pm · Ceremony at 5:30 pm · Reception at 6:30 pm\n\nCheck mikeandxan.com for the latest details\, travel info\, and updates as the day approaches.
+URL:https://mikeandxan.com
+END:VEVENT
+END:VCALENDAR
