@@ -666,6 +666,7 @@ section:not(#home) h2,
   .flip-label { font-size: .65rem; letter-spacing: .12em; }
   .section-hero::before {
     background: url("assets/old-apartment-altcrop.jpg") 43% 90% / auto 126% no-repeat;
+    filter: grayscale(1) contrast(2.3) brightness(1.5);
   }
 }
 

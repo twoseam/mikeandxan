@@ -1358,6 +1358,10 @@ async function getPolaroids() {
     else clone.setAttribute('class', clone.className);
     const editBtn = clone.querySelector('.cms-edit-btn');
     if (editBtn) editBtn.remove();
+    // story-accent spans are injected at runtime — strip them back to plain text
+    clone.querySelectorAll('.story-accent').forEach(span => {
+      span.replaceWith(document.createTextNode(span.textContent));
+    });
     const stack = clone.querySelector('.photo-stack');
     if (stack) {
       stack.removeAttribute('data-current');
@@ -1648,14 +1652,26 @@ async function getPolaroids() {
       }
     });
 
-    // Swipe on mobile
-    let touchStartX = 0;
+    // Swipe on mobile — lock axis on first move so horizontal swipes
+    // don't also scroll the page.
+    let touchStartX = 0, touchStartY = 0, swipeAxis = null;
     stack.addEventListener('touchstart', (e) => {
       touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      swipeAxis = null;
     }, { passive: true });
+    stack.addEventListener('touchmove', (e) => {
+      if (swipeAxis === 'v') return;
+      const dx = Math.abs(e.touches[0].clientX - touchStartX);
+      const dy = Math.abs(e.touches[0].clientY - touchStartY);
+      if (dx < 4 && dy < 4) return;
+      if (swipeAxis === null) swipeAxis = dx > dy ? 'h' : 'v';
+      if (swipeAxis === 'h') e.preventDefault();
+    }, { passive: false });
     stack.addEventListener('touchend', (e) => {
       const dx = e.changedTouches[0].clientX - touchStartX;
-      if (Math.abs(dx) < 40) return;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
       const cur = parseInt(stack.dataset.current) || 0;
       const dir = dx < 0 ? 1 : -1;
       showSlide((cur + dir + photos.length) % photos.length);
