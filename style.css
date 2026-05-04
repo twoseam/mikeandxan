@@ -470,10 +470,10 @@ section:not(#home) h2,
   position: relative; z-index: 1; margin-top: -42px;
   background:
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,0 L400,0 L400,30 L370,32 L335,29 L295,31 L255,32 L215,30 L175,32 L135,29 L95,31 L55,32 L20,30 L0,31 Z' fill='%23efe7d8'/><path d='M0,18 L25,20 L60,17 L100,19 L145,20 L190,17 L235,19 L280,20 L325,17 L365,19 L400,18 L400,20 L0,20 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,18 L370,20 L330,17 L290,19 L250,20 L210,17 L170,19 L130,20 L90,17 L50,19 L20,20 L0,18 Z' fill='%23efe7d8'/><path d='M0,8 L30,10 L65,7 L105,9 L145,10 L185,7 L225,9 L265,10 L305,7 L345,9 L380,10 L400,8 L400,10 L0,10 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,8 L370,10 L335,7 L295,9 L255,10 L215,7 L175,9 L135,10 L95,7 L55,9 L20,10 L0,8 Z' fill='%23efe7d8'/></svg>") top left / 100% 42px no-repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,42 L400,42 L400,12 L370,10 L335,13 L295,11 L255,10 L215,12 L175,10 L135,13 L95,11 L55,10 L20,12 L0,11 Z' fill='%23efe7d8'/><path d='M0,22 L400,22 L400,24 L365,23 L325,25 L280,22 L235,23 L190,25 L145,22 L100,23 L60,25 L25,22 L0,24 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,24 L370,22 L330,25 L290,23 L250,22 L210,25 L170,23 L130,22 L90,25 L50,23 L20,22 L0,24 Z' fill='%23efe7d8'/><path d='M0,32 L400,32 L400,34 L380,32 L345,33 L305,35 L265,32 L225,33 L185,35 L145,32 L105,33 L65,35 L30,32 L0,34 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,34 L370,32 L335,35 L295,33 L255,32 L215,35 L175,33 L135,32 L95,35 L55,33 L20,32 L0,34 Z' fill='%23efe7d8'/></svg>") bottom left / 100% 42px no-repeat,
     url("assets/Tile-green.jpg") left 42px / 500px 500px repeat,
     var(--color-olive);
-  padding-top: calc(var(--space-lg) * 2.8 + 30px);
-  padding-bottom: calc(var(--space-lg) * 2.8);
+  padding: calc(var(--space-lg) * 2.8 + 30px) var(--space-sm);
 }
 
 #story h2, #story h3, #story .timeline-label,
@@ -485,14 +485,9 @@ section:not(#home) h2,
 }
 
 #wedding-party {
-  position: relative; z-index: 2; margin-top: -50px;
-  background:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.45'/></svg>") 0 0 / 200px 200px,
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 50' preserveAspectRatio='none'><path d='M0,43 L32,45 L64,43 L96,46 L128,44 L160,46 L192,44 L224,47 L256,45 L288,47 L320,45 L352,47 L384,45 L400,46 L400,50 L0,50 Z' fill='%236e7a4e'/></svg>") top left / 100% 50px no-repeat,
-    linear-gradient(to bottom, transparent 50px, var(--color-bg) 50px);
-  background-blend-mode: multiply, normal, normal;
-  padding-top: calc(var(--space-lg) * 2.8 + 30px);
-  padding-bottom: calc(var(--space-lg) * 2.8);
+  position: relative;
+  background: var(--color-bg);
+  padding: calc(var(--space-lg) * 2.8) var(--space-sm);
 }
 
 #faq {
@@ -500,8 +495,12 @@ section:not(#home) h2,
 }
 
 #gallery {
-  background: url("assets/Tile-green.jpg") 0 0 / 500px 500px repeat, var(--color-olive);
-  padding: var(--space-lg) clamp(12px, 2.5vw, 28px);
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,0 L400,0 L400,30 L370,32 L335,29 L295,31 L255,32 L215,30 L175,32 L135,29 L95,31 L55,32 L20,30 L0,31 Z' fill='%23efe7d8'/><path d='M0,18 L25,20 L60,17 L100,19 L145,20 L190,17 L235,19 L280,20 L325,17 L365,19 L400,18 L400,20 L0,20 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,18 L370,20 L330,17 L290,19 L250,20 L210,17 L170,19 L130,20 L90,17 L50,19 L20,20 L0,18 Z' fill='%23efe7d8'/><path d='M0,8 L30,10 L65,7 L105,9 L145,10 L185,7 L225,9 L265,10 L305,7 L345,9 L380,10 L400,8 L400,10 L0,10 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,8 L370,10 L335,7 L295,9 L255,10 L215,7 L175,9 L135,10 L95,7 L55,9 L20,10 L0,8 Z' fill='%23efe7d8'/></svg>") top left / 100% 42px no-repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,42 L400,42 L400,12 L370,10 L335,13 L295,11 L255,10 L215,12 L175,10 L135,13 L95,11 L55,10 L20,12 L0,11 Z' fill='%23efe7d8'/><path d='M0,22 L400,22 L400,24 L365,23 L325,25 L280,22 L235,23 L190,25 L145,22 L100,23 L60,25 L25,22 L0,24 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,24 L370,22 L330,25 L290,23 L250,22 L210,25 L170,23 L130,22 L90,25 L50,23 L20,22 L0,24 Z' fill='%23efe7d8'/><path d='M0,32 L400,32 L400,34 L380,32 L345,33 L305,35 L265,32 L225,33 L185,35 L145,32 L105,33 L65,35 L30,32 L0,34 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,34 L370,32 L335,35 L295,33 L255,32 L215,35 L175,33 L135,32 L95,35 L55,33 L20,32 L0,34 Z' fill='%23efe7d8'/></svg>") bottom left / 100% 42px no-repeat,
+    url("assets/Tile-green.jpg") left 42px / 500px 500px repeat,
+    var(--color-olive);
+  padding: calc(var(--space-lg) + 12px) clamp(12px, 2.5vw, 28px);
 }
 #gallery .gallery-grid {
   max-width: none;
@@ -1287,6 +1286,18 @@ section:not(#home) h2,
   .party-grid .party-card:nth-child(9) { order: 7; } /* Sam */
   .party-grid .party-card:nth-child(7) { order: 8; } /* Ady */
   .party-grid .party-card:nth-child(8) { order: 9; } /* Jack */
+}
+@media (min-width: 541px) {
+  /* Desktop reorder: Alexandria, Michael / Ron, Jenny / Steve, Francie / Ady, Jack / Sam */
+  .party-grid .party-card:nth-child(1) { order: 1; } /* Alexandria */
+  .party-grid .party-card:nth-child(2) { order: 2; } /* Michael */
+  .party-grid .party-card:nth-child(3) { order: 3; } /* Ron */
+  .party-grid .party-card:nth-child(5) { order: 4; } /* Jenny */
+  .party-grid .party-card:nth-child(4) { order: 5; } /* Steve */
+  .party-grid .party-card:nth-child(6) { order: 6; } /* Francie */
+  .party-grid .party-card:nth-child(7) { order: 7; } /* Ady */
+  .party-grid .party-card:nth-child(8) { order: 8; } /* Jack */
+  .party-grid .party-card:nth-child(9) { order: 9; } /* Sam */
 }
 
 .party-card {
