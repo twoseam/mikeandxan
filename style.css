@@ -469,8 +469,8 @@ section:not(#home) h2,
 #story {
   position: relative; z-index: 1; margin-top: -42px;
   background:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,0 L400,0 L400,30 L370,32 L335,29 L295,31 L255,32 L215,30 L175,32 L135,29 L95,31 L55,32 L20,30 L0,31 Z' fill='%23efe7d8'/><path d='M0,18 L25,20 L60,17 L100,19 L145,20 L190,17 L235,19 L280,20 L325,17 L365,19 L400,18 L400,20 L0,20 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,18 L370,20 L330,17 L290,19 L250,20 L210,17 L170,19 L130,20 L90,17 L50,19 L20,20 L0,18 Z' fill='%23efe7d8'/><path d='M0,8 L30,10 L65,7 L105,9 L145,10 L185,7 L225,9 L265,10 L305,7 L345,9 L380,10 L400,8 L400,10 L0,10 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,8 L370,10 L335,7 L295,9 L255,10 L215,7 L175,9 L135,10 L95,7 L55,9 L20,10 L0,8 Z' fill='%23efe7d8'/></svg>") top left / 100% 42px no-repeat,
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,42 L400,42 L400,12 L370,10 L335,13 L295,11 L255,10 L215,12 L175,10 L135,13 L95,11 L55,10 L20,12 L0,11 Z' fill='%23efe7d8'/><path d='M0,22 L400,22 L400,24 L365,23 L325,25 L280,22 L235,23 L190,25 L145,22 L100,23 L60,25 L25,22 L0,24 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,24 L370,22 L330,25 L290,23 L250,22 L210,25 L170,23 L130,22 L90,25 L50,23 L20,22 L0,24 Z' fill='%23efe7d8'/><path d='M0,32 L400,32 L400,34 L380,32 L345,33 L305,35 L265,32 L225,33 L185,35 L145,32 L105,33 L65,35 L30,32 L0,34 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,34 L370,32 L335,35 L295,33 L255,32 L215,35 L175,33 L135,32 L95,35 L55,33 L20,32 L0,34 Z' fill='%23efe7d8'/></svg>") bottom left / 100% 42px no-repeat,
+    url("assets/divider-top.svg") top left / 100% 42px no-repeat,
+    url("assets/divider-bottom.svg") bottom left / 100% 42px no-repeat,
     url("assets/Tile-green.webp") left 42px / 500px 500px repeat,
     var(--color-olive);
   padding: calc(var(--space-lg) * 2.8 + 30px) var(--space-sm);
@@ -494,7 +494,7 @@ section:not(#home) h2,
 #rsvp {
   margin-top: -42px;
   background:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,42 L400,42 L400,12 L370,10 L335,13 L295,11 L255,10 L215,12 L175,10 L135,13 L95,11 L55,10 L20,12 L0,11 Z' fill='%23efe7d8'/><path d='M0,22 L400,22 L400,24 L365,23 L325,25 L280,22 L235,23 L190,25 L145,22 L100,23 L60,25 L25,22 L0,24 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,24 L370,22 L330,25 L290,23 L250,22 L210,25 L170,23 L130,22 L90,25 L50,23 L20,22 L0,24 Z' fill='%23efe7d8'/><path d='M0,32 L400,32 L400,34 L380,32 L345,33 L305,35 L265,32 L225,33 L185,35 L145,32 L105,33 L65,35 L30,32 L0,34 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,34 L370,32 L335,35 L295,33 L255,32 L215,35 L175,33 L135,32 L95,35 L55,33 L20,32 L0,34 Z' fill='%23efe7d8'/></svg>") top left / 100% 42px no-repeat,
+    url("assets/divider-bottom.svg") top left / 100% 42px no-repeat,
     var(--color-bg);
   padding-top: calc(var(--space-lg) + 42px);
 }
@@ -505,8 +505,8 @@ section:not(#home) h2,
 
 #gallery {
   background:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,0 L400,0 L400,30 L370,32 L335,29 L295,31 L255,32 L215,30 L175,32 L135,29 L95,31 L55,32 L20,30 L0,31 Z' fill='%23efe7d8'/><path d='M0,18 L25,20 L60,17 L100,19 L145,20 L190,17 L235,19 L280,20 L325,17 L365,19 L400,18 L400,20 L0,20 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,18 L370,20 L330,17 L290,19 L250,20 L210,17 L170,19 L130,20 L90,17 L50,19 L20,20 L0,18 Z' fill='%23efe7d8'/><path d='M0,8 L30,10 L65,7 L105,9 L145,10 L185,7 L225,9 L265,10 L305,7 L345,9 L380,10 L400,8 L400,10 L0,10 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,8 L370,10 L335,7 L295,9 L255,10 L215,7 L175,9 L135,10 L95,7 L55,9 L20,10 L0,8 Z' fill='%23efe7d8'/></svg>") top left / 100% 42px no-repeat,
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,42 L400,42 L400,12 L370,10 L335,13 L295,11 L255,10 L215,12 L175,10 L135,13 L95,11 L55,10 L20,12 L0,11 Z' fill='%23efe7d8'/><path d='M0,22 L400,22 L400,24 L365,23 L325,25 L280,22 L235,23 L190,25 L145,22 L100,23 L60,25 L25,22 L0,24 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,24 L370,22 L330,25 L290,23 L250,22 L210,25 L170,23 L130,22 L90,25 L50,23 L20,22 L0,24 Z' fill='%23efe7d8'/><path d='M0,32 L400,32 L400,34 L380,32 L345,33 L305,35 L265,32 L225,33 L185,35 L145,32 L105,33 L65,35 L30,32 L0,34 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,34 L370,32 L335,35 L295,33 L255,32 L215,35 L175,33 L135,32 L95,35 L55,33 L20,32 L0,34 Z' fill='%23efe7d8'/></svg>") bottom left / 100% 42px no-repeat,
+    url("assets/divider-top.svg") top left / 100% 42px no-repeat,
+    url("assets/divider-bottom.svg") bottom left / 100% 42px no-repeat,
     url("assets/Tile-green.webp") left 42px / 500px 500px repeat,
     var(--color-olive);
   padding: calc(var(--space-lg) + 12px) clamp(12px, 2.5vw, 28px);
@@ -882,14 +882,14 @@ section:not(#home) h2,
 }
 .break-divider-top {
   top: 0;
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,0 L400,0 L400,30 L370,32 L335,29 L295,31 L255,32 L215,30 L175,32 L135,29 L95,31 L55,32 L20,30 L0,31 Z' fill='%23efe7d8'/><path d='M0,18 L25,20 L60,17 L100,19 L145,20 L190,17 L235,19 L280,20 L325,17 L365,19 L400,18 L400,20 L0,20 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,18 L370,20 L330,17 L290,19 L250,20 L210,17 L170,19 L130,20 L90,17 L50,19 L20,20 L0,18 Z' fill='%23efe7d8'/><path d='M0,8 L30,10 L65,7 L105,9 L145,10 L185,7 L225,9 L265,10 L305,7 L345,9 L380,10 L400,8 L400,10 L0,10 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,8 L370,10 L335,7 L295,9 L255,10 L215,7 L175,9 L135,10 L95,7 L55,9 L20,10 L0,8 Z' fill='%23efe7d8'/></svg>") top left / 100% 42px no-repeat;
+  background: url("assets/divider-top.svg") top left / 100% 42px no-repeat;
 }
 .break-divider-bottom {
   bottom: 0;
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,42 L400,42 L400,12 L370,10 L335,13 L295,11 L255,10 L215,12 L175,10 L135,13 L95,11 L55,10 L20,12 L0,11 Z' fill='%23efe7d8'/><path d='M0,22 L400,22 L400,24 L365,23 L325,25 L280,22 L235,23 L190,25 L145,22 L100,23 L60,25 L25,22 L0,24 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,24 L370,22 L330,25 L290,23 L250,22 L210,25 L170,23 L130,22 L90,25 L50,23 L20,22 L0,24 Z' fill='%23efe7d8'/><path d='M0,32 L400,32 L400,34 L380,32 L345,33 L305,35 L265,32 L225,33 L185,35 L145,32 L105,33 L65,35 L30,32 L0,34 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,34 L370,32 L335,35 L295,33 L255,32 L215,35 L175,33 L135,32 L95,35 L55,33 L20,32 L0,34 Z' fill='%23efe7d8'/></svg>") bottom left / 100% 42px no-repeat;
+  background: url("assets/divider-bottom.svg") bottom left / 100% 42px no-repeat;
 }
 .photo-break.into-alt > .break-divider-bottom {
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,42 L400,42 L400,12 L370,10 L335,13 L295,11 L255,10 L215,12 L175,10 L135,13 L95,11 L55,10 L20,12 L0,11 Z' fill='%23ddd2bc'/><path d='M0,22 L400,22 L400,24 L365,23 L325,25 L280,22 L235,23 L190,25 L145,22 L100,23 L60,25 L25,22 L0,24 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,24 L370,22 L330,25 L290,23 L250,22 L210,25 L170,23 L130,22 L90,25 L50,23 L20,22 L0,24 Z' fill='%23ddd2bc'/><path d='M0,32 L400,32 L400,34 L380,32 L345,33 L305,35 L265,32 L225,33 L185,35 L145,32 L105,33 L65,35 L30,32 L0,34 Z' fill='%234637192E'/><path d='M0,42 L400,42 L400,34 L370,32 L335,35 L295,33 L255,32 L215,35 L175,33 L135,32 L95,35 L55,33 L20,32 L0,34 Z' fill='%23ddd2bc'/></svg>") bottom left / 100% 42px no-repeat;
+  background: url("assets/divider-bottom-alt.svg") bottom left / 100% 42px no-repeat;
 }
 @media (max-width: 720px) {
   .photo-break {
