@@ -3,6 +3,23 @@
    Frontend JS: nav toggle + RSVP form
    ============================================================ */
 
+/* ── Polaroid discovery — probes assets/Polaroid-1.png, 2, 3…
+      until a 404, so adding new files is automatic everywhere. ── */
+var _polaroidCache = null;
+async function getPolaroids() {
+  if (_polaroidCache) return _polaroidCache;
+  var found = [];
+  for (var i = 1; i <= 99; i++) {
+    try {
+      var res = await fetch('assets/Polaroid-' + i + '.png', { method: 'HEAD' });
+      if (!res.ok) break;
+      found.push('assets/Polaroid-' + i + '.png');
+    } catch (e) { break; }
+  }
+  _polaroidCache = found;
+  return found;
+}
+
 /* ============================================================
    Hero ampersand — cycles through six font styles at ~12fps
    with a tiny per-frame transform jitter. Lo-fi cut-out feel.
@@ -1320,6 +1337,208 @@
 })();
 
 /* ============================================================
+   Timeline CMS — localhost only. Edit button on each event opens
+   a modal to update date / title / copy / photos, then saves to
+   disk via dev-server.py and commits via git.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  const host = window.location.hostname;
+  const isDev = host === 'localhost' || host === '127.0.0.1' ||
+    /^192\.168\./.test(host) || /^10\./.test(host);
+  if (!isDev) return;
+
+  // Strip JS-added runtime attributes so the HTML matches the source file
+  function sourceHTML(li) {
+    const clone = li.cloneNode(true);
+    clone.classList.remove('anim-in');
+    clone.removeAttribute('style');
+    if (clone.classList.length === 0) clone.removeAttribute('class');
+    else clone.setAttribute('class', clone.className);
+    const stack = clone.querySelector('.photo-stack');
+    if (stack) {
+      stack.removeAttribute('data-current');
+      stack.removeAttribute('style');
+      const btn = stack.querySelector('.stack-expand');
+      if (btn) btn.remove();
+      stack.querySelectorAll('.stack-photo').forEach(img => img.removeAttribute('style'));
+    }
+    return clone.outerHTML;
+  }
+
+  function buildNewHTML(li, date, title, body, photos) {
+    const clone = li.cloneNode(true);
+    clone.classList.remove('anim-in');
+    clone.removeAttribute('style');
+    if (clone.classList.length === 0) clone.removeAttribute('class');
+
+    const dateEl = clone.querySelector('.timeline-date');
+    if (dateEl) dateEl.textContent = date;
+
+    const titleEl = clone.querySelector('h3');
+    if (titleEl) titleEl.textContent = title;
+
+    const bodyEls = clone.querySelectorAll('.timeline-content p:not(.timeline-date)');
+    if (bodyEls.length) bodyEls[0].textContent = body;
+
+    const stack = clone.querySelector('.photo-stack');
+    if (stack) {
+      stack.removeAttribute('data-current');
+      stack.removeAttribute('style');
+      const btn = stack.querySelector('.stack-expand');
+      if (btn) btn.remove();
+      stack.querySelectorAll('.stack-photo').forEach(img => img.remove());
+      photos.forEach(src => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '[Photo TBD]';
+        img.className = 'stack-photo';
+        stack.appendChild(img);
+      });
+    }
+    return clone.outerHTML;
+  }
+
+  async function openModal(li) {
+    const dateText  = (li.querySelector('.timeline-date')  || {}).textContent || '';
+    const titleText = (li.querySelector('h3')              || {}).textContent || '';
+    const bodyEl    = li.querySelector('.timeline-content p:not(.timeline-date)');
+    const bodyText  = bodyEl ? bodyEl.textContent : '';
+    const currentPhotos = Array.from(li.querySelectorAll('.stack-photo'))
+      .map(img => img.src.replace(window.location.origin, '').replace(/^\//, ''));
+
+    const overlay = document.createElement('div');
+    overlay.className = 'cms-overlay';
+
+    const modal = document.createElement('div');
+    modal.className = 'cms-modal';
+    modal.innerHTML = `
+      <h3>Edit Timeline Event</h3>
+      <div class="cms-field"><label>Date</label><input type="text" class="cms-date" value="${dateText}"></div>
+      <div class="cms-field"><label>Title</label><input type="text" class="cms-title" value="${titleText}"></div>
+      <div class="cms-field"><label>Body Copy</label><textarea class="cms-body"></textarea></div>
+      <div class="cms-photos-label">Photos — click to select up to 3, in order</div>
+      <div class="cms-photo-grid"></div>
+      <div class="cms-actions">
+        <button class="cms-save">Save &amp; Commit</button>
+        <button class="cms-cancel">Cancel</button>
+        <span class="cms-status"></span>
+      </div>
+    `;
+    modal.querySelector('.cms-body').value = bodyText;
+
+    // Build photo picker
+    const grid = modal.querySelector('.cms-photo-grid');
+    const selected = [...currentPhotos];
+
+    const allPolaroids = await getPolaroids();
+    allPolaroids.forEach((src, i) => {
+      const item = document.createElement('div');
+      item.className = 'cms-photo-item';
+      item.dataset.src = src;
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = 'Polaroid ' + (i + 1);
+      const badge = document.createElement('span');
+      badge.className = 'cms-photo-badge';
+      item.appendChild(img);
+      item.appendChild(badge);
+      grid.appendChild(item);
+
+      const idx = selected.indexOf(src);
+      if (idx !== -1) {
+        item.classList.add('selected');
+        badge.textContent = idx + 1;
+      }
+
+      item.addEventListener('click', () => {
+        const pos = selected.indexOf(src);
+        if (pos !== -1) {
+          selected.splice(pos, 1);
+          item.classList.remove('selected');
+        } else {
+          if (selected.length >= 3) return;
+          selected.push(src);
+          item.classList.add('selected');
+        }
+        // Refresh all badges
+        grid.querySelectorAll('.cms-photo-item').forEach(it => {
+          const p = selected.indexOf(it.dataset.src);
+          const b = it.querySelector('.cms-photo-badge');
+          it.classList.toggle('selected', p !== -1);
+          b.textContent = p !== -1 ? p + 1 : '';
+        });
+      });
+    });
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    modal.querySelector('.cms-date').focus();
+
+    // Cancel
+    modal.querySelector('.cms-cancel').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+    // Save & Commit
+    modal.querySelector('.cms-save').addEventListener('click', async () => {
+      const status  = modal.querySelector('.cms-status');
+      const dateVal = modal.querySelector('.cms-date').value.trim();
+      const titleVal = modal.querySelector('.cms-title').value.trim();
+      const bodyVal  = modal.querySelector('.cms-body').value.trim();
+
+      if (!dateVal || !titleVal) { status.textContent = 'Date and title are required.'; return; }
+      if (selected.length === 0) { status.textContent = 'Select at least one photo.'; return; }
+
+      status.textContent = 'Saving…';
+      const originalHTML = sourceHTML(li);
+      const newHTML = buildNewHTML(li, dateVal, titleVal, bodyVal, selected);
+
+      let saveResp;
+      try {
+        const res = await fetch('/dev-save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ edits: [{ originalOuterHTML: originalHTML, newOuterHTML: newHTML }] })
+        });
+        saveResp = await res.json();
+      } catch (err) {
+        status.textContent = 'Save failed — is dev-server.py running?';
+        return;
+      }
+
+      const result = (saveResp.results || [])[0];
+      if (!result || !result.ok) {
+        status.textContent = 'Save failed: ' + (result ? result.error : 'unknown error');
+        return;
+      }
+
+      status.textContent = 'Committing…';
+      try {
+        await fetch('/dev-commit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'Update timeline event: ' + titleVal })
+        });
+      } catch (_) { /* commit failure is non-fatal */ }
+
+      status.textContent = '✓ Saved. Reloading…';
+      setTimeout(() => { overlay.remove(); window.location.reload(); }, 800);
+    });
+  }
+
+  // Add edit button to each timeline event
+  document.querySelectorAll('.timeline-event').forEach(li => {
+    li.style.position = 'relative';
+    const btn = document.createElement('button');
+    btn.className = 'cms-edit-btn';
+    btn.textContent = '✎ Edit';
+    btn.addEventListener('click', e => { e.stopPropagation(); openModal(li); });
+    li.appendChild(btn);
+  });
+}());
+
+/* ============================================================
    FAQ accordion — animates the open/close of each details item.
    ============================================================ */
 (function () {
@@ -1362,55 +1581,198 @@
 }());
 
 /* ============================================================
-   Polaroid lightbox — click any gallery photo to enlarge it,
-   scaling up from the thumbnail's position. Escape or click to close.
+   Polaroid lightbox + photo stacks
    ============================================================ */
 (function () {
   'use strict';
 
+  let overlay    = null;
+  let navKeyFn   = null;
+
+  // ── Gallery grid ──
   const grid = document.querySelector('.gallery-grid');
-  if (!grid) return;
+  if (grid) {
+    grid.addEventListener('click', (e) => {
+      const img = e.target.closest('img.polaroid');
+      if (!img) return;
+      openLightbox(img.src, img.alt, img.getBoundingClientRect());
+    });
+  }
 
-  let overlay = null;
+  // ── Photo stacks ──
+  function initStack(stack) {
+    const photos = Array.from(stack.querySelectorAll('.stack-photo'));
 
-  grid.addEventListener('click', (e) => {
-    const img = e.target.closest('img.polaroid');
-    if (!img) return;
-    openLightbox(img.src, img.alt, img.getBoundingClientRect());
-  });
+    const event = stack.closest('.timeline-event');
+    const isEven = event
+      ? Array.from(event.parentElement.children).indexOf(event) % 2 === 1
+      : false;
+    const baseRot = isEven ? 2 : -2;
 
-  function openLightbox(src, alt, thumbRect) {
+    function showSlide(idx) {
+      photos.forEach((photo, i) => {
+        const offset = (i - idx + photos.length) % photos.length;
+        if (offset === 0) {
+          photo.style.position  = 'relative';
+          photo.style.zIndex    = '10';
+          photo.style.transform = `rotate(${baseRot}deg)`;
+        } else if (offset === 1) {
+          photo.style.position  = 'absolute';
+          photo.style.top       = '0';
+          photo.style.left      = '0';
+          photo.style.zIndex    = '5';
+          photo.style.transform = 'rotate(5deg) translate(18px, 8px)';
+        } else {
+          photo.style.position  = 'absolute';
+          photo.style.top       = '0';
+          photo.style.left      = '0';
+          photo.style.zIndex    = '3';
+          photo.style.transform = 'rotate(-6deg) translate(-14px, 12px)';
+        }
+      });
+      stack.dataset.current = idx;
+    }
+
+    showSlide(0);
+
+    // Click: advance stack (multi) or open lightbox (single)
+    stack.addEventListener('click', (e) => {
+      if (e.target.closest('.stack-expand')) return;
+      if (photos.length > 1) {
+        const cur = parseInt(stack.dataset.current) || 0;
+        showSlide((cur + 1) % photos.length);
+      } else {
+        openLightbox(photos[0].src, photos[0].alt, photos[0].getBoundingClientRect());
+      }
+    });
+
+    // Swipe on mobile
+    let touchStartX = 0;
+    stack.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    stack.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) < 40) return;
+      const cur = parseInt(stack.dataset.current) || 0;
+      const dir = dx < 0 ? 1 : -1;
+      showSlide((cur + dir + photos.length) % photos.length);
+    }, { passive: true });
+
+    // Expand button (desktop hover → opens lightbox)
+    const expandBtn = document.createElement('button');
+    expandBtn.className = 'stack-expand';
+    expandBtn.setAttribute('aria-label', 'Expand photo');
+    expandBtn.innerHTML = '<svg viewBox="0 0 14 14" fill="none" stroke="#efe7d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1h4v4M5 13H1V9M13 1L8 6M1 13l5-5"/></svg>';
+    stack.appendChild(expandBtn);
+
+    expandBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const cur = parseInt(stack.dataset.current) || 0;
+      const stackData = photos.map(p => ({ src: p.src, alt: p.alt }));
+      openLightbox(photos[cur].src, photos[cur].alt, photos[cur].getBoundingClientRect(), stackData, cur);
+    });
+  }
+
+  document.querySelectorAll('.photo-stack').forEach(initStack);
+
+  // ── Lightbox ──
+  function openLightbox(src, alt, thumbRect, stackPhotos, startIdx) {
     overlay = document.createElement('div');
     overlay.className = 'polaroid-lightbox';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
 
+    const allPhotos = stackPhotos || [{ src, alt }];
+    let currentIdx  = startIdx || 0;
+
     const bigImg = document.createElement('img');
     bigImg.src = src;
     bigImg.alt = alt;
     overlay.appendChild(bigImg);
+
+    // Stack navigation (when more than one photo)
+    if (allPhotos.length > 1) {
+      const prev = document.createElement('button');
+      prev.className = 'lb-nav lb-prev';
+      prev.innerHTML = '&#8592;';
+      prev.setAttribute('aria-label', 'Previous photo');
+
+      const next = document.createElement('button');
+      next.className = 'lb-nav lb-next';
+      next.innerHTML = '&#8594;';
+      next.setAttribute('aria-label', 'Next photo');
+
+      const dots = document.createElement('div');
+      dots.className = 'lb-dots';
+      allPhotos.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'lb-dot' + (i === currentIdx ? ' is-active' : '');
+        dot.setAttribute('aria-label', `Photo ${i + 1}`);
+        dot.addEventListener('click', (e) => { e.stopPropagation(); showPhoto(i); });
+        dots.appendChild(dot);
+      });
+
+      overlay.appendChild(prev);
+      overlay.appendChild(next);
+      overlay.appendChild(dots);
+
+      function showPhoto(idx) {
+        currentIdx = idx;
+        bigImg.style.transition = 'opacity 0.15s ease';
+        bigImg.style.opacity = '0';
+        setTimeout(() => {
+          bigImg.src = allPhotos[idx].src;
+          bigImg.alt = allPhotos[idx].alt;
+          bigImg.style.opacity = '1';
+        }, 150);
+        overlay.querySelectorAll('.lb-dot').forEach((d, i) => {
+          d.classList.toggle('is-active', i === idx);
+        });
+      }
+
+      prev.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showPhoto((currentIdx - 1 + allPhotos.length) % allPhotos.length);
+      });
+      next.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showPhoto((currentIdx + 1) % allPhotos.length);
+      });
+
+      // Swipe in lightbox
+      let lbTouchX = 0;
+      overlay.addEventListener('touchstart', (e) => { lbTouchX = e.touches[0].clientX; }, { passive: true });
+      overlay.addEventListener('touchend', (e) => {
+        const dx = e.changedTouches[0].clientX - lbTouchX;
+        if (Math.abs(dx) < 40) { closeLightbox(); return; }
+        showPhoto((currentIdx + (dx < 0 ? 1 : -1) + allPhotos.length) % allPhotos.length);
+      }, { passive: true });
+
+      // Arrow keys
+      navKeyFn = (e) => {
+        if (e.key === 'ArrowLeft')  showPhoto((currentIdx - 1 + allPhotos.length) % allPhotos.length);
+        if (e.key === 'ArrowRight') showPhoto((currentIdx + 1) % allPhotos.length);
+      };
+      document.addEventListener('keydown', navKeyFn);
+    }
+
     document.body.appendChild(overlay);
     document.body.style.overflow = 'hidden';
 
-    // After the browser has laid out bigImg, measure where it landed
-    // (centered in the viewport), then animate from the thumbnail's position.
     requestAnimationFrame(() => {
       const imgRect = bigImg.getBoundingClientRect();
-
       const thumbCx = thumbRect.left + thumbRect.width  / 2;
       const thumbCy = thumbRect.top  + thumbRect.height / 2;
       const imgCx   = imgRect.left   + imgRect.width    / 2;
       const imgCy   = imgRect.top    + imgRect.height   / 2;
+      const tx      = thumbCx - imgCx;
+      const ty      = thumbCy - imgCy;
+      const scale   = thumbRect.width / imgRect.width;
 
-      const tx    = thumbCx - imgCx;
-      const ty    = thumbCy - imgCy;
-      const scale = thumbRect.width / imgRect.width;
-
-      // Plant the image at the thumbnail's position with no transition
       bigImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
       bigImg.style.opacity   = '0';
 
-      // Next frame: the starting state is committed — now animate to center
       requestAnimationFrame(() => {
         bigImg.style.transition = 'transform .45s cubic-bezier(0.34, 1.4, 0.64, 1), opacity .2s ease';
         bigImg.style.transform  = 'translate(0, 0) scale(1)';
@@ -1436,6 +1798,7 @@
       if (overlay) { overlay.remove(); overlay = null; }
       document.body.style.overflow = '';
       document.removeEventListener('keydown', onKey);
+      if (navKeyFn) { document.removeEventListener('keydown', navKeyFn); navKeyFn = null; }
     }, 280);
   }
 
@@ -1530,12 +1893,14 @@
 
 /* ── Random polaroids (registry + details) ── */
 (function () {
-  function randomPolaroid(id) {
+  async function randomPolaroid(id) {
     var img = document.getElementById(id);
     if (!img) return;
-    var n = Math.floor(Math.random() * 15) + 1;
+    var polaroids = await getPolaroids();
+    if (!polaroids.length) return;
+    var src = polaroids[Math.floor(Math.random() * polaroids.length)];
     var tilt = (Math.random() * 6 - 3).toFixed(1);
-    img.src = 'assets/Polaroid-' + n + '.png';
+    img.src = src;
     img.style.transform = 'rotate(' + tilt + 'deg)';
   }
   randomPolaroid('registry-polaroid');
