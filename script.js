@@ -167,10 +167,10 @@ async function getPolaroids() {
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   const FONTS = [
-    '"DM Serif Display", serif',
-    '"Bodoni Moda", serif',
-    '"Yeseva One", serif',
-    '"new-kansas-thin", serif',
+    { css: '"DM Serif Display", serif', key: 'dm' },
+    { css: '"Bodoni Moda", serif', key: 'bodoni' },
+    { css: '"Yeseva One", serif', key: 'yeseva' },
+    { css: '"new-kansas-thin", serif', key: 'nk' },
   ];
 
   // Weighted glyph pool — & dominates, "and" / "+" appear occasionally.
@@ -192,20 +192,13 @@ async function getPolaroids() {
 
   function tick() {
     i = (i + 1) % FONTS.length;
-    amp.style.fontFamily = FONTS[i];
+    const f = FONTS[i];
+    amp.style.fontFamily = f.css;
+    amp.dataset.font = f.key;
     const g = pickGlyph();
     amp.textContent = g;
     amp.dataset.glyph = g === '&' ? 'amp' : g === '+' ? 'plus' : 'and';
-
-    // Anchor every font's ink center to the baseline so cycling doesn't reposition
-    // the glyph. Measure ink ascent/descent via canvas, then translateY by half
-    // their difference — drives the ink midpoint onto the baseline regardless of font.
-    const cs = getComputedStyle(amp);
-    const fontSize = parseFloat(cs.fontSize);
-    measureCtx.font = `${fontSize}px ${cs.fontFamily}`;
-    const m = measureCtx.measureText(g);
-    const dy = (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
-    amp.style.setProperty('transform', `scale(${SCALE}) translateY(${dy}px)`, 'important');
+    amp.style.setProperty('transform', `scale(${SCALE})`, 'important');
   }
 
   // Wait for fonts to be loaded before cycling, so first frames don't fall back.
