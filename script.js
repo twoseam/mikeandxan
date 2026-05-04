@@ -1356,6 +1356,8 @@ async function getPolaroids() {
     clone.removeAttribute('style');
     if (clone.classList.length === 0) clone.removeAttribute('class');
     else clone.setAttribute('class', clone.className);
+    const editBtn = clone.querySelector('.cms-edit-btn');
+    if (editBtn) editBtn.remove();
     const stack = clone.querySelector('.photo-stack');
     if (stack) {
       stack.removeAttribute('data-current');
