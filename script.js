@@ -1481,5 +1481,132 @@
       scribbleIO.unobserve(e.target);
     });
   }, { threshold: 0.5 });
-  document.querySelectorAll('.scribble, .deco-amp').forEach(function (el) { scribbleIO.observe(el); });
+  document.querySelectorAll('.scribble, .deco-amp, .scr').forEach(function (el) { scribbleIO.observe(el); });
+}());
+
+/* Randomise .scr positions on every page load */
+(function () {
+  'use strict';
+  document.querySelectorAll('.scr').forEach(function (el) {
+    if (el.dataset.fixed) return;
+    var useRight = Math.random() > 0.5;
+    var edge = (Math.random() * 6 + 1).toFixed(1) + '%';
+    /* Keep scribbles out of the heading zone (roughly 15–45% from top) */
+    var topPct = Math.random() > 0.5
+      ? (Math.random() * 12 + 3)   /* 3–15% — sits in top padding above heading */
+      : (Math.random() * 30 + 52); /* 52–82% — lower half of section */
+    el.style.top    = topPct.toFixed(1) + '%';
+    el.style.bottom = 'auto';
+    if (useRight) {
+      el.style.right = edge;
+      el.style.left  = 'auto';
+    } else {
+      el.style.left  = edge;
+      el.style.right = 'auto';
+    }
+    var existingRotate = (el.style.transform.match(/rotate\(([^)]+)\)/) || [])[1];
+    var baseDeg = existingRotate ? parseFloat(existingRotate) : 0;
+    var jitter = (Math.random() * 20 - 10).toFixed(1);
+    el.style.transform = 'rotate(' + (baseDeg + parseFloat(jitter)).toFixed(1) + 'deg)';
+  });
+}());
+
+/* ── Localhost-only photo position controller ── */
+(function () {
+  'use strict';
+  if (!location.hostname.match(/^localhost|^127\./)) return;
+
+  var photos = [
+    { label: 'Michael', src: 'michaelmartin.jpg' },
+    { label: 'Ron',     src: 'Ronfortenbery.jpg' }
+  ];
+
+  function getImg(src) {
+    return document.querySelector('img[src*="' + src + '"]');
+  }
+
+  function parseStyle(img) {
+    var op  = img.style.objectPosition || '50% 50%';
+    var parts = op.trim().split(/\s+/);
+    var x = parseFloat(parts[0]) || 50;
+    var y = parseFloat(parts[1]) || 50;
+    var sc = (img.style.transform.match(/scale\(([\d.]+)\)/) || [,1])[1];
+    return { x: x, y: y, scale: parseFloat(sc) };
+  }
+
+  function applyStyle(img, x, y, scale) {
+    img.style.objectPosition = x + '% ' + y + '%';
+    img.style.transform      = 'scale(' + scale + ')';
+    img.style.transformOrigin = x + '% ' + y + '%';
+  }
+
+  /* Build panel */
+  var panel = document.createElement('div');
+  panel.style.cssText = [
+    'position:fixed','bottom:16px','right:16px','z-index:99999',
+    'background:#fff','border:2px solid #c8362c','border-radius:10px',
+    'padding:14px 16px','width:260px','font:13px/1.5 system-ui,sans-serif',
+    'box-shadow:0 4px 20px rgba(0,0,0,.25)','color:#222'
+  ].join(';');
+
+  var html = '<strong style="display:block;margin-bottom:10px;color:#c8362c">📸 Photo Controller</strong>';
+
+  photos.forEach(function (p) {
+    html += '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #eee">';
+    html += '<b>' + p.label + '</b>';
+    ['x','y','scale'].forEach(function (prop) {
+      var min  = prop === 'scale' ? '1'   : '0';
+      var max  = prop === 'scale' ? '2'   : '100';
+      var step = prop === 'scale' ? '0.05': '1';
+      html += '<label style="display:flex;align-items:center;gap:6px;margin-top:5px">';
+      html += '<span style="width:38px">' + prop + '</span>';
+      html += '<input type="range" min="' + min + '" max="' + max + '" step="' + step + '"';
+      html += ' data-photo="' + p.src + '" data-prop="' + prop + '"';
+      html += ' style="flex:1">';
+      html += '<span class="val" style="width:34px;text-align:right">--</span>';
+      html += '</label>';
+    });
+    html += '<button data-copy="' + p.src + '" style="margin-top:7px;font-size:11px;padding:3px 8px;border:1px solid #ccc;border-radius:4px;cursor:pointer;background:#f9f9f9">Copy style</button>';
+    html += '</div>';
+  });
+  panel.innerHTML = html;
+  document.body.appendChild(panel);
+
+  /* Init sliders from current img styles */
+  photos.forEach(function (p) {
+    var img = getImg(p.src);
+    if (!img) return;
+    var s = parseStyle(img);
+    panel.querySelectorAll('input[data-photo="' + p.src + '"]').forEach(function (inp) {
+      inp.value = s[inp.dataset.prop];
+      inp.nextElementSibling.textContent = s[inp.dataset.prop];
+    });
+  });
+
+  /* Live update */
+  panel.addEventListener('input', function (e) {
+    var inp = e.target;
+    if (inp.tagName !== 'INPUT') return;
+    inp.nextElementSibling.textContent = inp.value;
+    var img = getImg(inp.dataset.photo);
+    if (!img) return;
+    var vals = {};
+    panel.querySelectorAll('input[data-photo="' + inp.dataset.photo + '"]').forEach(function (i) {
+      vals[i.dataset.prop] = parseFloat(i.value);
+    });
+    applyStyle(img, vals.x, vals.y, vals.scale);
+  });
+
+  /* Copy button */
+  panel.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-copy]');
+    if (!btn) return;
+    var img = getImg(btn.dataset.copy);
+    if (!img) return;
+    var style = 'object-position: ' + img.style.objectPosition + '; transform: scale(' + (img.style.transform.match(/scale\(([\d.]+)\)/) || [,'1'])[1] + '); transform-origin: ' + img.style.transformOrigin + ';';
+    navigator.clipboard.writeText(style).then(function () {
+      btn.textContent = 'Copied!';
+      setTimeout(function () { btn.textContent = 'Copy style'; }, 2000);
+    });
+  });
 }());

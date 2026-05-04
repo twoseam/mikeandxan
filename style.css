@@ -284,7 +284,7 @@ section:not(#home) h2,
   mix-blend-mode: multiply;
   pointer-events: none;
 }
-.hero-inner { max-width: 640px; display: flex; flex-direction: column; align-items: center; }
+.hero-inner { max-width: 640px; display: flex; flex-direction: column; align-items: center; position: relative; }
 
 .hero-title {
   position: relative;
@@ -1403,4 +1403,20 @@ section:not(#home) h2,
 .deco-amp.is-drawn { opacity: var(--amp-opacity, 0.28); }
 @media (prefers-reduced-motion: reduce) {
   .deco-amp { opacity: var(--amp-opacity, 0.28) !important; transition: none !important; }
+}
+
+/* ---------- Individual scribble art (SVGs from Scribbles folder) ---------- */
+.scr {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity var(--sd, 1.5s) ease var(--dd, 0s);
+}
+.scr.is-drawn { opacity: var(--sco, 0.5); }
+.scr-red { filter: invert(24%) sepia(72%) saturate(1300%) hue-rotate(342deg) brightness(97%) contrast(104%); }
+.scr-story { filter: invert(1); }
+.scr-hero-hearts { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: -4rem; filter: invert(1); }
+@media (prefers-reduced-motion: reduce) {
+  .scr { opacity: var(--sco, 0.5) !important; transition: none !important; }
 }
