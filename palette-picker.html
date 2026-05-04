@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Palette picker — Mike &amp; Xan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Source+Sans+3:wght@400;600;700&family=Special+Elite&family=DM+Serif+Display&display=swap" />
+  <style>
+    :root {
+      --picker-bg: #f4f1ea;
+      --picker-text: #2b1f1a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 28px 16px 100px;
+      background: var(--picker-bg);
+      color: var(--picker-text);
+      font: 14px/1.45 -apple-system, system-ui, sans-serif;
+    }
+    h1 {
+      font-family: "Caprasimo", serif;
+      font-size: 1.7rem;
+      text-align: center;
+      margin: 0 0 4px;
+    }
+    .lede {
+      text-align: center;
+      font-size: .82rem;
+      opacity: .7;
+      margin: 0 0 24px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      max-width: 1200px;
+      margin: 0 auto 28px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      cursor: pointer;
+      transition: box-shadow .12s ease, transform .12s ease;
+      position: relative;
+    }
+    .card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.1); transform: translateY(-2px); }
+    .card.is-picked { box-shadow: 0 0 0 2px var(--accent), 0 4px 14px rgba(0,0,0,.1); }
+    .card-name {
+      font-family: "Caprasimo", serif;
+      font-size: 1.15rem;
+      margin: 0 0 8px;
+      color: var(--text);
+    }
+    .card.is-picked .card-name::after {
+      content: " ✓";
+      color: var(--accent);
+    }
+
+    .swatches {
+      display: flex;
+      gap: 4px;
+      margin: 0 0 14px;
+      height: 24px;
+    }
+    .swatches > div {
+      flex: 1;
+      border-radius: 3px;
+      border: 1px solid rgba(0,0,0,.06);
+    }
+
+    /* Mini-preview — uses scoped tokens so the same DOM repaints per palette */
+    .mock {
+      background: var(--bg);
+      border-radius: 6px;
+      padding: 16px;
+      font-family: "Source Sans 3", sans-serif;
+      color: var(--text);
+      position: relative;
+      overflow: hidden;
+    }
+    .mock-hero {
+      font-family: "Caprasimo", serif;
+      font-size: 1.6rem;
+      line-height: 1.05;
+      margin: 0 0 4px;
+    }
+    .mock-hero .amp {
+      color: var(--accent);
+      font-family: "DM Serif Display", serif;
+      -webkit-text-stroke: .5px currentColor;
+    }
+    .mock-kicker {
+      font-family: "Special Elite", monospace;
+      background: var(--bg-alt);
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: 2px;
+      display: inline-block;
+      font-size: .7rem;
+      margin: 0 0 8px;
+    }
+    .mock-card {
+      margin-top: 10px;
+      border-radius: 2px;
+      padding: 10px 12px 10px 22px;
+      font-size: .82rem;
+      background:
+        linear-gradient(to bottom, var(--accent) 0 3px, transparent 3px) no-repeat,
+        linear-gradient(to right, transparent 0 14px, var(--paper-margin) 14px 15px, transparent 15px) no-repeat,
+        repeating-linear-gradient(to bottom, transparent 0 22px, var(--paper-rule) 22px 23px),
+        var(--paper);
+      color: var(--text);
+      box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 4px 10px rgba(0,0,0,.04);
+      transform: rotate(-0.8deg);
+    }
+    .mock-card-label {
+      font-family: "Caprasimo", serif;
+      font-size: .85rem;
+      color: var(--text);
+    }
+    .mock-card-detail {
+      color: var(--muted);
+      font-size: .72rem;
+      margin: 2px 0 0;
+    }
+    .mock-button {
+      display: inline-block;
+      margin-top: 10px;
+      background: var(--accent);
+      color: var(--paper);
+      padding: 4px 12px;
+      border-radius: 3px;
+      font-size: .76rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+    }
+    .mock-button:hover { background: var(--accent-hover); }
+    .mock-olive {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--olive);
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+
+    .controls { max-width: 1200px; margin: 8px auto 0; text-align: center; }
+    button {
+      font: inherit;
+      font-size: .8rem;
+      padding: 8px 14px;
+      border: 1px solid rgba(43,31,26,.2);
+      background: #fff;
+      color: var(--picker-text);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button.primary { background: #2b1f1a; color: #fff; border-color: #2b1f1a; }
+
+    pre {
+      max-width: 1200px;
+      margin: 16px auto 0;
+      background: #2b1f1a;
+      color: #efe7d8;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: .76rem;
+      line-height: 1.5;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .empty { opacity: .5; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>Palette picker</h1>
+  <p class="lede">Each card previews a palette on the elements that show up most on the site — hero headline, kicker strip, notecard, accent button. Click to mark your pick. Bottom box prints the CSS tokens to paste into <code>style.css</code>.</p>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="controls">
+    <button id="reset">Clear pick</button>
+    <button class="primary" id="copy">Copy CSS</button>
+  </div>
+  <pre id="out"><span class="empty">Pick a palette to see its CSS.</span></pre>
+
+  <script>
+    const PALETTES = [
+      {
+        name: 'Tomato Cream (current)',
+        tokens: {
+          '--color-bg':            '#efe7d8',
+          '--color-bg-alt':        '#ddd2bc',
+          '--color-text':          '#2b1f1a',
+          '--color-muted':         '#7a6e60',
+          '--color-accent':        '#c8362c',
+          '--color-accent-hover':  '#a02a23',
+          '--color-border':        '#d8c8b0',
+          '--color-olive':         '#6e7a4e',
+          '--color-paper':         '#fefcf6',
+          '--color-paper-rule':    'rgba(70, 100, 180, 0.18)',
+          '--color-paper-margin':  'rgba(200, 54, 44, 0.55)',
+          '--color-bg-rgb':        '239, 231, 216',
+          '--color-text-rgb':      '43, 31, 26',
+          '--color-accent-rgb':    '200, 54, 44',
+          '--color-olive-rgb':     '110, 122, 78',
+        },
+      },
+      {
+        name: 'Sage & Cinnamon',
+        tokens: {
+          '--color-bg':            '#ece4d2',
+          '--color-bg-alt':        '#dccfb3',
+          '--color-text':          '#2c2419',
+          '--color-muted':         '#7e6f5e',
+          '--color-accent':        '#b76b3f',
+          '--color-accent-hover':  '#8e5230',
+          '--color-border':        '#d8c8a8',
+          '--color-olive':         '#6f8a6e',
+          '--color-paper':         '#fefcf2',
+          '--color-paper-rule':    'rgba(70, 100, 180, 0.16)',
+          '--color-paper-margin':  'rgba(183, 107, 63, 0.55)',
+          '--color-bg-rgb':        '236, 228, 210',
+          '--color-text-rgb':      '44, 36, 25',
+          '--color-accent-rgb':    '183, 107, 63',
+          '--color-olive-rgb':     '111, 138, 110',
+        },
+      },
+      {
+        name: 'Dusty Rose & Plum',
+        tokens: {
+          '--color-bg':            '#f4ebe6',
+          '--color-bg-alt':        '#e2cec3',
+          '--color-text':          '#3a2530',
+          '--color-muted':         '#7c6470',
+          '--color-accent':        '#b1607c',
+          '--color-accent-hover':  '#884b62',
+          '--color-border':        '#d8c0c0',
+          '--color-olive':         '#6e6678',
+          '--color-paper':         '#fefcf8',
+          '--color-paper-rule':    'rgba(110, 102, 120, 0.18)',
+          '--color-paper-margin':  'rgba(177, 96, 124, 0.55)',
+          '--color-bg-rgb':        '244, 235, 230',
+          '--color-text-rgb':      '58, 37, 48',
+          '--color-accent-rgb':    '177, 96, 124',
+          '--color-olive-rgb':     '110, 102, 120',
+        },
+      },
+      {
+        name: 'Midnight Garden',
+        tokens: {
+          '--color-bg':            '#ede5d3',
+          '--color-bg-alt':        '#d6c8a6',
+          '--color-text':          '#1a2438',
+          '--color-muted':         '#5a607a',
+          '--color-accent':        '#1f3a68',
+          '--color-accent-hover':  '#16284a',
+          '--color-border':        '#b9b08e',
+          '--color-olive':         '#c69a3c',
+          '--color-paper':         '#faf6ec',
+          '--color-paper-rule':    'rgba(31, 58, 104, 0.18)',
+          '--color-paper-margin':  'rgba(31, 58, 104, 0.55)',
+          '--color-bg-rgb':        '237, 229, 211',
+          '--color-text-rgb':      '26, 36, 56',
+          '--color-accent-rgb':    '31, 58, 104',
+          '--color-olive-rgb':     '198, 154, 60',
+        },
+      },
+      {
+        name: 'Terracotta & Sand',
+        tokens: {
+          '--color-bg':            '#f5e9d6',
+          '--color-bg-alt':        '#e2cdb0',
+          '--color-text':          '#3a2316',
+          '--color-muted':         '#836752',
+          '--color-accent':        '#c66b3d',
+          '--color-accent-hover':  '#9a4f2a',
+          '--color-border':        '#d8c2a2',
+          '--color-olive':         '#b08a3d',
+          '--color-paper':         '#fdf6e6',
+          '--color-paper-rule':    'rgba(70, 100, 180, 0.14)',
+          '--color-paper-margin':  'rgba(198, 107, 61, 0.55)',
+          '--color-bg-rgb':        '245, 233, 214',
+          '--color-text-rgb':      '58, 35, 22',
+          '--color-accent-rgb':    '198, 107, 61',
+          '--color-olive-rgb':     '176, 138, 61',
+        },
+      },
+      {
+        name: 'Forest Floor',
+        tokens: {
+          '--color-bg':            '#e9e2cf',
+          '--color-bg-alt':        '#cfc4ab',
+          '--color-text':          '#2a2818',
+          '--color-muted':         '#6c6852',
+          '--color-accent':        '#4d6635',
+          '--color-accent-hover':  '#344523',
+          '--color-border':        '#b6ad94',
+          '--color-olive':         '#8c6a3a',
+          '--color-paper':         '#f6efde',
+          '--color-paper-rule':    'rgba(77, 102, 53, 0.18)',
+          '--color-paper-margin':  'rgba(77, 102, 53, 0.55)',
+          '--color-bg-rgb':        '233, 226, 207',
+          '--color-text-rgb':      '42, 40, 24',
+          '--color-accent-rgb':    '77, 102, 53',
+          '--color-olive-rgb':     '140, 106, 58',
+        },
+      },
+      {
+        name: 'Burgundy & Cream',
+        tokens: {
+          '--color-bg':            '#f3ebd8',
+          '--color-bg-alt':        '#ddc8a8',
+          '--color-text':          '#2c1717',
+          '--color-muted':         '#7a5d5a',
+          '--color-accent':        '#76263a',
+          '--color-accent-hover':  '#561621',
+          '--color-border':        '#d4bd9a',
+          '--color-olive':         '#b08a3a',
+          '--color-paper':         '#fcf6e6',
+          '--color-paper-rule':    'rgba(118, 38, 58, 0.16)',
+          '--color-paper-margin':  'rgba(118, 38, 58, 0.55)',
+          '--color-bg-rgb':        '243, 235, 216',
+          '--color-text-rgb':      '44, 23, 23',
+          '--color-accent-rgb':    '118, 38, 58',
+          '--color-olive-rgb':     '176, 138, 58',
+        },
+      },
+      {
+        name: 'Coastal Teal & Sand',
+        tokens: {
+          '--color-bg':            '#ede9d8',
+          '--color-bg-alt':        '#d0cdb6',
+          '--color-text':          '#2a2c30',
+          '--color-muted':         '#6b716e',
+          '--color-accent':        '#4f8b8b',
+          '--color-accent-hover':  '#356666',
+          '--color-border':        '#c2c0a8',
+          '--color-olive':         '#aa8763',
+          '--color-paper':         '#f5f1de',
+          '--color-paper-rule':    'rgba(79, 139, 139, 0.20)',
+          '--color-paper-margin':  'rgba(79, 139, 139, 0.55)',
+          '--color-bg-rgb':        '237, 233, 216',
+          '--color-text-rgb':      '42, 44, 48',
+          '--color-accent-rgb':    '79, 139, 139',
+          '--color-olive-rgb':     '170, 135, 99',
+        },
+      },
+      {
+        name: 'Lavender & Slate',
+        tokens: {
+          '--color-bg':            '#ece6e6',
+          '--color-bg-alt':        '#d3c9d3',
+          '--color-text':          '#2a2434',
+          '--color-muted':         '#6c647a',
+          '--color-accent':        '#7c5a9a',
+          '--color-accent-hover':  '#5d4076',
+          '--color-border':        '#c3bcca',
+          '--color-olive':         '#6c7a8a',
+          '--color-paper':         '#f8f3f3',
+          '--color-paper-rule':    'rgba(124, 90, 154, 0.18)',
+          '--color-paper-margin':  'rgba(124, 90, 154, 0.55)',
+          '--color-bg-rgb':        '236, 230, 230',
+          '--color-text-rgb':      '42, 36, 52',
+          '--color-accent-rgb':    '124, 90, 154',
+          '--color-olive-rgb':     '108, 122, 138',
+        },
+      },
+      {
+        name: 'Vintage Mustard',
+        tokens: {
+          '--color-bg':            '#efe7d2',
+          '--color-bg-alt':        '#d8cbab',
+          '--color-text':          '#322c1a',
+          '--color-muted':         '#7a6f4f',
+          '--color-accent':        '#c39a2c',
+          '--color-accent-hover':  '#9a7920',
+          '--color-border':        '#c8b88e',
+          '--color-olive':         '#6c7a4e',
+          '--color-paper':         '#fbf4dc',
+          '--color-paper-rule':    'rgba(108, 122, 78, 0.20)',
+          '--color-paper-margin':  'rgba(195, 154, 44, 0.55)',
+          '--color-bg-rgb':        '239, 231, 210',
+          '--color-text-rgb':      '50, 44, 26',
+          '--color-accent-rgb':    '195, 154, 44',
+          '--color-olive-rgb':     '108, 122, 78',
+        },
+      },
+    ];
+
+    const STORAGE_KEY = 'palette-picker:v1';
+    let pickedIndex = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+    if (isNaN(pickedIndex)) pickedIndex = -1;
+
+    const grid = document.getElementById('grid');
+    PALETTES.forEach((p, idx) => {
+      const card = document.createElement('div');
+      card.className = 'card' + (idx === pickedIndex ? ' is-picked' : '');
+      // Apply this palette's tokens to local scope so the mock + swatches use them
+      Object.entries(p.tokens).forEach(([k, v]) => card.style.setProperty(k.replace('--color-', '--'), v));
+      // Convenience aliases used inside the mock
+      card.style.setProperty('--bg',           p.tokens['--color-bg']);
+      card.style.setProperty('--bg-alt',       p.tokens['--color-bg-alt']);
+      card.style.setProperty('--text',         p.tokens['--color-text']);
+      card.style.setProperty('--muted',        p.tokens['--color-muted']);
+      card.style.setProperty('--accent',       p.tokens['--color-accent']);
+      card.style.setProperty('--accent-hover', p.tokens['--color-accent-hover']);
+      card.style.setProperty('--olive',        p.tokens['--color-olive']);
+      card.style.setProperty('--paper',        p.tokens['--color-paper']);
+      card.style.setProperty('--paper-rule',   p.tokens['--color-paper-rule']);
+      card.style.setProperty('--paper-margin', p.tokens['--color-paper-margin']);
+
+      card.innerHTML = `
+        <p class="card-name">${p.name}</p>
+        <div class="swatches">
+          <div style="background:${p.tokens['--color-bg']}"></div>
+          <div style="background:${p.tokens['--color-bg-alt']}"></div>
+          <div style="background:${p.tokens['--color-text']}"></div>
+          <div style="background:${p.tokens['--color-accent']}"></div>
+          <div style="background:${p.tokens['--color-olive']}"></div>
+          <div style="background:${p.tokens['--color-paper']}"></div>
+        </div>
+        <div class="mock">
+          <span class="mock-kicker">Come Party with us!</span>
+          <p class="mock-hero">Michael <span class="amp">&amp;</span> Alexandria</p>
+          <p style="font-size:.75rem;color:var(--muted);margin:0;">November 14, 2026 · Lenexa, KS <span class="mock-olive" title="secondary accent"></span></p>
+          <div class="mock-card">
+            <p class="mock-card-label" style="margin:0;">The Thompson Barn</p>
+            <p class="mock-card-detail">11184 Lackman Rd · Lenexa, KS</p>
+          </div>
+          <span class="mock-button">RSVP</span>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        pickedIndex = (pickedIndex === idx) ? -1 : idx;
+        if (pickedIndex < 0) localStorage.removeItem(STORAGE_KEY);
+        else localStorage.setItem(STORAGE_KEY, String(pickedIndex));
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('is-picked'));
+        if (pickedIndex >= 0) card.classList.add('is-picked');
+        renderOutput();
+      });
+      grid.appendChild(card);
+    });
+
+    function renderOutput() {
+      const out = document.getElementById('out');
+      if (pickedIndex < 0) { out.innerHTML = '<span class="empty">Pick a palette to see its CSS.</span>'; return; }
+      const p = PALETTES[pickedIndex];
+      const lines = ['/* Palette: ' + p.name + ' */'];
+      Object.entries(p.tokens).forEach(([k, v]) => lines.push('  ' + k + ': ' + v + ';'));
+      out.textContent = lines.join('\n');
+    }
+    renderOutput();
+
+    document.getElementById('reset').onclick = () => {
+      pickedIndex = -1;
+      localStorage.removeItem(STORAGE_KEY);
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('is-picked'));
+      renderOutput();
+    };
+    document.getElementById('copy').onclick = () => {
+      const text = document.getElementById('out').textContent;
+      if (!text || text.startsWith('Pick')) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const b = document.getElementById('copy');
+        const t = b.textContent;
+        b.textContent = '✓ copied';
+        setTimeout(() => b.textContent = t, 1200);
+      });
+    };
+  </script>
+</body>
+</html>
