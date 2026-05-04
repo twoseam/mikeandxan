@@ -26,7 +26,7 @@
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; scroll-padding-top: var(--header-height); }
+html { scroll-behavior: smooth; scroll-padding-top: var(--header-height); overflow-x: clip; }
 
 body {
   margin: 0;

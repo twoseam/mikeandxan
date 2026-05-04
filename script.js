@@ -5,6 +5,14 @@
 
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
+/* Always load fresh: strip any hash and scroll to top on every (re)load,
+   including back/forward bfcache restores. */
+if (window.location.hash) {
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+}
+window.scrollTo(0, 0);
+window.addEventListener('pageshow', () => window.scrollTo(0, 0));
+
 /* ── Polaroid discovery — probes assets/Polaroid-1.png, 2, 3…
       until a 404, so adding new files is automatic everywhere. ── */
 var _polaroidCache = null;
