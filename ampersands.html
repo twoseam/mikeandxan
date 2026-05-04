@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ampersand options</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,400..900,100;1,9..144,700..900,100&family=Special+Elite&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=DM+Serif+Display:ital@0;1&family=Bodoni+Moda:ital,wght@0,400..900;1,400..900&family=Pinyon+Script&family=Italianno&family=Yeseva+One&family=Abril+Fatface&family=Cormorant+Garamond:ital,wght@0,400..700;1,400..700&family=Petit+Formal+Script&family=Carattere&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Lora:ital,wght@0,400..700;1,400..700&family=Spectral:ital,wght@0,400;0,700;1,400;1,700&family=Crimson+Text:ital,wght@0,400;0,700;1,400;1,700&family=Cardo:ital,wght@0,400;0,700;1,400&family=Cormorant+Infant:ital,wght@0,400..700;1,400..700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=Forum&family=Cinzel:wght@400..900&family=Cinzel+Decorative:wght@400;700;900&family=Marcellus&family=Italiana&family=Lobster&family=Cardo&family=Bonheur+Royale&family=Bilbo+Swash+Caps&family=Great+Vibes&family=Allura&family=Sacramento&family=Dancing+Script:wght@400..700&family=Parisienne&family=Tangerine:wght@400;700&family=Kaushan+Script&family=Mrs+Saint+Delafield&family=Mr+De+Haviland&display=swap" />
+  <style>
+    :root {
+      --bg: #efe7d8;
+      --text: #2b1f1a;
+      --accent: #c8362c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 40px 20px 80px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, system-ui, sans-serif;
+    }
+    h1 {
+      font-family: "Fraunces", serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+      text-align: center;
+      margin: 0 0 8px;
+    }
+    .lede {
+      text-align: center;
+      font-size: .85rem;
+      opacity: .7;
+      margin: 0 0 40px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px 16px 14px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .amp {
+      font-size: 5.5rem;
+      line-height: 1;
+      color: var(--accent);
+      display: block;
+    }
+    .amp.text { color: var(--text); }
+    .label {
+      font-size: .72rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      opacity: .75;
+    }
+    .pair {
+      font-size: 1.05rem;
+      margin-top: 4px;
+      letter-spacing: -.005em;
+    }
+    .section-title {
+      max-width: 1200px;
+      margin: 50px auto 14px;
+      font-family: "Fraunces", serif;
+      font-weight: 700;
+      font-size: .95rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      opacity: .6;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ampersand options</h1>
+  <p class="lede">All fonts already loaded by the site. Italic variants where they read better.</p>
+
+  <div class="section-title">Serif — italic (often the most expressive &)</div>
+  <div class="grid">
+    <div class="card">
+      <span class="amp" style='font-family:"DM Serif Display",serif;font-style:italic;'>&amp;</span>
+      <span class="pair" style='font-family:"DM Serif Display",serif;font-style:italic;'>Mike &amp; Xan</span>
+      <span class="label">DM Serif Display, italic</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Playfair Display",serif;font-style:italic;font-weight:700;'>&amp;</span>
+      <span class="pair" style='font-family:"Playfair Display",serif;font-style:italic;font-weight:700;'>Mike &amp; Xan</span>
+      <span class="label">Playfair Display, italic 700</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Bodoni Moda",serif;font-style:italic;font-weight:800;'>&amp;</span>
+      <span class="pair" style='font-family:"Bodoni Moda",serif;font-style:italic;font-weight:800;'>Mike &amp; Xan</span>
+      <span class="label">Bodoni Moda, italic 800</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:700;'>&amp;</span>
+      <span class="pair" style='font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:700;'>Mike &amp; Xan</span>
+      <span class="label">Cormorant Garamond, italic 700</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Fraunces",serif;font-style:italic;font-weight:700;font-variation-settings:"SOFT" 100,"opsz" 144;'>&amp;</span>
+      <span class="pair" style='font-family:"Fraunces",serif;font-style:italic;font-weight:700;font-variation-settings:"SOFT" 100,"opsz" 144;'>Mike &amp; Xan</span>
+      <span class="label">Fraunces, italic 700 (soft)</span>
+    </div>
+  </div>
+
+  <div class="section-title">Serif — upright</div>
+  <div class="grid">
+    <div class="card">
+      <span class="amp" style='font-family:"Fraunces",serif;font-weight:800;font-variation-settings:"SOFT" 100,"opsz" 144;'>&amp;</span>
+      <span class="pair" style='font-family:"Fraunces",serif;font-weight:800;font-variation-settings:"SOFT" 100,"opsz" 144;'>Mike &amp; Xan</span>
+      <span class="label">Fraunces, 800 (current logo)</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Yeseva One",serif;'>&amp;</span>
+      <span class="pair" style='font-family:"Yeseva One",serif;'>Mike &amp; Xan</span>
+      <span class="label">Yeseva One</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Abril Fatface",serif;'>&amp;</span>
+      <span class="pair" style='font-family:"Abril Fatface",serif;'>Mike &amp; Xan</span>
+      <span class="label">Abril Fatface</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"DM Serif Display",serif;'>&amp;</span>
+      <span class="pair" style='font-family:"DM Serif Display",serif;'>Mike &amp; Xan</span>
+      <span class="label">DM Serif Display</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Playfair Display",serif;font-weight:700;'>&amp;</span>
+      <span class="pair" style='font-family:"Playfair Display",serif;font-weight:700;'>Mike &amp; Xan</span>
+      <span class="label">Playfair Display, 700</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Bodoni Moda",serif;font-weight:800;'>&amp;</span>
+      <span class="pair" style='font-family:"Bodoni Moda",serif;font-weight:800;'>Mike &amp; Xan</span>
+      <span class="label">Bodoni Moda, 800</span>
+    </div>
+  </div>
+
+  <div class="section-title">Script — flowing, romantic</div>
+  <div class="grid">
+    <div class="card">
+      <span class="amp" style='font-family:"Italianno",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Italianno",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Italianno</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Pinyon Script",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Pinyon Script",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Pinyon Script</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Petit Formal Script",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Petit Formal Script",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Petit Formal Script</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Carattere",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Carattere",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Carattere</span>
+    </div>
+  </div>
+
+  <div class="section-title">More serif italics — known for great &amp;</div>
+  <div class="grid">
+    <div class="card">
+      <span class="amp" style='font-family:"EB Garamond",serif;font-style:italic;font-weight:600;'>&amp;</span>
+      <span class="pair" style='font-family:"EB Garamond",serif;font-style:italic;font-weight:600;'>Mike &amp; Xan</span>
+      <span class="label">EB Garamond, italic 600</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Lora",serif;font-style:italic;font-weight:700;'>&amp;</span>
+      <span class="pair" style='font-family:"Lora",serif;font-style:italic;font-weight:700;'>Mike &amp; Xan</span>
+      <span class="label">Lora, italic 700</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Spectral",serif;font-style:italic;font-weight:700;'>&amp;</span>
+      <span class="pair" style='font-family:"Spectral",serif;font-style:italic;font-weight:700;'>Mike &amp; Xan</span>
+      <span class="label">Spectral, italic 700</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Crimson Text",serif;font-style:italic;font-weight:700;'>&amp;</span>
+      <span class="pair" style='font-family:"Crimson Text",serif;font-style:italic;font-weight:700;'>Mike &amp; Xan</span>
+      <span class="label">Crimson Text, italic 700</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Cardo",serif;font-style:italic;'>&amp;</span>
+      <span class="pair" style='font-family:"Cardo",serif;font-style:italic;'>Mike &amp; Xan</span>
+      <span class="label">Cardo, italic</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Cormorant Infant",serif;font-style:italic;font-weight:700;'>&amp;</span>
+      <span class="pair" style='font-family:"Cormorant Infant",serif;font-style:italic;font-weight:700;'>Mike &amp; Xan</span>
+      <span class="label">Cormorant Infant, italic 700</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Libre Caslon Text",serif;font-style:italic;'>&amp;</span>
+      <span class="pair" style='font-family:"Libre Caslon Text",serif;font-style:italic;'>Mike &amp; Xan</span>
+      <span class="label">Libre Caslon Text, italic</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Old Standard TT",serif;font-style:italic;'>&amp;</span>
+      <span class="pair" style='font-family:"Old Standard TT",serif;font-style:italic;'>Mike &amp; Xan</span>
+      <span class="label">Old Standard TT, italic</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"IM Fell DW Pica",serif;font-style:italic;'>&amp;</span>
+      <span class="pair" style='font-family:"IM Fell DW Pica",serif;font-style:italic;'>Mike &amp; Xan</span>
+      <span class="label">IM Fell DW Pica, italic</span>
+    </div>
+  </div>
+
+  <div class="section-title">Display / decorative serif</div>
+  <div class="grid">
+    <div class="card">
+      <span class="amp" style='font-family:"Forum",serif;'>&amp;</span>
+      <span class="pair" style='font-family:"Forum",serif;'>Mike &amp; Xan</span>
+      <span class="label">Forum</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Cinzel",serif;font-weight:600;'>&amp;</span>
+      <span class="pair" style='font-family:"Cinzel",serif;font-weight:600;'>Mike &amp; Xan</span>
+      <span class="label">Cinzel, 600</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Cinzel Decorative",serif;font-weight:700;'>&amp;</span>
+      <span class="pair" style='font-family:"Cinzel Decorative",serif;font-weight:700;'>Mike &amp; Xan</span>
+      <span class="label">Cinzel Decorative, 700</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Marcellus",serif;'>&amp;</span>
+      <span class="pair" style='font-family:"Marcellus",serif;'>Mike &amp; Xan</span>
+      <span class="label">Marcellus</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Italiana",serif;'>&amp;</span>
+      <span class="pair" style='font-family:"Italiana",serif;'>Mike &amp; Xan</span>
+      <span class="label">Italiana</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Lobster",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Lobster",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Lobster</span>
+    </div>
+  </div>
+
+  <div class="section-title">More scripts &amp; flourishes</div>
+  <div class="grid">
+    <div class="card">
+      <span class="amp" style='font-family:"Great Vibes",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Great Vibes",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Great Vibes</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Allura",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Allura",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Allura</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Sacramento",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Sacramento",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Sacramento</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Dancing Script",cursive;font-weight:700;'>&amp;</span>
+      <span class="pair" style='font-family:"Dancing Script",cursive;font-weight:700;'>Mike &amp; Xan</span>
+      <span class="label">Dancing Script, 700</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Parisienne",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Parisienne",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Parisienne</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Tangerine",cursive;font-weight:700;'>&amp;</span>
+      <span class="pair" style='font-family:"Tangerine",cursive;font-weight:700;'>Mike &amp; Xan</span>
+      <span class="label">Tangerine, 700</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Kaushan Script",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Kaushan Script",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Kaushan Script</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Bilbo Swash Caps",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Bilbo Swash Caps",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Bilbo Swash Caps</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Mrs Saint Delafield",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Mrs Saint Delafield",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Mrs Saint Delafield</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Mr De Haviland",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Mr De Haviland",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Mr De Haviland</span>
+    </div>
+    <div class="card">
+      <span class="amp" style='font-family:"Bonheur Royale",cursive;'>&amp;</span>
+      <span class="pair" style='font-family:"Bonheur Royale",cursive;'>Mike &amp; Xan</span>
+      <span class="label">Bonheur Royale</span>
+    </div>
+  </div>
+
+  <div class="section-title">Typewriter</div>
+  <div class="grid">
+    <div class="card">
+      <span class="amp" style='font-family:"Special Elite",serif;'>&amp;</span>
+      <span class="pair" style='font-family:"Special Elite",serif;'>Mike &amp; Xan</span>
+      <span class="label">Special Elite</span>
+    </div>
+  </div>
+</body>
+</html>
