@@ -3,15 +3,94 @@
    Frontend JS: nav toggle + RSVP form
    ============================================================ */
 
-if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+if ('scrollRestoration' in history) history.scrollRestoration = 'auto';
 
-/* Always load fresh: strip any hash and scroll to top on every (re)load,
-   including back/forward bfcache restores. */
-if (window.location.hash) {
-  history.replaceState(null, '', window.location.pathname + window.location.search);
-}
-window.scrollTo(0, 0);
-window.addEventListener('pageshow', () => window.scrollTo(0, 0));
+/* Toggle a body class once the user scrolls past the hero. Used to:
+   - reveal the mobile site-header (hidden until the user starts scrolling)
+   - fade out the bouncing scroll-cue arrow */
+(function () {
+  var threshold = 80;
+  function update() {
+    document.body.classList.toggle('is-scrolled', window.scrollY > threshold);
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+}());
+
+/* Photo-break focal-point sliders were removed once positions/scales were
+   locked in. Values now live in the inline `style` of each .photo-break
+   in index.html. To re-enable adjustment later, restore from git history. */
+
+/* Heart-eye position sliders removed once positions/scales were locked in.
+   Per-heart values now live in the inline `style` of the .has-heart-eyes
+   section in index.html. Restore from git history if re-adjustment is
+   ever needed. The /dev-save-attr endpoint in dev-server.py is what made
+   the save reliable — keep that around for similar future tools. */
+
+/* ── Subtle parallax for .photo-break sections + scroll-driven heart-eye draw ──
+   - Each section's --parallax-offset CSS var drives a small vertical translate.
+   - Sections marked .has-heart-eyes additionally have <svg.heart-eye> overlays
+     whose stroke-dashoffset follows the scroll position (draws on the way down,
+     un-draws on the way back up). */
+(function () {
+  var sections = document.querySelectorAll('.photo-break');
+  if (!sections.length) return;
+  var maxOffset = 60;
+  var ticking = false;
+
+  // Pre-measure each heart path's length and prime stroke-dasharray.
+  document.querySelectorAll('.heart-eye path').forEach(function (path) {
+    try {
+      var len = Math.ceil(path.getTotalLength());
+      path.dataset.len = len;
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = len; // start fully un-drawn
+    } catch (e) { /* layout not ready */ }
+  });
+
+  function update() {
+    var viewH = window.innerHeight;
+    sections.forEach(function (s) {
+      var rect = s.getBoundingClientRect();
+      var sectionCenter = rect.top + rect.height / 2;
+      var range = viewH / 2 + rect.height / 2;
+      var progress = (sectionCenter - viewH / 2) / range; // +1 below view, 0 centered, -1 above
+      if (progress > 1) progress = 1;
+      if (progress < -1) progress = -1;
+      s.style.setProperty('--parallax-offset', (-progress * maxOffset).toFixed(1) + 'px');
+
+      if (s.classList.contains('has-heart-eyes')) {
+        // Each heart draws over a short window of scroll progress, staggered
+        // so they don't all land at once. progress goes +1 (just emerging)
+        // → 0 (centered) → −1 (passed). Hearts start drawing later (lower
+        // values of progress) so the unmarked photo is visible first.
+        var heartStarts = [0.5, 0.42, 0.34, 0.26]; // start prog per heart 1..4
+        var heartDuration = 0.18;                  // scroll-progress range per heart
+        s.querySelectorAll('.heart-eye').forEach(function (heart, idx) {
+          var startProg = heartStarts[idx] != null ? heartStarts[idx] : 0.3;
+          var d = (startProg - progress) / heartDuration;
+          if (d < 0) d = 0;
+          if (d > 1) d = 1;
+          heart.querySelectorAll('path').forEach(function (path) {
+            var len = parseFloat(path.dataset.len) || 0;
+            if (!len) return;
+            path.style.strokeDashoffset = (len * (1 - d)).toFixed(0);
+          });
+        });
+      }
+    });
+    ticking = false;
+  }
+  function onScroll() {
+    if (!ticking) {
+      window.requestAnimationFrame(update);
+      ticking = true;
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  update();
+}());
 
 /* ── Polaroid discovery — probes assets/Polaroid-1.png, 2, 3…
       until a 404, so adding new files is automatic everywhere. ── */
@@ -467,7 +546,7 @@ async function getPolaroids() {
             </label>
           </div>
 
-          <div class="plusone-details" hidden>
+          <div class="plusone-details">
             <label for="plusone-name-${memberId}">+1's name</label>
             <input type="text" id="plusone-name-${memberId}" class="plusone-name" placeholder="First and last name" />
 
@@ -488,7 +567,9 @@ async function getPolaroids() {
         bringingRadios.forEach(r => {
           r.addEventListener('change', () => {
             const yes = wrap.querySelector(`input[name="bringing-${memberId}"]:checked`);
-            details.hidden = !(yes && yes.value === 'yes');
+            const isYes = !!(yes && yes.value === 'yes');
+            details.classList.toggle('is-open', isYes);
+            wrap.classList.toggle('is-bringing', isYes);
           });
         });
 
@@ -1919,21 +2000,42 @@ async function getPolaroids() {
   });
 }());
 
-/* ── Random polaroids (registry + details) ── */
+/* ── Random polaroids (registry, details, FAQ) ──
+   Each random slot gets a different polaroid, AND we exclude any polaroid
+   already used in the timeline so nothing repeats across the page. */
 (function () {
-  async function randomPolaroid(id) {
-    var img = document.getElementById(id);
-    if (!img) return;
-    var polaroids = await getPolaroids();
-    if (!polaroids.length) return;
-    var src = polaroids[Math.floor(Math.random() * polaroids.length)];
-    var tilt = (Math.random() * 6 - 3).toFixed(1);
-    img.src = src;
-    img.style.transform = 'rotate(' + tilt + 'deg)';
+  function timelineUsedSrcs() {
+    var used = new Set();
+    document.querySelectorAll('#story .stack-photo').forEach(function (img) {
+      var src = img.getAttribute('src');
+      if (src) used.add(src);
+    });
+    return used;
   }
-  randomPolaroid('registry-polaroid');
-  randomPolaroid('details-polaroid');
-  randomPolaroid('faq-polaroid');
+
+  async function assignRandomPolaroids(ids) {
+    var pool = await getPolaroids();
+    if (!pool.length) return;
+    var used = timelineUsedSrcs();
+    var available = pool.filter(function (src) { return !used.has(src); });
+
+    // Shuffle available pool (Fisher–Yates)
+    for (var i = available.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = available[i]; available[i] = available[j]; available[j] = tmp;
+    }
+
+    ids.forEach(function (id, idx) {
+      var img = document.getElementById(id);
+      if (!img || !available.length) return;
+      var src = available[idx % available.length];
+      var tilt = (Math.random() * 6 - 3).toFixed(1);
+      img.src = src;
+      img.style.transform = 'rotate(' + tilt + 'deg)';
+    });
+  }
+
+  assignRandomPolaroids(['registry-polaroid', 'details-polaroid', 'faq-polaroid']);
 }());
 
 /* ── Canvas favicon + web app icon — DM Serif Display italic & once fonts load ── */
@@ -1970,3 +2072,206 @@ document.fonts.ready.then(function () {
     p.innerHTML = p.innerHTML.replace(pattern, '<span class="story-accent">$1</span>');
   });
 }());
+
+/* ============================================================
+   Venue map — Google Maps JavaScript API.
+   Pins: venue + nearby hotels. Loaded via async script in HTML;
+   `initVenueMap` is the callback Google calls once the API is ready.
+   ============================================================ */
+function initVenueMap() {
+  var el = document.getElementById('venue-map');
+  if (!el || typeof google === 'undefined') return;
+
+  var venue = {
+    key: 'venue',
+    lat: 38.9255115, lng: -94.7615422,
+    name: 'The Thompson Barn',
+    address: '11184 Lackman Rd, Lenexa, KS',
+    isVenue: true
+  };
+  var hotels = [
+    {
+      key: 'embassy',
+      lat: 38.9394847, lng: -94.7966108,
+      name: 'Embassy Suites by Hilton — Olathe',
+      address: '10401 S Ridgeview Rd, Olathe, KS 66061'
+    },
+    {
+      key: 'courtyard',
+      lat: 38.9082744, lng: -94.7693027,
+      name: 'Courtyard by Marriott — Olathe',
+      address: '12151 S Strang Line Ct, Olathe, KS 66062'
+    }
+  ];
+  var parking = {
+    key: 'parking',
+    lat: 38.9249020069167, lng: -94.76180747762298,
+    name: 'Event Parking',
+    address: '11184 Lackman Rd, Lenexa, KS',
+    isParking: true
+  };
+  var allPoints = [venue].concat(hotels).concat([parking]);
+  var pinByKey = {};
+
+  var map = new google.maps.Map(el, {
+    center: { lat: venue.lat, lng: venue.lng },
+    zoom: 13,
+    gestureHandling: 'cooperative',
+    streetViewControl: false,
+    mapTypeControl: false,
+    fullscreenControl: true,
+    zoomControl: true,
+    styles: [
+      // Base — lighter than the page bg so the map pops from the section
+      { elementType: 'geometry', stylers: [{ color: '#faf3e4' }] },
+      { elementType: 'labels.text.fill', stylers: [{ color: '#2b1f1a' }] },
+      { elementType: 'labels.text.stroke', stylers: [{ color: '#faf3e4' }, { weight: 3 }] },
+      { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+
+      // Hide most POIs and transit clutter
+      { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+      { featureType: 'poi.park', stylers: [{ visibility: 'simplified' }] },
+      { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#c8d1ac' }] },
+      { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#6e7a4e' }] },
+      { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+
+      // Landscape
+      { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#f6eed9' }] },
+      { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#ece1c4' }] },
+
+      // Administrative
+      { featureType: 'administrative', stylers: [{ visibility: 'simplified' }] },
+      { featureType: 'administrative.land_parcel', stylers: [{ visibility: 'off' }] },
+      { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#2b1f1a' }] },
+
+      // Roads
+      { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#fffaee' }] },
+      { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#5a4a3a' }] },
+      { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#f0c8b8' }] },
+      { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#c8362c' }, { weight: 0.6 }] },
+      { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#faecd0' }] },
+      { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#fdf7e8' }] },
+
+      // Water — muted grey-green so it doesn't fight the warm palette
+      { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#bfc6b8' }] },
+      { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#6e7a4e' }] }
+    ]
+  });
+
+  var infoWindow = new google.maps.InfoWindow();
+
+  allPoints.forEach(function (p) {
+    var fillColor = '#6e7a4e';        // hotel default (olive)
+    if (p.isVenue)   fillColor = '#c8362c';   // venue red
+    if (p.isParking) fillColor = '#c79232';   // parking gold
+
+    var marker = new google.maps.Marker({
+      position: { lat: p.lat, lng: p.lng },
+      map: map,
+      title: p.name,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: p.isVenue ? 11 : 8,
+        fillColor: fillColor,
+        fillOpacity: 1,
+        strokeColor: '#ffffff',
+        strokeWeight: 3
+      },
+      zIndex: p.isParking ? 2 : 3
+    });
+
+    var query = encodeURIComponent(p.name + ', ' + p.address);
+    var directionsUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + query;
+    var content =
+      '<div class="map-popup">' +
+        '<strong>' + p.name + '</strong><br>' +
+        p.address + '<br>' +
+        '<a href="' + directionsUrl + '" target="_blank" rel="noopener">Directions</a>' +
+      '</div>';
+
+    function openPin() {
+      infoWindow.setContent(content);
+      infoWindow.open({ anchor: marker, map: map });
+      if (p.isParking) {
+        map.setMapTypeId('hybrid');
+        map.setZoom(18);
+        map.setCenter({ lat: p.lat, lng: p.lng });
+      } else {
+        map.panTo({ lat: p.lat, lng: p.lng });
+      }
+      marker.setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(function () { marker.setAnimation(null); }, 1400);
+    }
+    marker.addListener('click', openPin);
+    pinByKey[p.key] = { marker: marker, openPin: openPin };
+  });
+
+  var bounds = new google.maps.LatLngBounds();
+  allPoints.forEach(function (p) { bounds.extend({ lat: p.lat, lng: p.lng }); });
+  map.fitBounds(bounds, 60);
+
+  // Wire up the legend below the map — clicking a legend entry opens its pin.
+  document.querySelectorAll('.venue-map-legend [data-pin]').forEach(function (li) {
+    var key = li.getAttribute('data-pin');
+    var pin = pinByKey[key];
+    if (!pin) return;
+    li.addEventListener('click', pin.openPin);
+    li.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        pin.openPin();
+      }
+    });
+  });
+
+  initParkingMap();
+}
+window.initVenueMap = initVenueMap;
+
+/* Parking detail map — satellite view, zoomed in, single pin. */
+function initParkingMap() {
+  var el = document.getElementById('parking-map');
+  if (!el || typeof google === 'undefined') return;
+
+  var spot = { lat: 38.9249020069167, lng: -94.76180747762298 };
+
+  var map = new google.maps.Map(el, {
+    center: spot,
+    zoom: 18,
+    mapTypeId: 'hybrid',
+    gestureHandling: 'cooperative',
+    streetViewControl: false,
+    mapTypeControl: false,
+    fullscreenControl: true,
+    zoomControl: true,
+    tilt: 0
+  });
+
+  new google.maps.Marker({
+    position: spot,
+    map: map,
+    title: 'Parking',
+    icon: {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 11,
+      fillColor: '#c8362c',
+      fillOpacity: 1,
+      strokeColor: '#ffffff',
+      strokeWeight: 3
+    }
+  });
+
+  // Force re-render when the FAQ <details> opens (otherwise Google Maps
+  // renders into a 0×0 container and stays grey until you interact).
+  var detailsEl = el.closest('details');
+  if (detailsEl) {
+    detailsEl.addEventListener('toggle', function () {
+      if (detailsEl.open) {
+        setTimeout(function () {
+          google.maps.event.trigger(map, 'resize');
+          map.setCenter(spot);
+        }, 50);
+      }
+    });
+  }
+}
