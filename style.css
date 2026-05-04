@@ -672,6 +672,9 @@ section:not(#home) h2,
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-sm);
 }
+@media (max-width: 540px) {
+  .party-grid { grid-template-columns: 1fr; }
+}
 
 .party-card {
   background: #fff;
