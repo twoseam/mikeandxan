@@ -179,6 +179,8 @@ async function getPolaroids() {
   let i = 0;
   let lastWasSpecial = false;
   const FRAME_MS = 1000 / 3; // 3fps
+  const SCALE = 1.5;
+  const measureCtx = document.createElement('canvas').getContext('2d');
 
   function pickGlyph() {
     // Force & after any non-& so "and" and "+" never appear back-to-back.
@@ -194,7 +196,16 @@ async function getPolaroids() {
     const g = pickGlyph();
     amp.textContent = g;
     amp.dataset.glyph = g === '&' ? 'amp' : g === '+' ? 'plus' : 'and';
-    amp.style.setProperty('transform', 'scale(1.5)', 'important');
+
+    // Anchor every font's ink center to the baseline so cycling doesn't reposition
+    // the glyph. Measure ink ascent/descent via canvas, then translateY by half
+    // their difference — drives the ink midpoint onto the baseline regardless of font.
+    const cs = getComputedStyle(amp);
+    const fontSize = parseFloat(cs.fontSize);
+    measureCtx.font = `${fontSize}px ${cs.fontFamily}`;
+    const m = measureCtx.measureText(g);
+    const dy = (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+    amp.style.setProperty('transform', `scale(${SCALE}) translateY(${dy}px)`, 'important');
   }
 
   // Wait for fonts to be loaded before cycling, so first frames don't fall back.

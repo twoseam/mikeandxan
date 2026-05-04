@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hero ampersand — current rotation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Bodoni+Moda:ital,wght@1,700..900&family=Yeseva+One&display=swap" />
+  <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
+  <style>
+    :root {
+      --bg: #efe7d8;
+      --text: #2b1f1a;
+      --accent: #ff3a2c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 40px 20px 80px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, system-ui, sans-serif;
+    }
+    h1 { font-size: 1.5rem; text-align: center; margin: 0 0 4px; }
+    .lede { text-align: center; font-size: .85rem; opacity: .7; margin: 0 0 32px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 28px 12px 14px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .glyph {
+      font-size: 6rem;
+      line-height: 1;
+      color: var(--accent);
+      display: block;
+      min-height: 1em;
+    }
+    .glyph[data-g="and"] { font-size: 2.4rem; }
+    .glyph[data-g="plus"] { font-size: 7.5rem; }
+    .label {
+      font-size: .7rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      opacity: .55;
+      margin-top: 8px;
+    }
+    .row-label {
+      grid-column: 1 / -1;
+      font-size: .85rem;
+      font-weight: 600;
+      margin: 16px 0 4px;
+      padding-left: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hero ampersand — current rotation</h1>
+  <p class="lede">4 fonts × 3 glyphs (& / and / +). Rendered at the same color and size scale used in the hero.</p>
+  <div id="grid" class="grid"></div>
+
+  <script>
+    const FONTS = [
+      { css: '"DM Serif Display", serif', label: 'DM Serif Display' },
+      { css: '"Bodoni Moda", serif', label: 'Bodoni Moda' },
+      { css: '"Yeseva One", serif', label: 'Yeseva One' },
+      { css: '"new-kansas-thin", serif', label: 'New Kansas Thin' },
+    ];
+    const GLYPHS = [
+      { char: '&', tag: 'amp' },
+      { char: 'and', tag: 'and' },
+      { char: '+', tag: 'plus' },
+    ];
+    const grid = document.getElementById('grid');
+    FONTS.forEach(f => {
+      const row = document.createElement('div');
+      row.className = 'row-label';
+      row.textContent = f.label;
+      grid.appendChild(row);
+      GLYPHS.forEach(g => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<span class="glyph" data-g="${g.tag}" style="font-family:${f.css}">${g.char}</span><div class="label">${g.tag}</div>`;
+        grid.appendChild(card);
+      });
+    });
+  </script>
+</body>
+</html>
