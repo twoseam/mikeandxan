@@ -1454,7 +1454,7 @@
     '.section-hero .kicker',
     '.hero-name', '.hero-amp', '.hero-info', '.hero-actions',
     'section:not(#home) h2', '.section-lede', '.details-block',
-    '.timeline-event', '#faq details', '#registry .registry-text > p'
+    '#faq details', '#registry .registry-text > p'
   ].join(',');
 
   var HERO_SEL = '.section-hero .kicker, .hero-name, .hero-amp, .hero-info, .hero-actions';
@@ -1472,6 +1472,23 @@
   }, { threshold: 0.12 });
 
   document.querySelectorAll(SELECTORS).forEach(function (el) { io.observe(el); });
+
+  /* Timeline events: individual stagger, observed separately */
+  document.querySelectorAll('.timeline-event').forEach(function (el) {
+    el.style.setProperty('--reveal-delay', '0s');
+    io.observe(el);
+  });
+
+  /* Draw the timeline line when the list scrolls into view */
+  var lineIO = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('line-drawn');
+      lineIO.unobserve(e.target);
+    });
+  }, { threshold: 0.05 });
+  var tl = document.querySelector('.timeline');
+  if (tl) lineIO.observe(tl);
 
   // Scribble draw-on animations
   var scribbleIO = new IntersectionObserver(function (entries) {
@@ -1523,6 +1540,7 @@
   }
   randomPolaroid('registry-polaroid');
   randomPolaroid('details-polaroid');
+  randomPolaroid('faq-polaroid');
 }());
 
 /* ── Canvas favicon + web app icon — DM Serif Display italic & once fonts load ── */
@@ -1549,3 +1567,13 @@ document.fonts.ready.then(function () {
   var touch = document.querySelector('link[rel="apple-touch-icon"]');
   if (touch) touch.href = png;
 });
+
+/* ── Story body copy — style & and … in red bold ── */
+(function () {
+  var story = document.getElementById('story');
+  if (!story) return;
+  var pattern = /(&amp;|\.{3}|…)/g;
+  story.querySelectorAll('p').forEach(function (p) {
+    p.innerHTML = p.innerHTML.replace(pattern, '<span class="story-accent">$1</span>');
+  });
+}());

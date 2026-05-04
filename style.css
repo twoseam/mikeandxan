@@ -167,7 +167,6 @@ p { margin: 0 0 var(--space-sm); }
 section:not(#home) h2,
 .section-lede,
 .details-block,
-.timeline-event,
 #faq details,
 #registry .registry-text > p {
   opacity: 0;
@@ -182,10 +181,24 @@ section:not(#home) h2,
 @media (prefers-reduced-motion: reduce) {
   .section-hero .kicker, .hero-name, .hero-amp, .hero-info, .hero-actions,
   section:not(#home) h2, .section-lede, .details-block,
-  .timeline-event, #faq details, #registry .registry-text > p {
+  #faq details, #registry .registry-text > p {
     opacity: 1 !important; transform: none !important; transition: none !important;
   }
+  .timeline::before { transform: scaleY(1) !important; animation: none !important; }
+  .timeline-event, .timeline-event:nth-child(odd), .timeline-event:nth-child(even) {
+    opacity: 1 !important; transform: none !important; transition: none !important;
+  }
+  .timeline-event::before { opacity: 1 !important; animation: none !important; }
 }
+
+/* Timeline slide-in directions */
+.timeline-event {
+  opacity: 0;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition-delay: var(--reveal-delay, 0s);
+}
+.timeline-event:nth-child(odd)  { transform: translateX(-44px); }
+.timeline-event:nth-child(even) { transform: translateX(44px); }
 
 /* ---------- Sections ---------- */
 
@@ -221,21 +234,26 @@ section:not(#home) h2,
   max-width: none;
 }
 @media (max-width: 640px) {
+  .registry-inner {
+    display: flex;
+    flex-direction: column;
+  }
   .registry-text {
     max-width: 100%;
+    order: 2;
   }
   .registry-polaroid {
+    order: 1;
     position: static;
     transform: none;
     width: 100%;
     display: flex;
     justify-content: center;
-    margin-top: var(--space-md);
+    margin-bottom: var(--space-md);
     pointer-events: auto;
   }
   .registry-polaroid img {
-    width: 90%;
-    max-width: 340px;
+    width: 100%;
   }
 }
 
@@ -272,12 +290,48 @@ section:not(#home) h2,
     width: 100%;
     display: flex;
     justify-content: center;
-    margin-top: var(--space-md);
+    margin-bottom: var(--space-md);
     pointer-events: auto;
   }
   .details-polaroid img {
-    width: 90%;
-    max-width: 340px;
+    width: 100%;
+  }
+}
+
+.faq-text {
+  max-width: 55%;
+  margin-left: auto;
+  position: relative;
+  z-index: 1;
+}
+.faq-polaroid {
+  position: absolute;
+  right: 52%;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 0;
+  pointer-events: none;
+}
+.faq-polaroid img {
+  width: 640px;
+  max-width: none;
+}
+@media (max-width: 640px) {
+  .faq-text {
+    max-width: 100%;
+    margin-left: 0;
+  }
+  .faq-polaroid {
+    position: static;
+    transform: none;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--space-md);
+    pointer-events: auto;
+  }
+  .faq-polaroid img {
+    width: 100%;
   }
 }
 
@@ -629,50 +683,117 @@ section:not(#home) h2,
   margin-bottom: 0.25rem;
 }
 
+.story-accent {
+  color: var(--color-bg);
+  font-weight: 700;
+}
+
 /* ---------- Our Story timeline ---------- */
+@keyframes timeline-line-grow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+@keyframes dot-pop {
+  0%   { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  60%  { transform: translate(-50%, -50%) scale(1.35); }
+  100% { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+}
+
 .timeline {
   list-style: none;
-  margin: 0;
-  padding: 0 0 0 28px;
+  margin: var(--space-lg) 0 0;
+  padding: 0;
   position: relative;
 }
 .timeline::before {
   content: '';
   position: absolute;
-  left: 6px;
-  top: 8px;
-  bottom: 8px;
+  left: calc(50% - 1px);
+  top: 0;
+  bottom: 0;
   width: 2px;
-  background: var(--color-border);
+  background: rgba(239, 231, 216, 0.45);
+  transform: scaleY(0);
+  transform-origin: top center;
 }
+.timeline.line-drawn::before {
+  animation: timeline-line-grow 1.4s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+}
+
 .timeline-event {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  align-items: center;
   position: relative;
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-xl);
 }
+.timeline-event:nth-child(even) .timeline-content { order: 2; text-align: left; }
+.timeline-event:nth-child(even) .timeline-photo   { order: 1; justify-self: end; }
+
 .timeline-event::before {
   content: '';
   position: absolute;
-  left: -28px;
-  top: 6px;
+  left: 50%;
+  top: 2.5rem;
+  transform: translate(-50%, -50%);
   width: 14px;
   height: 14px;
   border-radius: 50%;
   background: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-bg-alt, #fff);
+  box-shadow: 0 0 0 3px #fff;
+  z-index: 2;
+  opacity: 0;
 }
+.timeline-event.anim-in::before {
+  animation: dot-pop 0.45s ease calc(var(--reveal-delay, 0s) + 0.2s) forwards;
+}
+
+.timeline-content {
+  text-align: right;
+}
+.timeline-photo {
+  justify-self: start;
+}
+.timeline-photo img {
+  width: 220px;
+  max-width: 100%;
+}
+.timeline-event:nth-child(even) .timeline-photo img {
+  transform: rotate(2deg);
+}
+.timeline-event:nth-child(odd) .timeline-photo img {
+  transform: rotate(-2deg);
+}
+
 .timeline-date {
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--color-accent);
+  margin-bottom: 0.35rem;
+}
+.timeline-content h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15em;
+  color: var(--color-bg);
+}
+.timeline-content p {
+  margin: 0 0 0.4rem;
   font-size: 0.95em;
-  margin-bottom: 0.15rem;
 }
-.timeline-body h3 {
-  margin: 0 0 0.25rem;
-  font-size: 1.1em;
-}
-.timeline-body p {
-  margin: 0;
-  color: var(--color-muted, #555);
+
+@media (max-width: 640px) {
+  .timeline::before { left: 6px; width: 2px; background: rgba(239,231,216,0.45); }
+  .timeline-event {
+    grid-template-columns: 1fr;
+    padding-left: 28px;
+  }
+  .timeline-event::before { left: 7px; top: 1.5rem; }
+  .timeline-event:nth-child(even) .timeline-content { order: 1; text-align: left; }
+  .timeline-event:nth-child(even) .timeline-photo   { order: 2; justify-self: start; }
+  .timeline-photo img { width: 100%; }
 }
 
 /* ---------- Highlights strip (When / Where / What) ---------- */
