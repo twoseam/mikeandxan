@@ -579,6 +579,7 @@ section:not(#home) h2,
 }
 .hero-amp[data-glyph="and"] { font-size: clamp(5.4rem, 18vw, 9rem); }
 .hero-amp[data-glyph="plus"] { font-size: clamp(10.7rem, 35.6vw, 17.8rem); }
+.hero-amp[data-glyph="long"] { font-size: clamp(3.4rem, 11vw, 5.7rem); }
 .hero-amp[data-font="nk"] { top: calc(.15em + 0.3em); }
 .hero-amp {
   color: #ff3a2c;
@@ -1512,17 +1513,16 @@ textarea::placeholder {
 .household-pick-btn:focus {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), .1);
+  outline: none;
 }
 .picker-back-btn,
 .picker-contact-link {
   margin-top: var(--space-sm);
   font-style: italic;
-  color: var(--color-muted, #666);
+  color: var(--color-muted);
   text-decoration: none;
 }
-.picker-contact-link {
-  display: block;
-}
+.picker-contact-link { display: block; }
 
 .email-popover {
   position: absolute;
@@ -2239,6 +2239,7 @@ textarea::placeholder {
 }
 .scr.is-drawn { opacity: var(--sco, 0.5); }
 .scr-red { filter: invert(24%) sepia(72%) saturate(1300%) hue-rotate(342deg) brightness(97%) contrast(104%); }
+#rsvp .scr { display: none; }
 .scr-story { filter: invert(1); }
 .scr-hero-hearts { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: -4rem; filter: invert(1); }
 @media (prefers-reduced-motion: reduce) {

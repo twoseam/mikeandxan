@@ -25,9 +25,9 @@
     .lede { text-align: center; font-size: .85rem; opacity: .7; margin: 0 0 32px; }
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      max-width: 900px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      max-width: 1200px;
       margin: 0 auto;
     }
     .card {
@@ -46,6 +46,7 @@
     }
     .glyph[data-g="and"] { font-size: 2.4rem; }
     .glyph[data-g="plus"] { font-size: 7.5rem; }
+    .glyph[data-g="long"] { font-size: 1.8rem; }
     .label {
       font-size: .7rem;
       letter-spacing: .04em;
@@ -64,7 +65,7 @@
 </head>
 <body>
   <h1>Hero ampersand — current rotation</h1>
-  <p class="lede">4 fonts × 3 glyphs (& / and / +). Rendered at the same color and size scale used in the hero.</p>
+  <p class="lede">4 fonts × 10 glyphs. Rendered at the same color and size tier used in the hero.</p>
   <div id="grid" class="grid"></div>
 
   <script>
@@ -76,8 +77,15 @@
     ];
     const GLYPHS = [
       { char: '&', tag: 'amp' },
-      { char: 'and', tag: 'and' },
       { char: '+', tag: 'plus' },
+      { char: 'and', tag: 'and' },
+      { char: 'Plus', tag: 'and' },
+      { char: 'with', tag: 'and' },
+      { char: 'loves', tag: 'long' },
+      { char: 'marries', tag: 'long' },
+      { char: 'y', tag: 'amp' },
+      { char: 'et', tag: 'amp' },
+      { char: 'e', tag: 'amp' },
     ];
     const grid = document.getElementById('grid');
     FONTS.forEach(f => {

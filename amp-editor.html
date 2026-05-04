@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hero ampersand — editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Bodoni+Moda:ital,wght@1,700..900&family=Yeseva+One&display=swap" />
+  <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
+  <style>
+    :root {
+      --bg: #efe7d8;
+      --text: #2b1f1a;
+      --accent: #ff3a2c;
+      --line: rgba(43,31,26,.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px 16px 160px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, system-ui, sans-serif;
+      font-size: 14px;
+    }
+    h1 { font-size: 1.4rem; margin: 0 0 4px; text-align: center; }
+    .lede { text-align: center; opacity: .7; font-size: .82rem; margin: 0 0 28px; }
+    .wrap { max-width: 880px; margin: 0 auto; }
+
+    .pair-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr 56px 36px;
+      gap: 8px;
+      align-items: center;
+      background: #fff;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+    }
+    .pair input[type="text"], .pair select {
+      font: inherit;
+      font-size: .95rem;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #fff;
+      width: 100%;
+    }
+    .pair .preview {
+      color: var(--accent);
+      text-align: center;
+      line-height: 1;
+      font-size: 2.4rem;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .pair .preview[data-tier="and"] { font-size: 1.1rem; font-weight: 700; }
+    .pair .preview[data-tier="long"] { font-size: .85rem; font-weight: 700; }
+    .pair .x {
+      background: none;
+      border: 0;
+      font-size: 1.3rem;
+      color: var(--text);
+      opacity: .35;
+      cursor: pointer;
+    }
+    .pair .x:hover { opacity: 1; color: var(--accent); }
+    .pair.is-killed input, .pair.is-killed select, .pair.is-killed .preview {
+      opacity: .35;
+    }
+    .pair-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 56px 36px;
+      gap: 8px;
+      padding: 0 10px 6px;
+      font-size: .68rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity: .55;
+    }
+    .pair-header .preview-h { text-align: center; }
+
+    .add-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 56px 36px;
+      gap: 8px;
+      padding: 8px 10px;
+      margin-top: 16px;
+      background: rgba(255,255,255,.5);
+      border: 1px dashed rgba(43,31,26,.25);
+      border-radius: 6px;
+    }
+    .add-row input, .add-row select {
+      font: inherit;
+      font-size: .95rem;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #fff;
+      width: 100%;
+    }
+    .add-row button {
+      grid-column: 3 / span 2;
+      font: inherit;
+      font-size: .85rem;
+      padding: 6px 12px;
+      background: var(--accent);
+      color: #fff;
+      border: 0;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 24px 0 16px;
+    }
+    button.ctl {
+      font: inherit;
+      font-size: .85rem;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button.ctl.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .out-block { margin: 16px 0 0; }
+    .out-label {
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity: .55;
+      margin: 16px 0 6px;
+    }
+    pre {
+      background: #2b1f1a;
+      color: #efe7d8;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: .78rem;
+      line-height: 1.45;
+      overflow-x: auto;
+      white-space: pre;
+      margin: 0;
+    }
+
+    .weight {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .weight input { width: 100%; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>Hero ampersand — editor</h1>
+  <p class="lede">Each row is one combo that can appear in the hero. Type a glyph or word, pick its font, set its frequency weight. Click × to remove.</p>
+
+  <div class="wrap">
+    <div class="pair-header">
+      <div>Glyph</div>
+      <div>Font</div>
+      <div class="preview-h">Preview</div>
+      <div></div>
+    </div>
+    <div class="pair-list" id="list"></div>
+
+    <div class="add-row">
+      <input id="new-g" type="text" placeholder="Glyph or word (e.g. &quot;loves&quot;)" maxlength="20" />
+      <select id="new-f"></select>
+      <button id="btn-add">+ Add</button>
+    </div>
+
+    <div class="controls">
+      <button class="ctl" id="btn-reset">Reset to defaults</button>
+      <button class="ctl primary" id="btn-copy">Copy JS for script.js</button>
+    </div>
+
+    <div class="out-block">
+      <div class="out-label">script.js — replace the FONTS + GLYPHS in the cycling IIFE with this PAIRS array</div>
+      <pre id="output"></pre>
+    </div>
+  </div>
+
+  <script>
+    const FONTS = [
+      { css: '"DM Serif Display", serif', key: 'dm',     label: 'DM Serif Display' },
+      { css: '"Bodoni Moda", serif',      key: 'bodoni', label: 'Bodoni Moda' },
+      { css: '"Yeseva One", serif',       key: 'yeseva', label: 'Yeseva One' },
+      { css: '"new-kansas-thin", serif',  key: 'nk',     label: 'New Kansas Thin' },
+    ];
+
+    // Default pairs reflect the current rotation: every glyph × every font, with & weighted high.
+    const DEFAULT_PAIRS = (() => {
+      const glyphs = ['&', '+', 'and', 'Plus', 'with', 'loves', 'marries', 'y', 'et', 'e'];
+      const out = [];
+      FONTS.forEach(f => glyphs.forEach(g => out.push({ glyph: g, font: f.key, weight: g === '&' ? 10 : 1 })));
+      return out;
+    })();
+
+    const STORAGE_KEY = 'amp-editor:v2';
+    let pairs = (() => {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_PAIRS.slice(); }
+      catch { return DEFAULT_PAIRS.slice(); }
+    })();
+
+    const tierFor = (g) => {
+      if (g === '&') return 'amp';
+      if (g === '+') return 'plus';
+      if (g.length <= 2) return 'amp';
+      if (g.length <= 4) return 'and';
+      return 'long';
+    };
+    const fontByKey = k => FONTS.find(f => f.key === k);
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(pairs));
+      renderOutput();
+    }
+
+    function buildList() {
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+      pairs.forEach((p, idx) => {
+        const row = document.createElement('div');
+        row.className = 'pair';
+
+        const gIn = document.createElement('input');
+        gIn.type = 'text';
+        gIn.value = p.glyph;
+        gIn.maxLength = 20;
+        gIn.oninput = () => {
+          p.glyph = gIn.value;
+          preview.textContent = p.glyph;
+          preview.dataset.tier = tierFor(p.glyph);
+          persist();
+        };
+
+        const fSel = document.createElement('select');
+        FONTS.forEach(f => {
+          const o = document.createElement('option');
+          o.value = f.key;
+          o.textContent = f.label;
+          if (f.key === p.font) o.selected = true;
+          fSel.appendChild(o);
+        });
+        fSel.onchange = () => {
+          p.font = fSel.value;
+          preview.style.fontFamily = fontByKey(p.font).css;
+          persist();
+        };
+
+        const wIn = document.createElement('input');
+        wIn.type = 'number';
+        wIn.min = '1';
+        wIn.max = '99';
+        wIn.value = p.weight ?? 1;
+        wIn.title = 'Frequency weight (higher = appears more often)';
+        wIn.oninput = () => { p.weight = Math.max(1, parseInt(wIn.value, 10) || 1); persist(); };
+
+        const preview = document.createElement('div');
+        preview.className = 'preview';
+        preview.dataset.tier = tierFor(p.glyph);
+        preview.style.fontFamily = fontByKey(p.font).css;
+        preview.textContent = p.glyph;
+
+        const x = document.createElement('button');
+        x.className = 'x';
+        x.textContent = '×';
+        x.title = 'Remove';
+        x.onclick = () => { pairs.splice(idx, 1); persist(); buildList(); };
+
+        // Layout: glyph | font | weight + preview stacked? Let's keep 4 columns: glyph, font, preview, x
+        // with weight inline next to the glyph input as a compact field.
+        const gWrap = document.createElement('div');
+        gWrap.style.display = 'grid';
+        gWrap.style.gridTemplateColumns = '1fr 56px';
+        gWrap.style.gap = '6px';
+        gWrap.appendChild(gIn);
+        const wWrap = document.createElement('div');
+        wWrap.className = 'weight';
+        wWrap.appendChild(wIn);
+        gWrap.appendChild(wWrap);
+
+        row.appendChild(gWrap);
+        row.appendChild(fSel);
+        row.appendChild(preview);
+        row.appendChild(x);
+        list.appendChild(row);
+      });
+    }
+
+    function renderOutput() {
+      const lines = ['  const PAIRS = ['];
+      pairs.forEach(p => {
+        const f = fontByKey(p.font);
+        if (!f) return;
+        const weight = p.weight && p.weight > 1 ? `, weight: ${p.weight}` : '';
+        lines.push(`    { glyph: '${p.glyph.replace(/'/g, "\\'")}', font: '${f.css.replace(/'/g, "\\'")}', key: '${f.key}'${weight} },`);
+      });
+      lines.push('  ];');
+      document.getElementById('output').textContent = lines.join('\n');
+    }
+
+    function buildAddSelect() {
+      const sel = document.getElementById('new-f');
+      sel.innerHTML = '';
+      FONTS.forEach(f => {
+        const o = document.createElement('option');
+        o.value = f.key;
+        o.textContent = f.label;
+        sel.appendChild(o);
+      });
+    }
+
+    document.getElementById('btn-add').onclick = () => {
+      const g = document.getElementById('new-g').value.trim();
+      const fk = document.getElementById('new-f').value;
+      if (!g) return;
+      pairs.push({ glyph: g, font: fk, weight: g === '&' ? 10 : 1 });
+      document.getElementById('new-g').value = '';
+      persist(); buildList();
+    };
+    document.getElementById('new-g').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('btn-add').click();
+    });
+    document.getElementById('btn-reset').onclick = () => {
+      pairs = DEFAULT_PAIRS.slice();
+      persist(); buildList();
+    };
+    document.getElementById('btn-copy').onclick = () => {
+      navigator.clipboard.writeText(document.getElementById('output').textContent)
+        .then(() => { const b = document.getElementById('btn-copy'); const t = b.textContent; b.textContent = '✓ copied'; setTimeout(() => b.textContent = t, 1200); });
+    };
+
+    buildAddSelect();
+    buildList();
+    renderOutput();
+  </script>
+</body>
+</html>

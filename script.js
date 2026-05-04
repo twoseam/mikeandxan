@@ -166,38 +166,73 @@ async function getPolaroids() {
   if (!amp) return;
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-  const FONTS = [
-    { css: '"DM Serif Display", serif', key: 'dm' },
-    { css: '"Bodoni Moda", serif', key: 'bodoni' },
-    { css: '"Yeseva One", serif', key: 'yeseva' },
-    { css: '"new-kansas-thin", serif', key: 'nk' },
+  // Curated glyph × font pairs — each tick picks one from the weighted pool.
+  // Edit via amp-editor.html (localhost), then paste the PAIRS array here.
+  const PAIRS = [
+    { glyph: '&', font: '"DM Serif Display", serif', key: 'dm', weight: 10 },
+    { glyph: '+', font: '"DM Serif Display", serif', key: 'dm' },
+    { glyph: 'and', font: '"DM Serif Display", serif', key: 'dm' },
+    { glyph: 'Plus', font: '"DM Serif Display", serif', key: 'dm' },
+    { glyph: 'with', font: '"DM Serif Display", serif', key: 'dm' },
+    { glyph: 'loves', font: '"DM Serif Display", serif', key: 'dm' },
+    { glyph: 'marries', font: '"DM Serif Display", serif', key: 'dm' },
+    { glyph: 'y', font: '"DM Serif Display", serif', key: 'dm' },
+    { glyph: 'et', font: '"DM Serif Display", serif', key: 'dm' },
+    { glyph: 'e', font: '"DM Serif Display", serif', key: 'dm' },
+    { glyph: '&', font: '"Bodoni Moda", serif', key: 'bodoni', weight: 10 },
+    { glyph: '+', font: '"Bodoni Moda", serif', key: 'bodoni' },
+    { glyph: 'and', font: '"Bodoni Moda", serif', key: 'bodoni' },
+    { glyph: 'Plus', font: '"Bodoni Moda", serif', key: 'bodoni' },
+    { glyph: 'with', font: '"Bodoni Moda", serif', key: 'bodoni' },
+    { glyph: 'loves', font: '"Bodoni Moda", serif', key: 'bodoni' },
+    { glyph: 'marries', font: '"Bodoni Moda", serif', key: 'bodoni' },
+    { glyph: 'y', font: '"Bodoni Moda", serif', key: 'bodoni' },
+    { glyph: 'et', font: '"Bodoni Moda", serif', key: 'bodoni' },
+    { glyph: 'e', font: '"Bodoni Moda", serif', key: 'bodoni' },
+    { glyph: '&', font: '"Yeseva One", serif', key: 'yeseva', weight: 10 },
+    { glyph: '+', font: '"Yeseva One", serif', key: 'yeseva' },
+    { glyph: 'and', font: '"Yeseva One", serif', key: 'yeseva' },
+    { glyph: 'Plus', font: '"Yeseva One", serif', key: 'yeseva' },
+    { glyph: 'with', font: '"Yeseva One", serif', key: 'yeseva' },
+    { glyph: 'loves', font: '"Yeseva One", serif', key: 'yeseva' },
+    { glyph: 'marries', font: '"Yeseva One", serif', key: 'yeseva' },
+    { glyph: 'y', font: '"Yeseva One", serif', key: 'yeseva' },
+    { glyph: 'et', font: '"Yeseva One", serif', key: 'yeseva' },
+    { glyph: 'e', font: '"Yeseva One", serif', key: 'yeseva' },
+    { glyph: '&', font: '"new-kansas-thin", serif', key: 'nk', weight: 10 },
+    { glyph: '+', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: 'and', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: 'Plus', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: 'with', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: 'loves', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: 'marries', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: 'y', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: 'et', font: '"new-kansas-thin", serif', key: 'nk' },
+    { glyph: 'e', font: '"new-kansas-thin", serif', key: 'nk' },
   ];
 
-  // Weighted glyph pool — & dominates, "and" / "+" appear occasionally.
-  const GLYPHS = ['&', '&', '&', '&', '&', '&', '&', 'and', '+'];
+  // Expand into a weighted pool once.
+  const POOL = [];
+  PAIRS.forEach(p => { for (let n = 0; n < (p.weight || 1); n++) POOL.push(p); });
 
-  let i = 0;
-  let lastWasSpecial = false;
   const FRAME_MS = 1000 / 3; // 3fps
   const SCALE = 1.5;
   const measureCtx = document.createElement('canvas').getContext('2d');
 
-  function pickGlyph() {
-    // Force & after any non-& so "and" and "+" never appear back-to-back.
-    if (lastWasSpecial) { lastWasSpecial = false; return '&'; }
-    const g = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
-    if (g !== '&') lastWasSpecial = true;
-    return g;
+  function tierFor(g) {
+    if (g === '&') return 'amp';
+    if (g === '+') return 'plus';
+    if (g.length <= 2) return 'amp';   // single chars + "et" — get full size
+    if (g.length <= 4) return 'and';    // and, Plus, with
+    return 'long';                       // loves, marries
   }
 
   function tick() {
-    i = (i + 1) % FONTS.length;
-    const f = FONTS[i];
-    amp.style.fontFamily = f.css;
-    amp.dataset.font = f.key;
-    const g = pickGlyph();
-    amp.textContent = g;
-    amp.dataset.glyph = g === '&' ? 'amp' : g === '+' ? 'plus' : 'and';
+    const p = POOL[Math.floor(Math.random() * POOL.length)];
+    amp.style.fontFamily = p.font;
+    amp.dataset.font = p.key;
+    amp.textContent = p.glyph;
+    amp.dataset.glyph = tierFor(p.glyph);
     amp.style.setProperty('transform', `scale(${SCALE})`, 'important');
   }
 
