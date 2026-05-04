@@ -224,13 +224,13 @@ section:not(#home) h2,
 .registry-polaroid {
   position: absolute;
   z-index: 0;
-  left: 62%;
+  left: 52%;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
 }
 .registry-polaroid img {
-  width: 512px;
+  width: 640px;
   max-width: none;
 }
 @media (max-width: 640px) {
@@ -253,7 +253,8 @@ section:not(#home) h2,
     pointer-events: auto;
   }
   .registry-polaroid img {
-    width: 100%;
+    width: 75%;
+    transform: none !important;
   }
 }
 
@@ -269,14 +270,14 @@ section:not(#home) h2,
 }
 .details-polaroid {
   position: absolute;
-  right: 62%;
+  right: 52%;
   top: 50%;
   transform: translateY(-50%);
   z-index: 0;
   pointer-events: none;
 }
 .details-polaroid img {
-  width: 512px;
+  width: 640px;
   max-width: none;
 }
 @media (max-width: 640px) {
@@ -294,7 +295,8 @@ section:not(#home) h2,
     pointer-events: auto;
   }
   .details-polaroid img {
-    width: 100%;
+    width: 75%;
+    transform: none !important;
   }
 }
 
@@ -306,14 +308,14 @@ section:not(#home) h2,
 }
 .faq-polaroid {
   position: absolute;
-  right: 62%;
+  right: 52%;
   top: 50%;
   transform: translateY(-50%);
   z-index: 0;
   pointer-events: none;
 }
 .faq-polaroid img {
-  width: 512px;
+  width: 640px;
   max-width: none;
 }
 @media (max-width: 640px) {
@@ -331,7 +333,8 @@ section:not(#home) h2,
     pointer-events: auto;
   }
   .faq-polaroid img {
-    width: 100%;
+    width: 75%;
+    transform: none !important;
   }
 }
 
@@ -665,8 +668,7 @@ section:not(#home) h2,
   .flip-card > div > span { height: 76px; line-height: 76px; font-size: 2.6rem; }
   .flip-label { font-size: .65rem; letter-spacing: .12em; }
   .section-hero::before {
-    background: url("assets/old-apartment-altcrop.jpg") 43% 90% / auto 126% no-repeat;
-    filter: grayscale(1) contrast(2.3) brightness(1.5);
+    background: url("assets/old-apartment-altcrop.jpg") 43% 90% / cover no-repeat;
   }
 }
 

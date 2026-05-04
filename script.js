@@ -3,6 +3,8 @@
    Frontend JS: nav toggle + RSVP form
    ============================================================ */
 
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
 /* ── Polaroid discovery — probes assets/Polaroid-1.png, 2, 3…
       until a 404, so adding new files is automatic everywhere. ── */
 var _polaroidCache = null;
