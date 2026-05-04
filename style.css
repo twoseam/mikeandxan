@@ -169,7 +169,7 @@ section:not(#home) h2,
 .details-block,
 .timeline-event,
 #faq details,
-#registry .section-inner > p {
+#registry .registry-text > p {
   opacity: 0;
   transform: translateY(22px);
   transition: opacity 0.55s ease, transform 0.55s ease;
@@ -182,7 +182,7 @@ section:not(#home) h2,
 @media (prefers-reduced-motion: reduce) {
   .section-hero .kicker, .hero-name, .hero-amp, .hero-info, .hero-actions,
   section:not(#home) h2, .section-lede, .details-block,
-  .timeline-event, #faq details, #registry .section-inner > p {
+  .timeline-event, #faq details, #registry .registry-text > p {
     opacity: 1 !important; transform: none !important; transition: none !important;
   }
 }
@@ -201,6 +201,42 @@ section:not(#home) h2,
 
 #registry {
   padding: calc(var(--space-lg) * 2.8) var(--space-sm);
+}
+
+.registry-text {
+  max-width: 60%;
+  position: relative;
+  z-index: 1;
+}
+.registry-polaroid {
+  position: absolute;
+  z-index: 0;
+  left: 52%;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.registry-polaroid img {
+  width: 640px;
+  max-width: none;
+}
+@media (max-width: 640px) {
+  .registry-text {
+    max-width: 100%;
+  }
+  .registry-polaroid {
+    position: static;
+    transform: none;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-md);
+    pointer-events: auto;
+  }
+  .registry-polaroid img {
+    width: 90%;
+    max-width: 340px;
+  }
 }
 
 #details {

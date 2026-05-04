@@ -1454,7 +1454,7 @@
     '.section-hero .kicker',
     '.hero-name', '.hero-amp', '.hero-info', '.hero-actions',
     'section:not(#home) h2', '.section-lede', '.details-block',
-    '.timeline-event', '#faq details', '#registry .section-inner > p'
+    '.timeline-event', '#faq details', '#registry .registry-text > p'
   ].join(',');
 
   var HERO_SEL = '.section-hero .kicker, .hero-name, .hero-amp, .hero-info, .hero-actions';
@@ -1509,4 +1509,14 @@
     var jitter = (Math.random() * 20 - 10).toFixed(1);
     el.style.transform = 'rotate(' + (baseDeg + parseFloat(jitter)).toFixed(1) + 'deg)';
   });
+}());
+
+/* ── Random registry polaroid ── */
+(function () {
+  var img = document.getElementById('registry-polaroid');
+  if (!img) return;
+  var n = Math.floor(Math.random() * 15) + 1;
+  var tilt = (Math.random() * 6 - 3).toFixed(1);
+  img.src = 'assets/Polaroid-' + n + '.png';
+  img.style.transform = 'rotate(' + tilt + 'deg)';
 }());
