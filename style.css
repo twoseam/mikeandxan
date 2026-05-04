@@ -467,10 +467,10 @@ section:not(#home) h2,
 }
 
 #story {
-  position: relative; z-index: 1; margin-top: -50px;
+  position: relative; z-index: 1; margin-top: -42px;
   background:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 50' preserveAspectRatio='none'><path d='M0,46 L30,44 L62,47 L94,45 L126,43 L158,45 L190,43 L222,45 L254,42 L286,44 L318,43 L350,45 L382,43 L400,44 L400,50 L0,50 Z' fill='%23efe7d8'/></svg>") top left / 100% 50px no-repeat,
-    url("assets/Tile-green.jpg") left 50px / 500px 500px repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 42' preserveAspectRatio='none'><path d='M0,0 L400,0 L400,30 L370,32 L335,29 L295,31 L255,32 L215,30 L175,32 L135,29 L95,31 L55,32 L20,30 L0,31 Z' fill='%23efe7d8'/><path d='M0,18 L25,20 L60,17 L100,19 L145,20 L190,17 L235,19 L280,20 L325,17 L365,19 L400,18 L400,20 L0,20 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,18 L370,20 L330,17 L290,19 L250,20 L210,17 L170,19 L130,20 L90,17 L50,19 L20,20 L0,18 Z' fill='%23efe7d8'/><path d='M0,8 L30,10 L65,7 L105,9 L145,10 L185,7 L225,9 L265,10 L305,7 L345,9 L380,10 L400,8 L400,10 L0,10 Z' fill='%234637192E'/><path d='M0,0 L400,0 L400,8 L370,10 L335,7 L295,9 L255,10 L215,7 L175,9 L135,10 L95,7 L55,9 L20,10 L0,8 Z' fill='%23efe7d8'/></svg>") top left / 100% 42px no-repeat,
+    url("assets/Tile-green.jpg") left 42px / 500px 500px repeat,
     var(--color-olive);
   padding-top: calc(var(--space-lg) * 2.8 + 30px);
   padding-bottom: calc(var(--space-lg) * 2.8);
