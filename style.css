@@ -12,8 +12,8 @@
   --color-bg-alt: #ddd2bc;         /* alt section background */
   --color-text: #2b1f1a;           /* primary text — dark brown */
   --color-muted: #7a6e60;          /* secondary / muted text */
-  --color-accent: #c8362c;         /* primary accent — tomato red */
-  --color-accent-hover: #a02a23;   /* hover state for accent */
+  --color-accent: #eb5519;         /* primary accent — tomato red */
+  --color-accent-hover: #bc4414;   /* hover state for accent */
   --color-border: #d8c8b0;         /* subtle separator */
   --color-olive: #6e7a4e;          /* secondary accent — used in maps & legends */
   --color-paper: #fefcf6;          /* notecard off-white */
@@ -23,7 +23,7 @@
   /* RGB triplets — use as rgba(var(--color-*-rgb), <alpha>) */
   --color-bg-rgb: 239, 231, 216;
   --color-text-rgb: 43, 31, 26;
-  --color-accent-rgb: 200, 54, 44;
+  --color-accent-rgb: 235, 85, 25;
   --color-olive-rgb: 110, 122, 78;
 
   --max-width: 880px;
