@@ -182,7 +182,9 @@ async function getPolaroids() { return _polaroids; }
   const POOL = [];
   PAIRS.forEach(p => { for (let n = 0; n < (p.weight || 1); n++) POOL.push(p); });
 
-  const FRAME_MS = 1000 / 3; // 3fps
+  // Burst pattern: cycle 10 glyphs at 10fps, hold the last for 1.5s. Repeat.
+  const BURSTS = [10];
+  const HOLD_MS = 1500;
   const SCALE = 1.5;
 
   function tierFor(g) {
@@ -203,9 +205,25 @@ async function getPolaroids() { return _polaroids; }
   }
 
   // Pause when hero is off-screen — saves CPU/battery during scroll.
-  let intervalId = null;
-  function startCycle() { if (!intervalId) intervalId = setInterval(tick, FRAME_MS); }
-  function stopCycle()  { if (intervalId) { clearInterval(intervalId); intervalId = null; } }
+  let timeoutId = null;
+  let burstIdx = 0;
+  let frameInBurst = 0;
+
+  function step() {
+    const burstLen = BURSTS[burstIdx];
+    tick();
+    frameInBurst++;
+    if (frameInBurst < burstLen) {
+      timeoutId = setTimeout(step, 1000 / burstLen);
+    } else {
+      frameInBurst = 0;
+      burstIdx = (burstIdx + 1) % BURSTS.length;
+      timeoutId = setTimeout(step, HOLD_MS);
+    }
+  }
+
+  function startCycle() { if (!timeoutId) step(); }
+  function stopCycle()  { if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; } }
 
   function init() {
     if ('IntersectionObserver' in window) {
