@@ -1234,7 +1234,7 @@ async function getPolaroids() { return _polaroids; }
     const expandBtn = document.createElement('button');
     expandBtn.className = 'stack-expand';
     expandBtn.setAttribute('aria-label', 'Expand photo');
-    expandBtn.innerHTML = '<svg viewBox="0 0 14 14" fill="none" stroke="#efe7d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1h4v4M5 13H1V9M13 1L8 6M1 13l5-5"/></svg>';
+    expandBtn.innerHTML = '<svg viewBox="0 0 14 14" fill="none" stroke="#fde6d5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1h4v4M5 13H1V9M13 1L8 6M1 13l5-5"/></svg>';
     stack.appendChild(expandBtn);
 
     expandBtn.addEventListener('click', (e) => {
@@ -1581,11 +1581,11 @@ document.fonts.ready.then(function () {
   canvas.width = size;
   canvas.height = size;
   var ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#c8362c';
+  ctx.fillStyle = '#eb5519';
   try { ctx.roundRect(0, 0, size, size, size * 0.15); } catch (e) { ctx.rect(0, 0, size, size); }
   ctx.fill();
-  ctx.fillStyle = '#efe7d8';
-  ctx.strokeStyle = '#efe7d8';
+  ctx.fillStyle = '#fde6d5';
+  ctx.strokeStyle = '#fde6d5';
   ctx.lineWidth = 16;
   ctx.font = 'italic 400 420px "DM Serif Display", Georgia, serif';
   ctx.textAlign = 'center';
@@ -1684,7 +1684,7 @@ function initVenueMap() {
       { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#fffaee' }] },
       { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#5a4a3a' }] },
       { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#f0c8b8' }] },
-      { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#c8362c' }, { weight: 0.6 }] },
+      { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#eb5519' }, { weight: 0.6 }] },
       { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#faecd0' }] },
       { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#fdf7e8' }] },
 
@@ -1698,7 +1698,7 @@ function initVenueMap() {
 
   allPoints.forEach(function (p) {
     var fillColor = '#6e7a4e';        // hotel default (olive)
-    if (p.isVenue)   fillColor = '#c8362c';   // venue red
+    if (p.isVenue)   fillColor = '#eb5519';   // venue red
     if (p.isParking) fillColor = '#c79232';   // parking gold
 
     var marker = new google.maps.Marker({
@@ -1790,7 +1790,7 @@ function initParkingMap() {
     icon: {
       path: google.maps.SymbolPath.CIRCLE,
       scale: 11,
-      fillColor: '#c8362c',
+      fillColor: '#eb5519',
       fillOpacity: 1,
       strokeColor: '#ffffff',
       strokeWeight: 3

@@ -1,10 +1,10 @@
 {
-  "name": "Mike & Xan",
-  "short_name": "Mike & Xan",
+  "name": "M & A",
+  "short_name": "M & A",
   "start_url": "/",
   "display": "browser",
-  "background_color": "#efe7d8",
-  "theme_color": "#c8362c",
+  "background_color": "#fde6d5",
+  "theme_color": "#eb5519",
   "icons": [
     { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" },
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },

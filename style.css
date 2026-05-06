@@ -8,20 +8,20 @@
      Swap any of these and the entire site repaints. RGB triplets are
      used for rgba() (alpha-controlled) tints; the named tokens are used
      wherever a solid color is needed. */
-  --color-bg: #efe7d8;             /* page background — cream */
-  --color-bg-alt: #ddd2bc;         /* alt section background */
+  --color-bg: #fde6d5;             /* page background — light peach cream */
+  --color-bg-alt: #f3d6bf;         /* alt section background — slightly deeper peach */
   --color-text: #2b1f1a;           /* primary text — dark brown */
   --color-muted: #7a6e60;          /* secondary / muted text */
   --color-accent: #eb5519;         /* primary accent — tomato red */
   --color-accent-hover: #bc4414;   /* hover state for accent */
   --color-border: #d8c8b0;         /* subtle separator */
   --color-olive: #6e7a4e;          /* secondary accent — used in maps & legends */
-  --color-paper: #fefcf6;          /* notecard off-white */
+  --color-paper: #fff5ea;          /* notecard near-white peach */
   --color-paper-rule: rgba(70, 100, 180, 0.18);  /* notecard ruled lines */
   --color-paper-margin: rgba(var(--color-accent-rgb), 0.55); /* notecard red left margin */
 
   /* RGB triplets — use as rgba(var(--color-*-rgb), <alpha>) */
-  --color-bg-rgb: 239, 231, 216;
+  --color-bg-rgb: 253, 230, 213;
   --color-text-rgb: 43, 31, 26;
   --color-accent-rgb: 235, 85, 25;
   --color-olive-rgb: 110, 122, 78;
@@ -119,6 +119,10 @@ p { margin: 0 0 var(--space-sm); }
   text-decoration: none;
   color: var(--color-text);
   letter-spacing: -.01em;
+  transform: translateY(-2px);
+}
+@media (max-width: 719px) {
+  .brand { font-size: 1.95rem; transform: translateY(2px); }
 }
 .brand-amp {
   color: var(--color-accent);
@@ -608,14 +612,14 @@ section:not(#home) h2,
 .hero-amp[data-glyph="long"] { font-size: clamp(3.4rem, 11vw, 5.7rem); }
 .hero-amp[data-font="nk"] { top: calc(.15em + 0.3em); }
 .hero-amp {
-  color: #ff3a2c;
+  color: #dd7f3c;
   pointer-events: none;
   /* JS swaps font-family at ~3fps to cycle ampersand styles */
   font-family: var(--font-display);
   font-size-adjust: cap-height 0.55;
   will-change: transform, font-family;
   transform-origin: center;
-  mix-blend-mode: multiply;
+  mix-blend-mode: hard-light;
 }
 .visually-hidden {
   position: absolute !important;
@@ -2089,7 +2093,7 @@ textarea::placeholder {
   transform: translateY(-50%);
   background: rgba(var(--color-accent-rgb), 0.85);
   border: none;
-  color: #efe7d8;
+  color: var(--color-bg);
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -2101,7 +2105,7 @@ textarea::placeholder {
   z-index: 10;
   transition: background 0.2s;
 }
-.lb-nav:hover { background: #c8362c; }
+.lb-nav:hover { background: var(--color-accent); }
 .lb-prev { left: 20px; }
 .lb-next { right: 20px; }
 @media (max-width: 540px) {
@@ -2135,7 +2139,7 @@ textarea::placeholder {
   padding: 0;
   transition: background 0.2s;
 }
-.lb-dot.is-active { background: #efe7d8; }
+.lb-dot.is-active { background: var(--color-bg); }
 .lb-close {
   position: absolute;
   top: 16px;
@@ -2145,7 +2149,7 @@ textarea::placeholder {
   border-radius: 50%;
   background: rgba(var(--color-bg-rgb), 0.18);
   border: none;
-  color: #efe7d8;
+  color: var(--color-bg);
   font-size: 1.8rem;
   line-height: 1;
   cursor: pointer;
