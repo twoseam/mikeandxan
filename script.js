@@ -395,6 +395,11 @@ async function getPolaroids() { return _polaroids; }
   // can re-render the form pre-filled with that household's previous answers.
   let pendingEditHousehold = null;
   let editingMode = false;
+  // True when the user arrived via the Change-RSVP email link. If their
+  // household has already submitted, we skip the halt screen and drop
+  // them straight into edit mode — clicking the email button already
+  // signals intent to make changes.
+  let autoEditFromEmail = false;
   // Tracks how many times we've shown the multi-match picker. After the
   // user has been here once and tried again, we offer a "contact us" out.
   let pickerVisitCount = 0;
@@ -464,6 +469,7 @@ async function getPolaroids() { return _polaroids; }
       if (!nameParam) return;
       const parts = nameParam.trim().split(/\s+/);
       if (parts.length < 2) return;
+      autoEditFromEmail = true;
       lookupFirstInput.value = parts[0];
       lookupLastInput.value = parts.slice(1).join(' ');
       lookupBtn.click();
@@ -552,6 +558,17 @@ async function getPolaroids() { return _polaroids; }
 
   function loadHousehold(household) {
     if (household && household.alreadySubmitted) {
+      if (autoEditFromEmail) {
+        pendingEditHousehold = household;
+        editingMode = true;
+        renderHousehold(household, household.existing);
+        stepFind.hidden = true;
+        stepPicker.hidden = true;
+        stepAlready.hidden = true;
+        stepConfirm.hidden = false;
+        if (submitBtn) submitBtn.textContent = 'Update RSVP';
+        return;
+      }
       showAlreadySubmitted(household);
       return;
     }
