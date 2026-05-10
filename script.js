@@ -458,6 +458,38 @@ async function getPolaroids() { return _polaroids; }
     }
   });
 
+  // ---- Mirror `inert` to match `hidden` on each form step ----
+  // The CSS keeps [hidden] steps rendered off-screen (so browser autofill
+  // sees the email/phone fields on page load). The `inert` attribute makes
+  // those off-screen steps non-focusable / non-clickable, matching the
+  // behavior users expect from `hidden`.
+  [stepFind, stepPicker, stepConfirm, stepAlready, stepThanks].forEach((step) => {
+    if (!step) return;
+    const sync = () => {
+      if (step.hidden) step.setAttribute('inert', '');
+      else step.removeAttribute('inert');
+    };
+    sync();
+    new MutationObserver(sync).observe(step, {
+      attributes: true,
+      attributeFilter: ['hidden']
+    });
+  });
+
+  // ---- Phone number auto-formatter — (xxx) xxx-xxxx as the user types ----
+  const phoneEl = document.getElementById('phone');
+  if (phoneEl) {
+    phoneEl.addEventListener('input', () => {
+      const digits = phoneEl.value.replace(/\D/g, '').slice(0, 10);
+      let formatted;
+      if (digits.length === 0)      formatted = '';
+      else if (digits.length <= 3)  formatted = '(' + digits;
+      else if (digits.length <= 6)  formatted = '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
+      else                          formatted = '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6);
+      phoneEl.value = formatted;
+    });
+  }
+
   // ---- Auto-lookup from email link (?name=Michael+Martin) ----
   // The Change-RSVP button in the confirmation email passes the guest's
   // name as a URL param. If we see one on page load, fill the inputs and

@@ -124,6 +124,21 @@ p { margin: 0 0 var(--space-sm); }
 @media (max-width: 719px) {
   .brand { font-size: 1.95rem; transform: translateY(2px); }
 }
+/* Tiny deploy-confirmation stamp next to the brand mark. Bumped on every
+   edit so refreshing production after a push shows the new value. */
+.build-stamp {
+  font-family: "Special Elite", "Courier New", monospace;
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  opacity: 0.5;
+  margin-left: var(--space-sm);
+  letter-spacing: 0.02em;
+  user-select: all;
+}
+@media (max-width: 719px) {
+  .build-stamp { font-size: 0.6rem; opacity: 0.4; }
+}
+
 .brand-amp {
   color: var(--color-accent);
   font-family: "DM Serif Display", serif;
@@ -1444,6 +1459,24 @@ section:not(#home) h2,
 .rsvp-form {
   max-width: var(--max-width);
   margin: 0 auto;
+}
+
+/* Hidden form steps stay rendered (off-screen) so browser autofill /
+   password managers can see the email + phone fields on page load.
+   Without this, autofill suggestions never appear because the fields
+   are display:none until the user advances past lookup. The matching
+   JS adds `inert` so the off-screen fields stay non-interactive. */
+.rsvp-form .form-step[hidden] {
+  display: block !important;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .rsvp-form label {
