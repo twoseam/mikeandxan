@@ -453,6 +453,23 @@ async function getPolaroids() { return _polaroids; }
     }
   });
 
+  // ---- Auto-lookup from email link (?name=Michael+Martin) ----
+  // The Change-RSVP button in the confirmation email passes the guest's
+  // name as a URL param. If we see one on page load, fill the inputs and
+  // fire the lookup so they don't have to retype.
+  (function () {
+    try {
+      const params = new URLSearchParams(location.search);
+      const nameParam = params.get('name');
+      if (!nameParam) return;
+      const parts = nameParam.trim().split(/\s+/);
+      if (parts.length < 2) return;
+      lookupFirstInput.value = parts[0];
+      lookupLastInput.value = parts.slice(1).join(' ');
+      lookupBtn.click();
+    } catch (_) {}
+  })();
+
   // ---- Edit RSVP button on the halt screen ----
   if (editRsvpBtn) {
     editRsvpBtn.addEventListener('click', () => {
@@ -510,6 +527,9 @@ async function getPolaroids() { return _polaroids; }
         if (thanksBody) thanksBody.textContent = "Your RSVP has been updated. Thanks for letting us know.";
       }
       stepThanks.hidden = false;
+      requestAnimationFrame(() => {
+        stepThanks.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
     } catch (err) {
       console.error(err);
       setStatus(
@@ -1739,12 +1759,19 @@ function initVenueMap() {
       setTimeout(function () { marker.setAnimation(null); }, 1400);
     }
     marker.addListener('click', openPin);
-    pinByKey[p.key] = { marker: marker, openPin: openPin };
+    pinByKey[p.key] = { marker: marker, openPin: openPin, content: content };
   });
 
   var bounds = new google.maps.LatLngBounds();
   allPoints.forEach(function (p) { bounds.extend({ lat: p.lat, lng: p.lng }); });
   map.fitBounds(bounds, 60);
+
+  var venuePin = pinByKey['venue'];
+  if (venuePin) {
+    google.maps.event.addListenerOnce(map, 'idle', function () {
+      venuePin.openPin();
+    });
+  }
 
   // Wire up the legend below the map — clicking a legend entry opens its pin.
   document.querySelectorAll('.venue-map-legend [data-pin]').forEach(function (li) {

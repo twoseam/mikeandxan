@@ -387,7 +387,7 @@ section:not(#home) h2,
 }
 
 .details-content { position: relative; }
-.venue-map-outer { margin-top: var(--space-lg); }
+.venue-map-outer { margin-top: calc(var(--space-lg) * 2); }
 .venue-map-heading {
   margin: 0 0 var(--space-sm);
   text-align: center;
