@@ -833,7 +833,7 @@ async function getPolaroids() { return _polaroids; }
       return null;
     }
     if (missingPlusOneName) {
-      setStatus(submitStatus, "Please add your plus one's name (or change the answer to no).", 'error');
+      setStatus(submitStatus, "Please let us know the name of your guest and we will add them to your RSVP.", 'error');
       return null;
     }
 
@@ -857,6 +857,14 @@ async function getPolaroids() { return _polaroids; }
     if (contactMethod === 'Text message' && !phone) {
       setStatus(submitStatus, "Please add a phone number, or choose Email as the preferred contact method.", 'error');
       return null;
+    }
+    if (phone) {
+      const digits = phone.replace(/\D/g, '');
+      const valid = digits.length === 10 || (digits.length === 11 && digits[0] === '1');
+      if (!valid) {
+        setStatus(submitStatus, "That phone number doesn't look right — please enter a 10-digit US number.", 'error');
+        return null;
+      }
     }
 
     return {
