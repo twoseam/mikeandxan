@@ -604,7 +604,7 @@ section:not(#home) h2,
   display: block;
   font-family: "new-kansas-extraswash-smbold", Georgia, serif;
   font-weight: 600;
-  font-style: italic;
+  font-style: normal;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   font-size: clamp(4.0rem, 14.0vw, 6.9rem);
   letter-spacing: -.01em;
