@@ -2,14 +2,11 @@
 <html lang="en">
 <head>
   <script>
-    // Email-link bypass: visiting /?rsvp=1 (e.g. from a confirmation email)
-    // unlocks the gate and forwards to the real RSVP section. Same effect
-    // as entering the password, just without the keystrokes.
+    // Email-link forward: /?rsvp=1 sends confirmation-email visitors to the RSVP section on site.html.
     (function () {
       try {
         var params = new URLSearchParams(location.search);
         if (params.has('rsvp')) {
-          localStorage.setItem('mna_unlock', '1');
           var name = params.get('name');
           var dest = '/site.html' + (name ? '?name=' + encodeURIComponent(name) : '') + '#rsvp';
           location.replace(dest);
@@ -143,18 +140,6 @@
       }
     })();
 
-    // Hidden unlock: press Escape, enter password, get redirected to the real site.
-    window.addEventListener('keydown', function (e) {
-      if (e.key !== 'Escape') return;
-      var pw = prompt('Password:');
-      if (pw === null) return;
-      if (pw === '1016859m') {
-        try { localStorage.setItem('mna_unlock', '1'); } catch (_) {}
-        location.href = '/site.html';
-      } else {
-        alert('Nope.');
-      }
-    });
   </script>
 </body>
 </html>
