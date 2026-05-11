@@ -124,21 +124,6 @@ p { margin: 0 0 var(--space-sm); }
 @media (max-width: 719px) {
   .brand { font-size: 1.95rem; transform: translateY(2px); }
 }
-/* Tiny deploy-confirmation stamp next to the brand mark. Bumped on every
-   edit so refreshing production after a push shows the new value. */
-.build-stamp {
-  font-family: "Special Elite", "Courier New", monospace;
-  font-size: 0.7rem;
-  color: var(--color-muted);
-  opacity: 0.5;
-  margin-left: var(--space-sm);
-  letter-spacing: 0.02em;
-  user-select: all;
-}
-@media (max-width: 719px) {
-  .build-stamp { font-size: 0.6rem; opacity: 0.4; }
-}
-
 .brand-amp {
   color: var(--color-accent);
   font-family: "DM Serif Display", serif;
