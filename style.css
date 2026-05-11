@@ -602,9 +602,9 @@ section:not(#home) h2,
   position: relative;
   z-index: 2;
   display: block;
-  font-family: "new-kansas-extraswash-smbold", Georgia, serif;
+  font-family: "new-kansas-extraswash-smbold", sans-serif;
   font-weight: 600;
-  font-style: normal;
+  font-style: italic;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   font-size: clamp(4.0rem, 14.0vw, 6.9rem);
   letter-spacing: -.01em;
