@@ -32,12 +32,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="M &amp; A" />
   <meta name="theme-color" content="#eb5519" />
-  <link rel="stylesheet" href="style-new.css" />
+  <link rel="stylesheet" href="style-old.css" />
 </head>
 <body>
 
   <header class="site-header">
-    <a href="#home" class="brand"><span class="b-m">m</span> <span class="brand-amp">&amp;</span> <span class="b-a">a</span></a>
+    <a href="#home" class="brand">M <span class="brand-amp">&amp;</span> A</a>
 
     <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">
       <span></span><span></span><span></span>
@@ -56,29 +56,19 @@
 
   <main>
 
-    <section class="datestack-section" aria-label="November 14, 2026">
-      <div class="datestack" aria-hidden="true">
-        <span class="row"><span>11.</span><span>14.</span><span>26</span></span>
-        <span class="row"><span>11.</span><span>14.</span><span>26</span></span>
-        <span class="row"><span>11.</span><span>14.</span><span>26</span></span>
-      </div>
-      <p class="datestack-tagline">Come party with us!</p>
-      <a class="scroll-cue" href="#home" aria-label="RSVP">
-        <span class="scroll-cue-label">RSVP</span>
-        <svg viewBox="0 0 24 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="2,2 12,12 22,2" />
-        </svg>
-      </a>
-    </section>
-
-    <section id="home" class="section section-hero" style="--hero-bg-x-d:41.5%; --hero-bg-y-d:47.5%; --hero-bg-size-d:159%; --hero-h-d:64vh; --hero-bg-x-m:40.5%; --hero-bg-y-m:100%; --hero-bg-scale-m:1.19; --hero-h-m:65vh;">
-      <img class="scr scr-red" src="assets/Scribbles/scribble-hearts4.svg" aria-hidden="true" style="top:18%;right:5%;width:90px;--sd:2s;--dd:0.3s;--sco:0.55">
-      <img class="scr" src="assets/Scribbles/scribble-star1.svg" aria-hidden="true" style="top:22%;left:4%;width:55px;--sd:2.2s;--dd:0.5s;--sco:0.45">
-      <img class="scr scr-red" src="assets/Scribbles/scribble-hearts3.svg" aria-hidden="true" style="bottom:35%;left:6%;width:65px;--sd:2s;--dd:0.6s;--sco:0.55">
+    <section id="home" class="section section-hero" style="--hero-bg-x-d:39%; --hero-bg-y-d:83%; --hero-bg-size-d:120%; --hero-bg-x-m:43%; --hero-bg-y-m:100%; --hero-bg-scale-m:1.17;">
+      <img class="scr scr-red" src="assets/Scribbles/scribble-hearts4.svg" aria-hidden="true" style="top:18%;right:5%;width:90px;transform:rotate(-5deg);--sd:2s;--dd:0.3s;--sco:0.55">
+      <img class="scr" src="assets/Scribbles/scribble-star1.svg" aria-hidden="true" style="top:22%;left:4%;width:55px;transform:rotate(8deg);--sd:2.2s;--dd:0.5s;--sco:0.45">
+      <img class="scr scr-red" src="assets/Scribbles/scribble-hearts3.svg" aria-hidden="true" style="bottom:35%;left:6%;width:65px;transform:rotate(-10deg);--sd:2s;--dd:0.6s;--sco:0.55">
       <div class="hero-inner">
         <h1 class="hero-title">
+          <span class="hero-name">Michael</span>
           <span class="hero-amp" aria-hidden="true">&amp;</span>
+          <span class="hero-name">Alexandria</span>
+          <span class="visually-hidden">Michael and Alexandria</span>
         </h1>
+        <p class="hero-strip kicker">Come Party with us!</p>
+        <p class="hero-strip details-datestamp">November 14, 2026 &middot; 5 PM</p>
         <img class="scr scr-hero-hearts" src="assets/Scribbles/scribble-hearts1.svg" aria-hidden="true" data-fixed="1" style="width:280px;--sd:2s;--sco:0.45">
         <div class="countdown" id="countdown" aria-label="Time until the wedding">
           <div class="countdown-unit">
@@ -131,17 +121,18 @@
     </section>
 
     <section id="rsvp" class="section">
-      <img class="scr" src="assets/Scribbles/scribble-wave1.svg" aria-hidden="true" style="top:42%;left:2%;width:80px;--sd:1.8s;--dd:0.2s;--sco:0.5">
-      <img class="scr scr-red" src="assets/Scribbles/scribble-hearts1.svg" aria-hidden="true" style="top:10%;right:3%;width:140px;--sd:2.2s;--dd:0.1s;--sco:0.55">
-      <img class="scr" src="assets/Scribbles/scribble-hearts4.svg" aria-hidden="true" style="bottom:12%;left:3%;width:80px;--sd:2.2s;--dd:0.4s;--sco:0.45">
-      <img class="scr scr-red" src="assets/Scribbles/scribble-hearts3.svg" aria-hidden="true" style="bottom:22%;right:4%;width:50px;--sd:1.8s;--dd:0.2s;--sco:0.55">
+      <img class="scr" src="assets/Scribbles/scribble-wave1.svg" aria-hidden="true" style="top:42%;left:2%;width:80px;transform:rotate(-5deg);--sd:1.8s;--dd:0.2s;--sco:0.5">
+      <img class="scr scr-red" src="assets/Scribbles/scribble-hearts1.svg" aria-hidden="true" style="top:10%;right:3%;width:140px;transform:rotate(15deg);--sd:2.2s;--dd:0.1s;--sco:0.55">
+      <img class="scr" src="assets/Scribbles/scribble-hearts4.svg" aria-hidden="true" style="bottom:12%;left:3%;width:80px;transform:rotate(10deg);--sd:2.2s;--dd:0.4s;--sco:0.45">
+      <img class="scr scr-red" src="assets/Scribbles/scribble-hearts3.svg" aria-hidden="true" style="bottom:22%;right:4%;width:50px;transform:rotate(-18deg);--sd:1.8s;--dd:0.2s;--sco:0.55">
       <div class="section-inner">
-        <h2><svg class="section-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="15" width="50" height="34" rx="3"/><path d="M9 18 L32 36 L55 18"/></svg>RSVP</h2>
-        <p class="section-lede">Please respond by <strong style="color: var(--color-text);">October 1, 2026</strong>.</p>
+        <h2>RSVP</h2>
+        <p class="section-lede">Please respond by <strong style="color: var(--color-accent);">October 1, 2026</strong>.</p>
 
         <form id="rsvp-form" class="rsvp-form" novalidate>
 
           <div class="form-step" data-step="1" aria-label="Find your invitation">
+            <label class="lookup-heading">Look up Your Invitation below<br></label>
             <div class="lookup-name-fields">
               <div>
                 <label for="lookup-first" class="lookup-sub-label">First name</label>
@@ -219,36 +210,25 @@
     </section>
 
     <section id="highlights" class="section section-highlights">
-      <img class="scr scr-red" src="assets/Scribbles/scribble-sun1.svg" aria-hidden="true" style="top:20%;right:3%;width:65px;--sd:2.2s;--sco:0.55">
-      <img class="scr" src="assets/Scribbles/scribble-star2.svg" aria-hidden="true" style="bottom:20%;left:3%;width:50px;--sd:1.8s;--dd:0.3s;--sco:0.5">
+      <img class="scr scr-red" src="assets/Scribbles/scribble-sun1.svg" aria-hidden="true" style="top:20%;right:3%;width:65px;transform:rotate(-10deg);--sd:2.2s;--sco:0.55">
+      <img class="scr" src="assets/Scribbles/scribble-star2.svg" aria-hidden="true" style="bottom:20%;left:3%;width:50px;transform:rotate(14deg);--sd:1.8s;--dd:0.3s;--sco:0.5">
       <div class="section-inner">
         <div class="info-cards">
 
           <div class="info-card">
-            <svg class="info-card-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="32" cy="34" r="25" />
-              <path d="M32 34 V18 M32 34 L44 41" />
-            </svg>
-            <p class="info-card-tag">When</p>
+            <img class="info-card-scribble" src="assets/scribble-when.webp" alt="When">
             <p class="info-card-main">November 14, 2026</p>
             <p class="info-card-detail">Ceremony · 5:30 PM<br>Reception · 6:30 PM</p>
           </div>
 
           <div class="info-card">
-            <svg class="info-card-icon" viewBox="0 0 64 64" fill="currentColor" aria-hidden="true">
-              <path d="M32 3C19 3 9 13 9 27c0 16 23 34 23 34s23-18 23-34C55 13 45 3 32 3Z" />
-              <circle cx="32" cy="25" r="9" fill="#fff" />
-            </svg>
-            <p class="info-card-tag">Where</p>
+            <img class="info-card-scribble" src="assets/scribble-where.webp" alt="Where">
             <p class="info-card-main">The Thompson Barn</p>
             <p class="info-card-detail"><a class="maps-link" href="https://www.google.com/maps/search/?api=1&amp;query=11184+Lackman+Rd%2C+Lenexa%2C+KS+66219" data-maps-query="11184 Lackman Rd, Lenexa, KS 66219">11184 Lackman Rd<br>Lenexa, KS 66219</a></p>
           </div>
 
           <div class="info-card">
-            <svg class="info-card-icon" viewBox="0 0 64 64" fill="currentColor" aria-hidden="true">
-              <path d="M32 2c4 21 9 26 30 30-21 4-26 9-30 30-4-21-9-26-30-30 21-4 26-9 30-30Z" />
-            </svg>
-            <p class="info-card-tag">What</p>
+            <img class="info-card-scribble" src="assets/scribble-what.webp" alt="What">
             <p class="info-card-main">Elevated Casual</p>
             <p class="info-card-main">No kids under 12</p>
           </div>
@@ -312,12 +292,12 @@
     </section>
 
     <section id="registry" class="section section-alt">
-      <img class="scr" src="assets/Scribbles/scribble-swirl1.svg" aria-hidden="true" style="bottom:18%;right:5%;width:60px;--sd:2.2s;--sco:0.5">
-      <img class="scr scr-red" src="assets/Scribbles/scribble-hearts1.svg" aria-hidden="true" style="top:45%;left:3%;width:140px;--sd:2s;--dd:0.5s;--sco:0.55">
+      <img class="scr" src="assets/Scribbles/scribble-swirl1.svg" aria-hidden="true" style="bottom:18%;right:5%;width:60px;transform:rotate(-12deg);--sd:2.2s;--sco:0.5">
+      <img class="scr scr-red" src="assets/Scribbles/scribble-hearts1.svg" aria-hidden="true" style="top:45%;left:3%;width:140px;transform:rotate(-6deg);--sd:2s;--dd:0.5s;--sco:0.55">
       <div class="section-inner registry-inner">
         <div class="registry-text">
-          <h2><svg class="section-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="11" y="27" width="42" height="27" rx="2"/><path d="M11 37 H53 M32 27 V54"/><circle cx="25" cy="20" r="6.5"/><circle cx="39" cy="20" r="6.5"/></svg>Registry</h2>
-          <h3>We don't have one!</h3>
+          <h2>Registry</h2>
+          <h3>WE DONT HAVE ONE!</h3>
           <p>Honestly, having you with us on the day is more than enough!</p>
           <p>Throughout our relationship, we've had plenty of time to create a home we love, so we're opting out of a traditional registry. If you'd still like to mark the occasion, you're welcome to help us with our honeymoon.</p>
           <p>We plan to take a trip to Europe in the Spring of 2027. If you'd like to contribute to that trip we would be more than grateful. Regardless, we are so grateful you can make it to celebrate with us.</p>
@@ -330,14 +310,14 @@
     </section>
 
     <section id="details" class="section">
-      <img class="scr scr-red" src="assets/Scribbles/scribble-arrow2.svg" aria-hidden="true" style="top:15%;right:4%;width:70px;--sd:2.5s;--sco:0.5">
-      <img class="scr" src="assets/Scribbles/scribble-hearts3.svg" aria-hidden="true" style="bottom:20%;left:3%;width:60px;--sd:2.2s;--dd:0.3s;--sco:0.5">
+      <img class="scr scr-red" src="assets/Scribbles/scribble-arrow2.svg" aria-hidden="true" style="top:15%;right:4%;width:70px;transform:rotate(8deg);--sd:2.5s;--sco:0.5">
+      <img class="scr" src="assets/Scribbles/scribble-hearts3.svg" aria-hidden="true" style="bottom:20%;left:3%;width:60px;transform:rotate(-12deg);--sd:2.2s;--dd:0.3s;--sco:0.5">
       <div class="section-inner details-content">
         <div class="details-polaroid">
           <img id="details-polaroid" src="" alt="A photo of us" aria-hidden="true">
         </div>
         <div class="details-text">
-          <h2><svg class="section-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="15" width="46" height="41" rx="3"/><path d="M9 27 H55 M21 9 V19 M43 9 V19"/></svg>Event Details</h2>
+          <h2>Event Details</h2>
           <div class="details-block">
             <p><strong>Date:</strong> Saturday, November 14, 2026</p>
             <p><strong>Venue:</strong> The Thompson Barn</p>
@@ -345,7 +325,6 @@
             <p><strong>Ceremony:</strong> 5:30 pm</p>
             <p><strong>Reception:</strong>&nbsp;6:30 pm</p>
             <p><strong>Dress code:</strong>&nbsp;Elevated Casual (<a href="#faq">See FAQ for more info</a>)</p>
-            <p>*** Adults-only celebration — no kids under 12 ***</p>
             <p class="cal-btns-label hero-strip">Add to Calendar</p>
             <div class="cal-btns">
               <a class="btn btn-primary" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Michael+%26+Alexandria%27s+Wedding&dates=20261114T230000Z%2F20261115T050000Z&details=Arrive+by+5%3A00+pm+%C2%B7+Ceremony+at+5%3A30+pm+%C2%B7+Reception+at+6%3A30+pm%0A%0ACheck+mikeandxan.com+for+the+latest+details%2C+travel+info%2C+and+updates+as+the+day+approaches.&location=The+Thompson+Barn%2C+11184+Lackman+Rd%2C+Lenexa%2C+KS+66219" target="_blank" rel="noopener">Google Calendar</a>
@@ -377,12 +356,12 @@
     </section>
 
     <section id="story" class="section section-alt">
-      <img class="scr scr-story" data-fixed="1" src="assets/Scribbles/scribble-hearts3.svg" aria-hidden="true" style="top:18%;right:5%;width:55px;--sd:2.2s;--sco:0.5">
-      <img class="scr scr-story" data-fixed="1" src="assets/Scribbles/scribble-arrow1.svg" aria-hidden="true" style="top:42%;left:2%;width:50px;--sd:1.8s;--dd:0.3s;--sco:0.45">
-      <img class="scr scr-story" data-fixed="1" src="assets/Scribbles/scribble-hearts4.svg" aria-hidden="true" style="bottom:22%;right:4%;width:60px;--sd:2.2s;--dd:0.4s;--sco:0.45">
-      <img class="scr scr-story" data-fixed="1" src="assets/Scribbles/scribble-star2.svg" aria-hidden="true" style="bottom:40%;left:4%;width:45px;--sd:1.8s;--dd:0.6s;--sco:0.5">
+      <img class="scr scr-story" data-fixed="1" src="assets/Scribbles/scribble-hearts3.svg" aria-hidden="true" style="top:18%;right:5%;width:55px;transform:rotate(12deg);--sd:2.2s;--sco:0.5">
+      <img class="scr scr-story" data-fixed="1" src="assets/Scribbles/scribble-arrow1.svg" aria-hidden="true" style="top:42%;left:2%;width:50px;transform:rotate(-5deg);--sd:1.8s;--dd:0.3s;--sco:0.45">
+      <img class="scr scr-story" data-fixed="1" src="assets/Scribbles/scribble-hearts4.svg" aria-hidden="true" style="bottom:22%;right:4%;width:60px;transform:rotate(-8deg);--sd:2.2s;--dd:0.4s;--sco:0.45">
+      <img class="scr scr-story" data-fixed="1" src="assets/Scribbles/scribble-star2.svg" aria-hidden="true" style="bottom:40%;left:4%;width:45px;transform:rotate(12deg);--sd:1.8s;--dd:0.6s;--sco:0.5">
       <div class="section-inner">
-        <h2 class="anim-in"><svg class="section-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M32 52 C13 39 9 25 19 19 C26 15 30 19 32 25 C34 19 38 15 45 19 C55 25 51 39 32 52 Z"/></svg>Our Story</h2>
+        <h2 class="anim-in">Our Story</h2>
         <p>After matching on a dating app back in 2017, we decided right then and there that we’d hang out forever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever...</p>
         <p>Our wedding day will be our 3,507th day together—almost a decade! We’ve moved several times, traveled the world, completed multiple degrees, left jobs and started businesses, survived a pandemic, bought a house, taken so many pictures of Zuzu, watched the Kansas City Chiefs in 5 Super Bowls, and have been having the best time through it all.</p>
         <ol class="timeline">
@@ -447,29 +426,29 @@
     </section>
 
     <section id="wedding-party" class="section section-alt">
-      <img class="scr" src="assets/Scribbles/scribble-star3.svg" aria-hidden="true" style="top:8%;right:5%;width:60px;--sd:2.2s;--sco:0.45">
-      <img class="scr scr-red" src="assets/Scribbles/scribble-wave1.svg" aria-hidden="true" style="top:45%;left:2%;width:75px;--sd:2s;--dd:0.2s;--sco:0.55">
-      <img class="scr" src="assets/Scribbles/scribble-hearts1.svg" aria-hidden="true" style="bottom:12%;left:5%;width:140px;--sd:2.2s;--dd:0.4s;--sco:0.5">
+      <img class="scr" src="assets/Scribbles/scribble-star3.svg" aria-hidden="true" style="top:8%;right:5%;width:60px;transform:rotate(8deg);--sd:2.2s;--sco:0.45">
+      <img class="scr scr-red" src="assets/Scribbles/scribble-wave1.svg" aria-hidden="true" style="top:45%;left:2%;width:75px;transform:rotate(-12deg);--sd:2s;--dd:0.2s;--sco:0.55">
+      <img class="scr" src="assets/Scribbles/scribble-hearts1.svg" aria-hidden="true" style="bottom:12%;left:5%;width:140px;transform:rotate(-8deg);--sd:2.2s;--dd:0.4s;--sco:0.5">
       <div class="section-inner">
-        <h2><svg class="section-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 16 L27 16 L19 31 Z M19 31 V47 M13 47 H25"/><path d="M37 16 L53 16 L45 31 Z M45 31 V47 M39 47 H51"/></svg>Wedding Party</h2>
+        <h2>Wedding Party</h2>
         <div class="party-grid">
 
           <div class="party-card">
             <div class="party-card-photo">
-              <img src="assets/alexandriafortenbery2.webp" alt="Alexandria Fortenbery" style="transform: scale(1.2); transform-origin: 50% 50%; filter: grayscale(1) contrast(1.08) brightness(1.3);">
+              <img src="assets/alexandriafortenbery2.webp" alt="Alexandria Alyse Fortenbery" style="transform: scale(1.2); transform-origin: 50% 50%; filter: grayscale(1) contrast(1.08) brightness(1.3);">
             </div>
             <div class="party-card-info">
-              <p class="party-name">Alexandria Fortenbery</p>
+              <p class="party-name">Alexandria Alyse Fortenbery</p>
               <p class="party-role">Bride</p>
             </div>
             <img class="party-card-scribble" src="assets/Scribbles/scribble-hearts1.svg" aria-hidden="true">
           </div>
           <div class="party-card">
             <div class="party-card-photo">
-              <img src="assets/michaelmartin.webp" alt="Michael Martin" style="object-position: 24% 34%; transform: scale(1.25); transform-origin: 24% 34%;">
+              <img src="assets/michaelmartin.webp" alt="Michael Phillip Martin" style="object-position: 24% 34%; transform: scale(1.25); transform-origin: 24% 34%;">
             </div>
             <div class="party-card-info">
-              <p class="party-name">Michael Martin</p>
+              <p class="party-name">Michael Phillip Martin</p>
               <p class="party-role">Groom</p>
             </div>
             <img class="party-card-scribble" src="assets/Scribbles/scribble-hearts3.svg" aria-hidden="true">
@@ -559,13 +538,13 @@
     </section>
 
     <section id="faq" class="section">
-      <img class="scr" src="assets/Scribbles/scribble-star4.svg" aria-hidden="true" style="top:8%;right:4%;width:55px;--sd:2s;--sco:0.4">
+      <img class="scr" src="assets/Scribbles/scribble-star4.svg" aria-hidden="true" style="top:8%;right:4%;width:55px;transform:rotate(15deg);--sd:2s;--sco:0.4">
       <div class="faq-polaroid">
         <img id="faq-polaroid" src="" alt="A photo of us" aria-hidden="true">
       </div>
       <div class="section-inner">
         <div class="faq-text">
-        <h2><svg class="section-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="32" cy="32" r="25"/><path d="M24 25 C24 18 41 18 41 26 C41 33 32 32 32 39"/><path d="M32 46 L32 46.5"/></svg>FAQ</h2>
+        <h2>FAQ</h2>
 
         <details>
           <summary>When is the RSVP deadline?</summary>
@@ -599,7 +578,7 @@
         <details>
           <summary>Can I bring a date?</summary>
           <div class="faq-body">
-            <p>Our guest list is finalized to the names on each invitation. If you have a +1 it will appear on your <a href="#rsvp">RSVP</a> look up above. Please <a href="mailto:hello@mikeandxan.com">contact us</a> directly if we missed your plus one and we'll get them on the list.</p>
+            <p>Our guest list is finalized to the names on each invitation. Please <a href="mailto:hello@mikeandxan.com">contact us</a> directly if we missed your plus one and we'll get them on the list.</p>
           </div>
         </details>
 
@@ -616,11 +595,13 @@
 
     <section id="contact" class="section">
       <div class="section-inner">
-        <h2><svg class="section-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M57 9 L7 31 L26 37 L33 56 L41 31 Z"/><path d="M26 37 L57 9"/></svg>Contact Us</h2>
-        <div class="contact-card">
-          <p class="section-lede">Have a question we haven't answered? We'd love to hear from you.</p>
-          <p class="contact-email"><a href="mailto:hello@mikeandxan.com">hello@mikeandxan.com</a></p>
-        </div>
+        <h2>Contact Us</h2>
+        <p class="section-lede">Have a question we haven't answered? We'd love to hear from you.</p>
+        <p>
+          Email:
+          <a href="mailto:hello@mikeandxan.com">hello@mikeandxan.com</a>
+        </p>
+
       </div>
     </section>
 
@@ -670,50 +651,5 @@
     })();
   </script>
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5cFvMJ9E6FDKGpXrLnC8NEzvqgr_4MK8&callback=initVenueMap&loading=async"></script>
-  <script>
-  /* Datestack — the white drifts UP its column one row per ~40px scrolled. */
-  (function () {
-    var rows = document.querySelectorAll('.datestack .row');
-    if (!rows.length) return;
-    var STEP = 40, last = -1;
-    function paint() {
-      var step = Math.floor(window.scrollY / STEP);
-      if (step === last) return;
-      last = step;
-      var n = rows[0].children.length, states = n;
-      rows.forEach(function (row, r) {
-        for (var c = 0; c < n; c++) {
-          var whiteRow = (((c - step) % states) + states) % states;
-          row.children[c].classList.toggle('white', r === whiteRow);
-        }
-      });
-    }
-    paint();
-    window.addEventListener('scroll', paint, { passive: true });
-  })();
-  </script>
-  <script>
-  /* Dev-only hot reload — watches the page + stylesheet. Localhost + LAN. */
-  (function () {
-    var h = location.hostname;
-    if (!(h === 'localhost' || /^127\./.test(h) ||
-          /^192\.168\./.test(h) || /^10\./.test(h) ||
-          /^172\.(1[6-9]|2\d|3[01])\./.test(h))) return;
-    var watch = [location.pathname, 'style-new.css'];
-    var seen = {};
-    setInterval(function () {
-      watch.forEach(function (url) {
-        fetch(url + '?_=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
-          .then(function (r) {
-            var lm = r.headers.get('Last-Modified');
-            if (!lm) return;
-            if (seen[url] && lm !== seen[url]) location.reload();
-            seen[url] = lm;
-          })
-          .catch(function () {});
-      });
-    }, 500);
-  })();
-  </script>
 </body>
 </html>

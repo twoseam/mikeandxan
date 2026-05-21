@@ -8,7 +8,7 @@
         var params = new URLSearchParams(location.search);
         if (params.has('rsvp')) {
           var name = params.get('name');
-          var dest = '/site-new.html' + (name ? '?name=' + encodeURIComponent(name) : '') + '#rsvp';
+          var dest = '/site.html' + (name ? '?name=' + encodeURIComponent(name) : '') + '#rsvp';
           location.replace(dest);
         }
       } catch (_) {}
@@ -49,7 +49,7 @@
       --white: #ffffff;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { overflow-x: hidden; }
+    html, body { overflow-x: hidden; background: var(--red); }
     body {
       background: var(--red);
       color: var(--white);

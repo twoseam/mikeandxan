@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Preview — RSVP Confirmation</title>
+  <style>
+    body { margin: 0; background: #2a2a2a; font-family: Helvetica, Arial, sans-serif; color: #ddd; }
+    .preview-banner {
+      background: #1a1a1a;
+      color: #ddd;
+      padding: 14px 20px;
+      font-size: 13px;
+      border-bottom: 1px solid #444;
+    }
+    .preview-banner strong { color: #fff; }
+    .preview-banner .note { color: #f8ac73; margin-left: 8px; }
+    /* Mark data-driven fields visually so Mike knows not to edit them. */
+    .sample-data {
+      background: rgba(255, 255, 0, 0.08);
+      outline: 1px dashed rgba(255, 200, 0, 0.4);
+      outline-offset: 1px;
+    }
+    .preview-wrap { padding: 24px; }
+  </style>
+</head>
+<body>
+
+  <div class="preview-banner">
+    <strong>Email Preview</strong> — Cmd+Click any text to edit the copy.
+    <span class="note">Yellow-highlighted bits are sample data (names, dietary, song, pizza) — those come from the actual RSVP at send time. Edit anything else and save; I'll port your changes into the Apps Script.</span>
+  </div>
+
+  <div class="preview-wrap">
+
+    <!-- ===== Begin email body (mirrors what Apps Script generates) ===== -->
+    <div style="background:#ffffff; padding: 32px 16px; font-family: Georgia, 'Times New Roman', serif;">
+      <div style="max-width: 640px; margin: 0 auto; background:#ffffff; padding: 32px; border-radius: 10px; color:#2a2a2a; line-height: 1.55;">
+
+        <img src="assets/email-head.jpg" alt="Michael & Alexandria" width="640" height="240" style="display:block; width:100%; max-width:640px; height:auto; margin:0 0 20px; border-radius:6px;" />
+
+        <p data-copy="opener" style="margin:0 0 18px; font-size:16px;">Thanks for RSVP'ing for our wedding! All of the information you entered is below. If you need to make any changes, click the button at the bottom of the page.<div><br></div><div>Any updates or new information about the wedding and reception will come to you via your preferred contact method. We will only send important stuff, promise.</div></p>
+
+        <ul style="list-style:none; padding:0; margin:0 0 20px;">
+          <li style="margin: 8px 0;">
+            <span class="sample-data">Michael Martin</span>: <strong style="color:#3a7a3a;">ATTENDING</strong>
+          </li>
+          <li style="margin: 8px 0;">
+            <span class="sample-data">Alexandria Fortenbery</span>: <strong style="color:#3a7a3a;">ATTENDING</strong>
+            <div style="color:#7a6a55; font-size:14px; margin-top:2px;">
+              Dietary: <span class="sample-data">Vegetarian</span>
+            </div>
+          </li>
+        </ul>
+
+        <div style="margin: 0 0 20px; padding: 12px 16px; background:#fde6d5; border-radius: 8px; font-size: 15px;">
+          <div style="margin: 6px 0;">
+            <span data-copy="song-label" style="color:#7a6a55;">Song request:</span>
+            <span class="sample-data">"Tiny Dancer" by Elton John</span>
+          </div>
+          <div style="margin: 6px 0;">
+            <span data-copy="pizza-label" style="color:#7a6a55;">Favorite pizza topping:</span>
+            <span class="sample-data">Pepperoni</span>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid #e6cfb6; padding-top: 16px; margin-top: 8px;">
+          <p data-copy="date-line" style="margin:0; font-size:17px;"><strong>November 14, 2026 · 5:30 PM</strong></p>
+          <p style="margin:4px 0 0;"><a href="https://www.google.com/maps/search/?api=1&query=11184+Lackman+Rd%2C+Lenexa%2C+KS+66219" data-copy="venue-line" style="color:#7a6a55; text-decoration: underline;">The Thompson Barn · 11184 Lackman Rd, Lenexa, KS 66219</a></p>
+        </div>
+
+        <div style="margin: 24px 0;">
+          <a href="#" data-copy="btn-calendar" style="display:inline-block; padding: 14px 36px; border-radius: 100px; text-decoration: none; font-weight: 600; font-size: 15px; font-family: Helvetica, Arial, sans-serif; letter-spacing: 0.025em; margin: 6px 6px 6px 0; background:#eb5519; color:#ffffff; box-shadow: 0 2px 10px rgba(235, 85, 25, 0.28);">Add to your calendar</a>
+          <a href="#" data-copy="btn-change" style="display:inline-block; padding: 14px 36px; border-radius: 100px; text-decoration: none; font-weight: 600; font-size: 15px; font-family: Helvetica, Arial, sans-serif; letter-spacing: 0.025em; margin: 6px 6px 6px 0; background:transparent; color:#eb5519; border: 1.5px solid #eb5519;">Change RSVP</a>
+          <div style="margin: 4px 0 0; font-size: 13px;"><a href="#" data-copy="btn-ics" style="color:#7a6a55; text-decoration: underline;">Use Apple Calendar or Outlook instead</a></div>
+        </div>
+
+        <p data-copy="closer">Can't wait to party with y'all!</p>
+        <p data-copy="signature" style="margin-top:24px; font-style:italic; color:#7a6a55;">— Michael &amp; Alexandria</p>
+
+      </div>
+    </div>
+    <!-- ===== End email body ===== -->
+
+  </div>
+
+  <script>
+    // Load dev-tools.js only on localhost / private LAN — never on the public site.
+    (function () {
+      var h = location.hostname;
+      if (h === 'localhost' || h === '127.0.0.1' ||
+          /^192\.168\./.test(h) || /^10\./.test(h) ||
+          /^172\.(1[6-9]|2\d|3[01])\./.test(h)) {
+        var s = document.createElement('script');
+        s.src = 'dev-tools.js';
+        s.defer = true;
+        document.head.appendChild(s);
+      }
+    })();
+  </script>
+</body>
+</html>
