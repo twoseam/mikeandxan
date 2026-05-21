@@ -71,7 +71,7 @@
       </a>
     </section>
 
-    <section id="home" class="section section-hero" style="--hero-bg-x-d:41.5%; --hero-bg-y-d:47.5%; --hero-bg-size-d:159%; --hero-h-d:64vh; --hero-bg-x-m:calc(40.5% - 45px); --hero-bg-y-m:100%; --hero-bg-scale-m:1.19; --hero-h-m:65vh;">
+    <section id="home" class="section section-hero" style="--hero-bg-x-d:41.5%; --hero-bg-y-d:47.5%; --hero-bg-size-d:159%; --hero-h-d:64vh; --hero-bg-x-m:calc(40.5% - 35px); --hero-bg-y-m:100%; --hero-bg-scale-m:1.19; --hero-h-m:65vh;">
       <img class="scr scr-red" src="assets/Scribbles/scribble-hearts4.svg" aria-hidden="true" style="top:18%;right:5%;width:90px;--sd:2s;--dd:0.3s;--sco:0.55">
       <img class="scr" src="assets/Scribbles/scribble-star1.svg" aria-hidden="true" style="top:22%;left:4%;width:55px;--sd:2.2s;--dd:0.5s;--sco:0.45">
       <img class="scr scr-red" src="assets/Scribbles/scribble-hearts3.svg" aria-hidden="true" style="bottom:35%;left:6%;width:65px;--sd:2s;--dd:0.6s;--sco:0.55">
@@ -675,7 +675,7 @@
   (function () {
     var rows = document.querySelectorAll('.datestack .row');
     if (!rows.length) return;
-    var STEP = 40, last = -1;
+    var STEP = 30, last = -1;
     function paint() {
       var step = Math.floor(window.scrollY / STEP);
       if (step === last) return;

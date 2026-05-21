@@ -1492,7 +1492,7 @@ section:not(#home) h2,
   font-size: .82rem;
   color: var(--color-charcoal);
   text-transform: uppercase;
-  letter-spacing: .09em;
+  letter-spacing: .03em;
   margin: 0;
 }
 
@@ -1543,7 +1543,7 @@ section:not(#home) h2,
   font-size: .9rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .09em;
+  letter-spacing: .03em;
   color: var(--color-bg);
   margin: 1.8rem 0 .5rem;
 }
@@ -1610,7 +1610,7 @@ section:not(#home) h2,
   font-size: .72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .09em;
+  letter-spacing: .03em;
   color: var(--color-bg);
   margin-bottom: var(--space-sm);
   display: block;
@@ -1659,7 +1659,7 @@ textarea::placeholder {
   font-size: .9rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .09em;
+  letter-spacing: .03em;
   color: var(--color-bg);
   margin: 0 0 .4rem;
 }
@@ -2040,7 +2040,7 @@ textarea::placeholder {
   font-size: .72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .09em;
+  letter-spacing: .03em;
   color: var(--color-bg);
   margin-bottom: .45rem;
   padding: 0;
@@ -2427,5 +2427,5 @@ h2:has(.section-icon) { position: relative; }
   text-align: center;
 }
 .datestack .row { display: block; }
-.datestack .row > span { color: var(--color-bg-alt); transition: color 0.2s ease; }
+.datestack .row > span { color: var(--color-bg-alt); transition: color 0.1s ease; }
 .datestack .row > span.white { color: var(--color-text); }
