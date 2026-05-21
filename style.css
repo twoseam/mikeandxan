@@ -2373,6 +2373,10 @@ h2:has(.section-icon) { position: relative; }
   min-height: calc(100svh - var(--header-height));
   padding: var(--space-lg) var(--space-sm);
 }
+/* Mobile header is fixed (no flow space) — section fills the full viewport */
+@media (max-width: 719px) {
+  .datestack-section { min-height: 100svh; }
+}
 .datestack-tagline {
   font-family: "new-kansas", serif;
   font-style: normal;
