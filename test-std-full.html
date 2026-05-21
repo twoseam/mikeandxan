@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>M &amp; A — STD aesthetic mockup</title>
+
+  <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Yeseva+One&family=Bodoni+Moda:ital,wght@1,700..900&display=swap" />
+
+  <style>
+    :root {
+      --pink:  #f5a0b5;
+      --red:   #f15826;
+      --white: #ffffff;
+
+      --maxw: 1180px;
+      --pad:  clamp(1.25rem, 5vw, 5rem);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--red);
+      color: var(--white);
+      font-family: "new-kansas", Georgia, serif;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: inherit; }
+    img { display: block; max-width: 100%; }
+
+    /* ---------- Shared ---------- */
+    .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+    section { padding: clamp(3.5rem, 9vw, 7rem) var(--pad); }
+    .bg-red  { background: var(--red);  color: var(--white); }
+    .bg-pink { background: var(--pink); color: var(--white); }
+
+    /* fat display headings */
+    .display {
+      font-family: "fat", serif;
+      font-weight: 800;
+      line-height: 0.9;
+      letter-spacing: -0.01em;
+      text-transform: none;
+    }
+    .h-section {
+      font-family: "fat", serif;
+      font-weight: 800;
+      font-size: clamp(2.6rem, 8vw, 6rem);
+      line-height: 0.92;
+      margin-bottom: clamp(1.5rem, 4vw, 2.75rem);
+    }
+    /* short chunky offset shadow on big headings */
+    .shadow-red  { text-shadow: 0.1em 0.1em 0 var(--red); }
+    .shadow-pink { text-shadow: 0.1em 0.1em 0 var(--pink); }
+
+    .swash {
+      font-family: "new-kansas-extra-swash", serif;
+      font-style: italic;
+      font-weight: 600;
+    }
+
+    .lede {
+      font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+      font-weight: 400;
+      line-height: 1.5;
+      max-width: 46ch;
+    }
+    p { line-height: 1.55; }
+
+    /* buttons */
+    .btn {
+      display: inline-block;
+      font-family: "new-kansas", serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 0.85em 1.6em;
+      border-radius: 2px;
+      background: var(--white);
+      color: var(--red);
+      border: 2px solid var(--white);
+    }
+    .btn-ghost { background: transparent; color: var(--white); }
+
+    /* white card — the STD "white shape on red" motif */
+    .card {
+      background: var(--white);
+      color: var(--red);
+      border-radius: 4px;
+      padding: clamp(1.5rem, 3.5vw, 2.5rem);
+    }
+
+    /* ---------- Header ---------- */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--red);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem var(--pad);
+      border-bottom: 2px solid var(--pink);
+    }
+    .brand {
+      font-family: "new-kansas-swash", serif;
+      font-weight: 700;
+      font-style: italic;
+      font-size: 1.6rem;
+      color: var(--white);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+    nav ul { list-style: none; display: flex; gap: clamp(0.9rem, 2.4vw, 2rem); }
+    nav a {
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      color: var(--white);
+    }
+    @media (max-width: 620px) { nav { display: none; } }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      min-height: 88svh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      background: var(--pink);
+    }
+    .hero-kicker {
+      font-family: "new-kansas-extra-swash", serif;
+      font-style: italic; font-weight: 600;
+      font-size: clamp(1.3rem, 3.2vw, 2.2rem);
+      margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+      color: var(--white);
+    }
+    /* Hero names — replicated exactly from the live mikeandxan.com site */
+    .hero-title {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6em;
+      line-height: 1;
+    }
+    .hero-name {
+      position: relative;
+      z-index: 2;
+      display: block;
+      font-family: "new-kansas-extra-swash", sans-serif;
+      font-weight: 600;
+      font-style: italic;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      font-size: clamp(4.0rem, 14.0vw, 6.9rem);
+      letter-spacing: -0.01em;
+      color: #f9eed5;
+    }
+    .hero-amp {
+      position: absolute;
+      inset: 0.15em 0 0 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "DM Serif Display", serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: clamp(5.4rem, 18vw, 9rem);
+      line-height: 1;
+      translate: 0 -2rem;
+      color: #dd7f3c;
+      mix-blend-mode: hard-light;
+      pointer-events: none;
+    }
+    .hero-date {
+      font-family: "new-kansas-extra-swash", serif;
+      font-style: italic; font-weight: 600;
+      font-size: clamp(1.1rem, 2.4vw, 1.75rem);
+      margin-top: clamp(1rem, 3vw, 2rem);
+      color: var(--white);
+    }
+
+    /* countdown tiles */
+    .countdown {
+      display: flex; flex-wrap: wrap; gap: 0.6rem;
+      justify-content: center;
+      margin-top: clamp(1.5rem, 4vw, 2.5rem);
+    }
+    .cd-unit {
+      background: var(--red);
+      color: var(--white);
+      border-radius: 4px;
+      padding: 0.7rem 0.9rem;
+      min-width: 4.5rem;
+    }
+    .cd-num {
+      font-family: "fat", serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      line-height: 1;
+    }
+    .cd-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 0.3rem;
+    }
+
+    /* ---------- Stacked date motif ---------- */
+    .datestack {
+      font-family: "fat", serif;
+      font-size: clamp(2.6rem, 11vw, 9rem);
+      line-height: 0.92;
+      text-align: center;
+    }
+    .datestack span { display: block; }
+    .datestack .pink  { color: var(--pink); }
+    .datestack .white { color: var(--white); }
+
+    /* ---------- Info cards (When / Where / What) ---------- */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+    }
+    .info-card { text-align: center; }
+    .info-card .tag {
+      font-family: "fat", serif;
+      font-size: 1.6rem;
+      color: var(--red);
+      margin-bottom: 0.6rem;
+    }
+    .info-card .big { font-weight: 700; font-size: 1.2rem; }
+    .info-card .sub { margin-top: 0.35rem; line-height: 1.4; }
+
+    /* ---------- Photo break (duotone) ---------- */
+    .photo-break {
+      padding: 0;
+      height: clamp(240px, 42vw, 460px);
+      background: var(--red);
+      overflow: hidden;
+    }
+    .photo-break img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: grayscale(1) contrast(1.15) brightness(1.05);
+      mix-blend-mode: lighten;
+    }
+
+    /* ---------- RSVP form mockup ---------- */
+    .form-grid { display: grid; gap: 1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 540px) { .form-row { grid-template-columns: 1fr; } }
+    .field label {
+      display: block;
+      font-weight: 700; font-size: 0.85rem;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+      color: var(--red);
+    }
+    .field input, .field textarea {
+      width: 100%;
+      font-family: "new-kansas", serif;
+      font-size: 1rem;
+      padding: 0.7rem 0.8rem;
+      border: 2px solid var(--red);
+      border-radius: 3px;
+      background: var(--white);
+      color: var(--red);
+    }
+
+    /* ---------- Timeline ---------- */
+    .timeline { display: grid; gap: clamp(1.5rem, 4vw, 2.5rem); margin-top: 2rem; }
+    .tl-event {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(1rem, 3vw, 2.5rem);
+      align-items: center;
+    }
+    .tl-event:nth-child(even) .tl-photo { order: -1; }
+    @media (max-width: 680px) { .tl-event { grid-template-columns: 1fr; } }
+    .tl-date {
+      font-family: "new-kansas-extra-swash", serif;
+      font-style: italic; font-weight: 600;
+      font-size: 1.3rem; color: var(--pink);
+    }
+    .tl-event h3 {
+      font-family: "fat", serif; font-weight: 800;
+      font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+      margin: 0.3rem 0 0.6rem;
+    }
+    .tl-photo {
+      aspect-ratio: 4 / 3;
+      background: var(--pink);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .tl-photo img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: grayscale(1) contrast(1.15);
+      mix-blend-mode: lighten;
+    }
+
+    /* ---------- Wedding party ---------- */
+    .party-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.1rem;
+      margin-top: 2rem;
+    }
+    .party-card { background: var(--white); border-radius: 4px; overflow: hidden; }
+    .party-photo { aspect-ratio: 1; background: var(--red); overflow: hidden; }
+    .party-photo img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: grayscale(1) contrast(1.15) brightness(1.05);
+      mix-blend-mode: lighten;
+    }
+    .party-info { padding: 0.8rem; color: var(--red); text-align: center; }
+    .party-name { font-weight: 700; font-size: 1rem; }
+    .party-role {
+      font-family: "new-kansas-extra-swash", serif;
+      font-style: italic; font-size: 0.95rem;
+      margin-top: 0.15rem;
+    }
+
+    /* ---------- FAQ ---------- */
+    .faq-list { display: grid; gap: 0.8rem; margin-top: 1.5rem; }
+    details.faq {
+      background: var(--white); color: var(--red);
+      border-radius: 4px; padding: 1rem 1.25rem;
+    }
+    details.faq summary {
+      font-weight: 700; font-size: 1.05rem;
+      cursor: pointer; list-style: none;
+    }
+    details.faq summary::-webkit-details-marker { display: none; }
+    details.faq[open] summary { margin-bottom: 0.6rem; }
+    details.faq p { line-height: 1.5; }
+
+    /* ---------- Details list ---------- */
+    .detail-list p { margin-bottom: 0.45rem; }
+    .detail-list strong { font-weight: 800; }
+
+    /* ---------- Gallery ---------- */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.6rem;
+      margin-top: 1.5rem;
+    }
+    .gallery-grid .cell {
+      aspect-ratio: 1; background: var(--pink);
+      border-radius: 3px; overflow: hidden;
+    }
+    .gallery-grid img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: grayscale(1) contrast(1.15);
+      mix-blend-mode: lighten;
+    }
+
+    /* ---------- Footer ---------- */
+    footer {
+      background: var(--pink);
+      color: var(--white);
+      text-align: center;
+      padding: clamp(2.5rem, 6vw, 4rem) var(--pad);
+    }
+    .footer-mark {
+      font-family: "fat", serif;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      margin-bottom: 0.5rem;
+    }
+    .footer-line {
+      font-family: "new-kansas-extra-swash", serif;
+      font-style: italic; font-size: 1.05rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Header ===== -->
+  <header>
+    <a href="#top" class="brand">M &amp; A</a>
+    <nav>
+      <ul>
+        <li><a href="#rsvp">RSVP</a></li>
+        <li><a href="#registry">Registry</a></li>
+        <li><a href="#details">Details</a></li>
+        <li><a href="#story">Our Story</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero" id="top">
+    <p class="hero-kicker">Come party with us!</p>
+    <h1 class="hero-title">
+      <span class="hero-name">Michael</span>
+      <span class="hero-amp" aria-hidden="true">&amp;</span>
+      <span class="hero-name">Alexandria</span>
+    </h1>
+    <p class="hero-date">November 14, 2026 &middot; 5 PM</p>
+    <div class="countdown">
+      <div class="cd-unit"><div class="cd-num">5</div><div class="cd-label">Months</div></div>
+      <div class="cd-unit"><div class="cd-num">28</div><div class="cd-label">Days</div></div>
+      <div class="cd-unit"><div class="cd-num">14</div><div class="cd-label">Hours</div></div>
+      <div class="cd-unit"><div class="cd-num">02</div><div class="cd-label">Minutes</div></div>
+      <div class="cd-unit"><div class="cd-num">47</div><div class="cd-label">Seconds</div></div>
+    </div>
+  </section>
+
+  <!-- ===== Date motif ===== -->
+  <section class="bg-red">
+    <div class="datestack wrap">
+      <span><span class="white">11.</span><span class="pink">14.26</span></span>
+      <span><span class="pink">11.</span><span class="white">14.</span><span class="pink">26</span></span>
+      <span><span class="pink">11.14.</span><span class="white">26</span></span>
+    </div>
+  </section>
+
+  <!-- ===== RSVP ===== -->
+  <section class="bg-red" id="rsvp">
+    <div class="wrap">
+      <h2 class="h-section shadow-pink">RSVP</h2>
+      <p class="lede" style="margin-bottom:2rem">Please respond by <span class="swash">October 1, 2026</span>.</p>
+      <div class="card">
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="field"><label>First name</label><input type="text" /></div>
+            <div class="field"><label>Last name</label><input type="text" /></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Email</label><input type="email" /></div>
+            <div class="field"><label>Phone</label><input type="tel" /></div>
+          </div>
+          <div class="field"><label>Song request</label><input type="text" /></div>
+          <div class="field"><label>Notes to the couple</label><textarea rows="3"></textarea></div>
+          <a href="#" class="btn" style="background:var(--red);color:var(--white);border-color:var(--red);justify-self:start">Submit RSVP</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Highlights ===== -->
+  <section class="bg-pink">
+    <div class="wrap info-grid">
+      <div class="card info-card">
+        <div class="tag">When</div>
+        <p class="big">November 14, 2026</p>
+        <p class="sub">Ceremony &middot; 5:30 PM<br>Reception &middot; 6:30 PM</p>
+      </div>
+      <div class="card info-card">
+        <div class="tag">Where</div>
+        <p class="big">The Thompson Barn</p>
+        <p class="sub">11184 Lackman Rd<br>Lenexa, KS 66219</p>
+      </div>
+      <div class="card info-card">
+        <div class="tag">What</div>
+        <p class="big">Elevated Casual</p>
+        <p class="sub">No kids under 12</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Photo break ===== -->
+  <section class="photo-break"><img src="assets/Wedding.webp" alt="" /></section>
+
+  <!-- ===== Registry ===== -->
+  <section class="bg-red" id="registry">
+    <div class="wrap">
+      <h2 class="h-section shadow-pink">Registry</h2>
+      <p class="display" style="font-size:clamp(1.6rem,4vw,2.6rem);color:var(--pink);margin-bottom:1rem">We don't have one!</p>
+      <p class="lede" style="margin-bottom:0.8rem">Honestly, having you with us on the day is more than enough.</p>
+      <p class="lede" style="margin-bottom:1.5rem">We're opting out of a traditional registry. If you'd like to mark the occasion, you're welcome to help with our honeymoon — a trip to Europe in Spring 2027.</p>
+      <a href="#" class="btn btn-ghost">HoneyFund</a>
+    </div>
+  </section>
+
+  <!-- ===== Details ===== -->
+  <section class="bg-pink" id="details">
+    <div class="wrap">
+      <h2 class="h-section shadow-red">Event Details</h2>
+      <div class="card detail-list">
+        <p><strong>Date:</strong> Saturday, November 14, 2026</p>
+        <p><strong>Venue:</strong> The Thompson Barn</p>
+        <p><strong>Address:</strong> 11184 Lackman Rd, Lenexa, KS 66219</p>
+        <p><strong>Ceremony:</strong> 5:30 PM</p>
+        <p><strong>Reception:</strong> 6:30 PM</p>
+        <p><strong>Dress code:</strong> Elevated Casual</p>
+        <p style="margin-top:1rem"><a href="#" class="btn" style="background:var(--red);color:var(--white);border-color:var(--red)">Add to Calendar</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Our Story ===== -->
+  <section class="bg-red" id="story">
+    <div class="wrap">
+      <h2 class="h-section shadow-pink">Our Story</h2>
+      <p class="lede" style="max-width:60ch">After matching on a dating app back in 2017, we decided right then and there that we'd hang out forever &amp; ever &amp; ever. Our wedding day will be our 3,507th day together — almost a decade.</p>
+
+      <div class="timeline">
+        <div class="tl-event">
+          <div class="tl-text">
+            <p class="tl-date">April 8, 2017</p>
+            <h3>Our first date</h3>
+            <p>We met on Bumble and texted nonstop for two weeks. When we finally met, drinks at Brewery Emperial and ramen at Komatsu. Michael saved Alexandria as "HOT SOUP."</p>
+          </div>
+          <div class="tl-photo"><img src="assets/Polaroid-15.webp" alt="" /></div>
+        </div>
+        <div class="tl-event">
+          <div class="tl-text">
+            <p class="tl-date">May 1, 2018</p>
+            <h3>Our first move</h3>
+            <p>Michael left his job to start a business. We found a safer spot and moved into Midtown together — the first of many moves over the next three years.</p>
+          </div>
+          <div class="tl-photo"><img src="assets/Polaroid-27.webp" alt="" /></div>
+        </div>
+        <div class="tl-event">
+          <div class="tl-text">
+            <p class="tl-date">July 1, 2021</p>
+            <h3>Bought a home together</h3>
+            <p>Having a home together was something we both always wanted. Supporting one another in our careers gave us the chance. We feel lucky to call this house "home."</p>
+          </div>
+          <div class="tl-photo"><img src="assets/Polaroid-9.webp" alt="" /></div>
+        </div>
+        <div class="tl-event">
+          <div class="tl-text">
+            <p class="tl-date">December 24, 2025</p>
+            <h3>The proposal</h3>
+            <p>We left the movie early because Michael got too worked up. We pulled to the side of the road, and the proposal happened right then and there. The movie was fine, btw.</p>
+          </div>
+          <div class="tl-photo"><img src="assets/Polaroid-29.webp" alt="" /></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Wedding Party ===== -->
+  <section class="bg-pink" id="party">
+    <div class="wrap">
+      <h2 class="h-section shadow-red">Wedding Party</h2>
+      <div class="party-grid">
+        <div class="party-card"><div class="party-photo"><img src="assets/alexandriafortenbery2.webp" alt="" /></div><div class="party-info"><p class="party-name">Alexandria Fortenbery</p><p class="party-role">Bride</p></div></div>
+        <div class="party-card"><div class="party-photo"><img src="assets/michaelmartin.webp" alt="" /></div><div class="party-info"><p class="party-name">Michael Martin</p><p class="party-role">Groom</p></div></div>
+        <div class="party-card"><div class="party-photo"><img src="assets/Ronfortenbery.webp" alt="" /></div><div class="party-info"><p class="party-name">Ronald Fortenbery</p><p class="party-role">Father of the Bride</p></div></div>
+        <div class="party-card"><div class="party-photo"><img src="assets/Stevemartin.webp" alt="" /></div><div class="party-info"><p class="party-name">Steve Martin</p><p class="party-role">Father of the Groom</p></div></div>
+        <div class="party-card"><div class="party-photo"><img src="assets/Jennytavenaro.webp" alt="" /></div><div class="party-info"><p class="party-name">Jenny Tavernaro</p><p class="party-role">Mother of the Bride</p></div></div>
+        <div class="party-card"><div class="party-photo"><img src="assets/Francie martin.webp" alt="" /></div><div class="party-info"><p class="party-name">Francesca Martin</p><p class="party-role">Mother of the Groom</p></div></div>
+        <div class="party-card"><div class="party-photo"><img src="assets/adylynMartin.webp" alt="" /></div><div class="party-info"><p class="party-name">Adalyn Martin</p><p class="party-role">Flower Girl</p></div></div>
+        <div class="party-card"><div class="party-photo"><img src="assets/jackmartin.webp" alt="" /></div><div class="party-info"><p class="party-name">Jack Martin</p><p class="party-role">Ring Bearer</p></div></div>
+        <div class="party-card"><div class="party-photo"><img src="assets/Sambillen.webp" alt="" /></div><div class="party-info"><p class="party-name">Sam Billian</p><p class="party-role">Officiant</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Photo break ===== -->
+  <section class="photo-break"><img src="assets/wrestling2.webp" alt="" /></section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="bg-red" id="faq">
+    <div class="wrap">
+      <h2 class="h-section shadow-pink">FAQ</h2>
+      <div class="faq-list">
+        <details class="faq" open><summary>When is the RSVP deadline?</summary><p>We ask that you RSVP by October 1st to help us finalize our wedding plans.</p></details>
+        <details class="faq"><summary>What time should I arrive?</summary><p>Approximately 15–20 minutes prior to be seated for the ceremony to begin on time.</p></details>
+        <details class="faq"><summary>Are kids welcome?</summary><p>We decided on an adults-only celebration so parents can have a night out. The only kids will be those in the wedding party.</p></details>
+        <details class="faq"><summary>What's the dress code?</summary><p>Polished and stylish but not overly dressy. No evening gowns or tuxedos needed — we're treating this as a party.</p></details>
+        <details class="faq"><summary>Can I bring a date?</summary><p>Our guest list is finalized to the names on each invitation. Contact us if we missed your plus one.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Contact ===== -->
+  <section class="bg-pink" id="contact">
+    <div class="wrap">
+      <h2 class="h-section shadow-red">Contact Us</h2>
+      <div class="card">
+        <p class="lede" style="color:var(--red)">Have a question we haven't answered? We'd love to hear from you.</p>
+        <p style="color:var(--red);font-weight:700;margin-top:0.6rem">hello@mikeandxan.com</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Gallery ===== -->
+  <section class="bg-red" id="gallery">
+    <div class="wrap">
+      <h2 class="h-section shadow-pink">Gallery</h2>
+      <div class="gallery-grid">
+        <div class="cell"><img src="assets/Polaroid-2.webp" alt="" /></div>
+        <div class="cell"><img src="assets/Polaroid-3.webp" alt="" /></div>
+        <div class="cell"><img src="assets/Polaroid-4.webp" alt="" /></div>
+        <div class="cell"><img src="assets/Polaroid-5.webp" alt="" /></div>
+        <div class="cell"><img src="assets/Polaroid-7.webp" alt="" /></div>
+        <div class="cell"><img src="assets/Polaroid-8.webp" alt="" /></div>
+        <div class="cell"><img src="assets/Polaroid-10.webp" alt="" /></div>
+        <div class="cell"><img src="assets/Polaroid-11.webp" alt="" /></div>
+        <div class="cell"><img src="assets/Polaroid-12.webp" alt="" /></div>
+        <div class="cell"><img src="assets/Polaroid-13.webp" alt="" /></div>
+        <div class="cell"><img src="assets/Polaroid-14.webp" alt="" /></div>
+        <div class="cell"><img src="assets/Polaroid-17.webp" alt="" /></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer>
+    <div class="footer-mark">M &amp; A</div>
+    <p class="footer-line">Michael &amp; Alexandria &middot; November 14, 2026 &middot; Lenexa, KS</p>
+  </footer>
+
+  <!-- Localhost-only hot reload -->
+  <script>
+  (function () {
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+    var last = null;
+    setInterval(function () {
+      fetch(location.pathname + '?_=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+        .then(function (r) {
+          var lm = r.headers.get('Last-Modified');
+          if (!lm) return;
+          if (last && lm !== last) location.reload();
+          last = lm;
+        })
+        .catch(function () {});
+    }, 500);
+  })();
+  </script>
+</body>
+</html>
