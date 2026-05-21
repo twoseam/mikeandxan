@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>M &amp; A — landing animation preview</title>
+  <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
+  <style>
+    :root { --pink: #f5a0b5; --red: #f15826; --white: #ffffff; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { overflow-x: hidden; background: var(--red); }
+    body {
+      background: var(--red);
+      color: var(--white);
+      min-height: 100svh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .landing {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 2.5rem);
+      text-align: center;
+    }
+    .stack {
+      font-family: "fat", Georgia, serif;
+      font-weight: 400;
+      font-size: clamp(3.25rem, 14vw, 12rem);
+      line-height: 0.92;
+      letter-spacing: -0.005em;
+      width: 100%;
+      max-width: 1400px;
+    }
+    .stack .row { display: block; white-space: nowrap; }
+    .stack .row > span { color: var(--pink); transition: color 0.45s ease; }
+    .stack .row > span.white { color: var(--white); }
+    .couple {
+      font-family: "new-kansas-extra-swash", Georgia, serif;
+      font-style: italic;
+      font-weight: 600;
+      font-size: clamp(1.8rem, 4.2vw, 3rem);
+      color: var(--white);
+      margin-top: clamp(2rem, 5vw, 3.5rem);
+      line-height: 1.1;
+    }
+    .place {
+      font-family: "new-kansas", Georgia, serif;
+      font-weight: 500;
+      font-size: clamp(1.15rem, 1.9vw, 1.5rem);
+      color: var(--white);
+      margin-top: 0.5rem;
+      letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="landing">
+    <h1 class="stack" aria-label="November 14, 2026">
+      <span class="row"><span>11.</span><span>14.</span><span>26</span></span>
+      <span class="row"><span>11.</span><span>14.</span><span>26</span></span>
+      <span class="row"><span>11.</span><span>14.</span><span>26</span></span>
+    </h1>
+    <p class="couple">Michael &amp; Alexandria</p>
+    <p class="place">Lenexa, Kansas</p>
+  </main>
+
+  <script>
+  /* Auto-cycle — the white drifts UP each column on a timer (no scroll). */
+  (function () {
+    var rows = document.querySelectorAll('.stack .row');
+    if (!rows.length) return;
+    var n = rows.length, step = 0;
+    var INTERVAL = 500;   // ms per step
+    function paint() {
+      rows.forEach(function (row, r) {
+        for (var c = 0; c < n; c++) {
+          var whiteRow = (((c - step) % n) + n) % n;
+          row.children[c].classList.toggle('white', r === whiteRow);
+        }
+      });
+    }
+    paint();
+    setInterval(function () { step++; paint(); }, INTERVAL);
+  })();
+  </script>
+
+  <!-- hot reload -->
+  <script>
+  (function () {
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+    var last = null;
+    setInterval(function () {
+      fetch(location.pathname + '?_=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+        .then(function (r) {
+          var lm = r.headers.get('Last-Modified');
+          if (!lm) return;
+          if (last && lm !== last) location.reload();
+          last = lm;
+        }).catch(function () {});
+    }, 500);
+  })();
+  </script>
+</body>
+</html>
