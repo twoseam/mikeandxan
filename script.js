@@ -1658,11 +1658,11 @@ document.fonts.ready.then(function () {
   canvas.width = size;
   canvas.height = size;
   var ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#eb5519';
+  ctx.fillStyle = '#f15826';
   try { ctx.roundRect(0, 0, size, size, size * 0.15); } catch (e) { ctx.rect(0, 0, size, size); }
   ctx.fill();
-  ctx.fillStyle = '#fde6d5';
-  ctx.strokeStyle = '#fde6d5';
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 16;
   ctx.font = 'italic 400 420px "DM Serif Display", Georgia, serif';
   ctx.textAlign = 'center';
