@@ -2429,7 +2429,7 @@ h2:has(.section-icon) { position: relative; }
    The "fat" display font clogs at heavy weight; a stroke in the
    section's own background color trims the letter edges and opens the
    counters. Width is em-based so it scales with the text. */
-:root { --fat-stroke: 0.03em; }
+:root { --fat-stroke: 0.015em; }
 
 #story h2, #registry h2, #faq h2, #contact h2, #rsvp h2,
 .datestack, .brand {
