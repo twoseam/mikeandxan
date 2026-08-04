@@ -1676,16 +1676,6 @@ document.fonts.ready.then(function () {
   if (touch) touch.href = png;
 });
 
-/* ── Story body copy — style & and … in red bold ── */
-(function () {
-  var story = document.getElementById('story');
-  if (!story) return;
-  var pattern = /(&amp;|\.{3}|…)/g;
-  story.querySelectorAll('p').forEach(function (p) {
-    p.innerHTML = p.innerHTML.replace(pattern, '<span class="story-accent">$1</span>');
-  });
-}());
-
 /* ============================================================
    Venue map — Google Maps JavaScript API.
    Pins: venue + nearby hotels. Loaded via async script in HTML;

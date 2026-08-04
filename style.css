@@ -1110,11 +1110,6 @@ section:not(#home) h2,
   margin-bottom: 0.25rem;
 }
 
-.story-accent {
-  color: var(--color-bg);
-  font-weight: 700;
-}
-
 /* ---------- Our Story timeline ---------- */
 @keyframes timeline-line-grow {
   from { transform: scaleY(0); }
