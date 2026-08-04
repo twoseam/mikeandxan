@@ -2424,3 +2424,20 @@ h2:has(.section-icon) { position: relative; }
 .datestack .row { display: block; }
 .datestack .row > span { color: var(--color-bg-alt); transition: color 0.1s ease; }
 .datestack .row > span.white { color: var(--color-text); }
+
+/* ── Fat-font legibility stroke ─────────────────────────────────────
+   The "fat" display font clogs at heavy weight; a stroke in the
+   section's own background color trims the letter edges and opens the
+   counters. Width is em-based so it scales with the text. */
+:root { --fat-stroke: 0.03em; }
+
+#story h2, #registry h2, #faq h2, #contact h2, #rsvp h2,
+.datestack {
+  -webkit-text-stroke: var(--fat-stroke) var(--color-bg);
+}
+#details h2, #details .venue-map-heading, #wedding-party h2 {
+  -webkit-text-stroke: var(--fat-stroke) var(--color-cream);
+}
+.info-card-tag {
+  -webkit-text-stroke: var(--fat-stroke) var(--color-paper);
+}
