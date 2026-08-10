@@ -321,7 +321,8 @@
     }
   }
 
-  async function removeGuest(sheetRow, name) {
+  async function removeGuest(sheetRowRaw, name) {
+    const sheetRow = Number(sheetRowRaw); // comes in as a string from a DOM attribute; household data uses real numbers
     const session = getSession();
     if (!session) { showLogin(); return; }
     if (!confirm('Remove ' + name + ' from the guest list?')) return;
