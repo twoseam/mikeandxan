@@ -140,7 +140,8 @@
 }
 
 .admin-stat-num {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
+  font-weight: 700;
   font-size: 2.2rem;
   color: var(--color-bg);
   line-height: 1;
