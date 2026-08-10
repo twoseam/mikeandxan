@@ -1275,8 +1275,23 @@ async function getPolaroids() { return _polaroids; }
 
     showSlide(0);
 
+    // Auto-advance every few seconds so visitors notice there's more than
+    // one photo — stops for good the moment someone interacts with this
+    // stack themselves (click, swipe, or the expand button), so it never
+    // fights a visitor already browsing through it.
+    let autoTimer = photos.length > 1
+      ? setInterval(() => {
+          const cur = parseInt(stack.dataset.current) || 0;
+          showSlide((cur + 1) % photos.length);
+        }, 3500)
+      : null;
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+    }
+
     // Click: advance stack (multi) or open lightbox (single)
     stack.addEventListener('click', (e) => {
+      stopAuto();
       if (e.target.closest('.stack-expand')) return;
       if (photos.length > 1) {
         const cur = parseInt(stack.dataset.current) || 0;
@@ -1290,6 +1305,7 @@ async function getPolaroids() { return _polaroids; }
     // don't also scroll the page.
     let touchStartX = 0, touchStartY = 0, swipeAxis = null;
     stack.addEventListener('touchstart', (e) => {
+      stopAuto();
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
       swipeAxis = null;
@@ -1320,6 +1336,7 @@ async function getPolaroids() { return _polaroids; }
 
     expandBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      stopAuto();
       const cur = parseInt(stack.dataset.current) || 0;
       const stackData = photos.map(p => ({ src: p.src, alt: p.alt }));
       openLightbox(photos[cur].src, photos[cur].alt, photos[cur].getBoundingClientRect(), stackData, cur);
