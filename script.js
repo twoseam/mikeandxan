@@ -344,7 +344,7 @@ async function getPolaroids() { return _polaroids; }
   'use strict';
 
   // --- Apps Script endpoint ---
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyMb-WTUEot-fa5LroXVE28lJZ4IWuNvf2-Qz4-UwEfop-vu4D-28GjxmIVjiXBo5vJJg/exec';
+  const WORKER_URL = 'https://mikeandxan-rsvp.michael-afc.workers.dev';
 
   // --- Mobile nav toggle ---
   const navToggle = document.querySelector('.nav-toggle');
@@ -666,6 +666,7 @@ async function getPolaroids() { return _polaroids; }
       wrap.className = 'household-member' + (member.isPlusOne ? ' household-member-plusone' : '');
       wrap.dataset.memberIndex = String(i);
       wrap.dataset.memberName = member.name;
+      wrap.dataset.memberId = member.id;
       if (member.isPlusOne) wrap.dataset.isPlusOne = 'true';
 
       if (member.isPlusOne) {
@@ -832,6 +833,7 @@ async function getPolaroids() { return _polaroids; }
     memberEls.forEach((el) => {
       const i = el.dataset.memberIndex;
       const name = el.dataset.memberName;
+      const id = el.dataset.memberId ? Number(el.dataset.memberId) : null;
       const isPlusOne = el.dataset.isPlusOne === 'true';
       const dietaryEl = el.querySelector(`#dietary-m${i}`);
       const dietaryOtherEl = el.querySelector(`#dietary-other-m${i}`);
@@ -853,6 +855,7 @@ async function getPolaroids() { return _polaroids; }
           }
         }
         members.push({
+          id,
           name,
           isPlusOne: true,
           bringingPlusOne: bringing,
@@ -865,6 +868,7 @@ async function getPolaroids() { return _polaroids; }
         const attendingInput = el.querySelector(`input[name="attending-m${i}"]:checked`);
         if (!attendingInput) missingAttending = true;
         members.push({
+          id,
           name,
           attending: attendingInput ? attendingInput.value : null,
           dietary: dietaryEl ? dietaryEl.value : '',
@@ -932,8 +936,8 @@ async function getPolaroids() { return _polaroids; }
   // ---- Backend calls (Apps Script) ----
 
   async function lookupHouseholds(query) {
-    if (!APPS_SCRIPT_URL) {
-      console.warn('APPS_SCRIPT_URL not set — using mock household for testing.');
+    if (!WORKER_URL) {
+      console.warn('WORKER_URL not set — using mock household for testing.');
       return {
         households: [{
           label: query + ' (mock household)',
@@ -942,19 +946,19 @@ async function getPolaroids() { return _polaroids; }
         }]
       };
     }
-    const url = APPS_SCRIPT_URL + '?action=lookup&name=' + encodeURIComponent(query);
+    const url = WORKER_URL + '?action=lookup&name=' + encodeURIComponent(query);
     const res = await fetch(url);
     if (!res.ok) throw new Error('Lookup failed: ' + res.status);
     return res.json();
   }
 
   async function submitRsvp(submission) {
-    if (!APPS_SCRIPT_URL) {
-      console.warn('APPS_SCRIPT_URL not set — submission logged to console only:', submission);
+    if (!WORKER_URL) {
+      console.warn('WORKER_URL not set — submission logged to console only:', submission);
       await new Promise(r => setTimeout(r, 500));
       return { ok: true };
     }
-    const res = await fetch(APPS_SCRIPT_URL, {
+    const res = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'submit', payload: submission })

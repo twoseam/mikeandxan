@@ -3,7 +3,7 @@
 (function () {
   'use strict';
 
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyMb-WTUEot-fa5LroXVE28lJZ4IWuNvf2-Qz4-UwEfop-vu4D-28GjxmIVjiXBo5vJJg/exec';
+  const WORKER_URL = 'https://mikeandxan-rsvp.michael-afc.workers.dev';
   const SESSION_KEY = 'mx_admin_session';
 
   const loginGate = document.getElementById('login-gate');
@@ -78,14 +78,14 @@
   // ---- API calls ----
 
   async function apiGet(params) {
-    const url = APPS_SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+    const url = WORKER_URL + '?' + new URLSearchParams(params).toString();
     const res = await fetch(url);
     if (!res.ok) throw new Error('Request failed: ' + res.status);
     return res.json();
   }
 
   async function apiPost(body) {
-    const res = await fetch(APPS_SCRIPT_URL, {
+    const res = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(body)
@@ -253,7 +253,7 @@
             '</span>' +
             (diet ? '<span class="admin-member-dietary">' + escapeHtml(diet) + '</span>' : '') +
             '<span class="admin-pill" data-status="' + st.status + '">' + st.label + '</span>' +
-            '<button type="button" class="admin-remove-btn" data-row="' + m.sheetRow + '" data-name="' + escapeHtml(m.name) + '">Remove</button>' +
+            '<button type="button" class="admin-remove-btn" data-id="' + m.id + '" data-name="' + escapeHtml(m.name) + '">Remove</button>' +
           '</div>'
         );
       }).join('');
@@ -277,7 +277,7 @@
     const current = newGuestHousehold.value;
     newGuestHousehold.innerHTML = '<option value="">+ Start a new household</option>' +
       households.map(h =>
-        '<option value="' + h.members[0].sheetRow + '">' + escapeHtml(h.label || '(unnamed)') +
+        '<option value="' + h.id + '">' + escapeHtml(h.label || '(unnamed)') +
         (h.address ? ' — ' + escapeHtml(h.address) : '') + '</option>'
       ).join('');
     newGuestHousehold.value = current;
@@ -300,7 +300,7 @@
 
     const payload = { name };
     if (newGuestHousehold.value) {
-      payload.joinRow = newGuestHousehold.value;
+      payload.householdId = Number(newGuestHousehold.value);
     } else {
       payload.group = newGuestGroup.value.trim();
       payload.address = newGuestAddress.value.trim();
@@ -321,8 +321,8 @@
     }
   }
 
-  async function removeGuest(sheetRowRaw, name) {
-    const sheetRow = Number(sheetRowRaw); // comes in as a string from a DOM attribute; household data uses real numbers
+  async function removeGuest(guestIdRaw, name) {
+    const guestId = Number(guestIdRaw); // comes in as a string from a DOM attribute; household data uses real numbers
     const session = getSession();
     if (!session) { showLogin(); return; }
     if (!confirm('Remove ' + name + ' from the guest list?')) return;
@@ -331,18 +331,17 @@
       const result = await apiPost({
         action: 'adminRemoveGuest',
         token: session.token,
-        payload: { sheetRow: sheetRow, name: name }
+        payload: { guestId: guestId, name: name }
       });
       if (!result.ok) {
         setStatus(dashboardStatus, result.message || result.error || 'Could not remove guest.', 'error');
         return;
       }
       // Update the view immediately from what we already have in memory —
-      // don't wait on a fresh fetch (Sheets can be slow to reflect a write
-      // on the very next read). Still reconcile with the server after.
+      // don't wait on a fresh fetch. Still reconcile with the server after.
       if (lastData) {
         lastData.households = lastData.households
-          .map(h => ({ ...h, members: h.members.filter(m => m.sheetRow !== sheetRow) }))
+          .map(h => ({ ...h, members: h.members.filter(m => m.id !== guestId) }))
           .filter(h => h.members.length > 0);
         renderStats(recomputeStats(lastData.households));
         renderHouseholds(lastData.households, searchInput.value);
@@ -415,7 +414,7 @@
     }
     const removeBtn = e.target.closest('.admin-remove-btn');
     if (removeBtn) {
-      removeGuest(removeBtn.getAttribute('data-row'), removeBtn.getAttribute('data-name'));
+      removeGuest(removeBtn.getAttribute('data-id'), removeBtn.getAttribute('data-name'));
     }
   });
 
