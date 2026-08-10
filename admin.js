@@ -41,6 +41,9 @@
 
   let lastData = null;
   let editingHouseholdId = null;
+  // Collapsed-couple cards the user has expanded to peek at members —
+  // survives re-renders (search, refresh-after-save) within the session.
+  const expandedHouseholds = new Set();
 
   function getSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
@@ -327,7 +330,9 @@
       return first && titleLower.indexOf(first) !== -1;
     });
 
-    const membersHtml = membersRedundant ? '' : h.members.map(m => {
+    const expanded = expandedHouseholds.has(h.id);
+
+    const membersHtml = h.members.map(m => {
       const st = memberStatus(m);
       const diet = dietaryLabel(m);
       const dotState = st.status === 'yes' ? 'y' : (st.status === 'no' ? 'n' : 'p');
@@ -359,13 +364,26 @@
     if (h.envelopeName && h.address) links.push('<a class="bx-link" href="envelopes.html?household=' + h.id + '" target="_blank" rel="noopener">Envelope</a>');
     if (showRemove && h.alreadySubmitted) links.push('<button type="button" class="bx-link bx-link-danger admin-reset-btn" data-id="' + h.id + '">Reset</button>');
 
+    // Redundant-member cards keep the grid in the DOM inside an animated
+    // reveal (grid-template-rows 0fr→1fr) so expand/collapse slides
+    // smoothly instead of popping. The chevron toggles it.
+    const chevron = membersRedundant
+      ? '<button type="button" class="bx-expand-toggle' + (expanded ? ' open' : '') + '" data-id="' + h.id + '" aria-expanded="' + expanded + '" title="Show members" aria-label="Show members">' +
+          '<svg viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,1.5 6,6.5 11,1.5"/></svg>' +
+        '</button>'
+      : '';
+    const gridHtml = membersRedundant
+      ? '<div class="bx-reveal' + (expanded ? ' open' : '') + '"><div class="bx-reveal-inner"><div class="bx-grid">' + membersHtml + '</div></div></div>'
+      : '<div class="bx-grid">' + membersHtml + '</div>';
+
     return (
       '<div class="admin-household bx-card" data-household-id="' + h.id + '">' +
         '<div class="bx-head">' +
           '<span class="bx-title">' + escapeHtml(title) + '</span>' +
+          chevron +
           pill +
         '</div>' +
-        (membersHtml ? '<div class="bx-grid">' + membersHtml + '</div>' : '') +
+        gridHtml +
         detailsHtml +
         '<div class="bx-meta">' +
           '<span class="bx-meta-text">' + (h.group ? escapeHtml(h.group) + ' · ' : '') + escapeHtml(cityStateOf(h.address)) + '</span>' +
@@ -602,6 +620,20 @@
   newGuestHousehold.addEventListener('change', toggleNewHouseholdFields);
 
   householdsEl.addEventListener('click', function (e) {
+    const expandBtn = e.target.closest('.bx-expand-toggle');
+    if (expandBtn) {
+      // Toggle the DOM directly (not a re-render) so the CSS transition
+      // actually plays; the Set keeps the state across later re-renders.
+      const id = Number(expandBtn.getAttribute('data-id'));
+      const card = expandBtn.closest('.admin-household');
+      const reveal = card && card.querySelector('.bx-reveal');
+      const nowOpen = !expandedHouseholds.has(id);
+      if (nowOpen) expandedHouseholds.add(id); else expandedHouseholds.delete(id);
+      expandBtn.classList.toggle('open', nowOpen);
+      expandBtn.setAttribute('aria-expanded', String(nowOpen));
+      if (reveal) reveal.classList.toggle('open', nowOpen);
+      return;
+    }
     const editBtn = e.target.closest('.admin-edit-btn');
     if (editBtn) {
       editingHouseholdId = Number(editBtn.getAttribute('data-id'));

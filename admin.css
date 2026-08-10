@@ -289,9 +289,40 @@
 .bx-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-xs);
   margin-bottom: .5rem;
+}
+.bx-head .bx-pill { margin-left: auto; }
+
+.bx-expand-toggle {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #b3a696;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  padding: 0;
+}
+.bx-expand-toggle svg { width: 11px; height: 8px; transition: transform .25s ease; }
+.bx-expand-toggle.open svg { transform: rotate(180deg); }
+.bx-expand-toggle:hover { color: var(--color-bg); background: #f8f1e8; }
+
+/* Animated expand/collapse: grid-template-rows 0fr -> 1fr slides the
+   member list open without JS height measurement. */
+.bx-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .28s ease;
+}
+.bx-reveal.open { grid-template-rows: 1fr; }
+.bx-reveal-inner { overflow: hidden; min-height: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .bx-reveal, .bx-expand-toggle svg { transition: none; }
 }
 .bx-title {
   font-size: 1.15rem;
