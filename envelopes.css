@@ -1,0 +1,168 @@
+/* ============================================================
+   Envelope printing — A7 (7.25in x 5.25in), one page per household.
+   Typography matches Michael's own reference design: New Kansas
+   Extra Swash (script) for names, New Kansas Regular for the
+   family sub-line, Mr Eaves Mod OT for every address line.
+   ============================================================ */
+
+:root {
+  --ink: #262220;
+  --paper-preview: #ffffff;
+  --border-preview: #ddd6cc;
+  --gap-return-name: .15in;
+  --margin-top: .38in;
+  --margin-left: .4in;
+  --gap-recipient-block: .3in;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #f3f0ea;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.env-gate {
+  padding: 3rem;
+  text-align: center;
+  color: #6b655c;
+}
+
+.env-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.25rem 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid var(--border-preview);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.env-back { color: #6b655c; text-decoration: none; font-size: .85rem; }
+.env-back:hover { text-decoration: underline; }
+.env-toolbar h1 { font-size: 1.1rem; margin: 0; flex: 1; }
+.env-summary { font-size: .85rem; color: #6b655c; margin: 0; }
+.env-toolbar .btn {
+  border: 0;
+  border-radius: 100px;
+  padding: .55rem 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #e2551f;
+  color: #fff;
+}
+.env-toolbar .btn:hover { opacity: .9; }
+
+.env-warnings {
+  margin: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
+  background: #fbf0da;
+  border: 1px solid #e9cf8f;
+  border-radius: 8px;
+  font-size: .85rem;
+}
+.env-warnings h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 .5rem; }
+.env-warnings ul { margin: 0; padding-left: 1.2rem; }
+.env-warnings li { margin: .2rem 0; }
+
+#env-sheets {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.envelope {
+  width: 7.25in;
+  height: 5.25in;
+  background: var(--paper-preview);
+  border: 1px solid var(--border-preview);
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.return-block {
+  position: absolute;
+  top: var(--margin-top);
+  left: var(--margin-left);
+}
+.return-name {
+  font-family: "new-kansas-extra-swash", serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 19pt;
+  color: var(--ink);
+  margin: 0 0 var(--gap-return-name);
+  line-height: 1;
+}
+.return-addr-line {
+  font-family: "mr-eaves-modern", sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  font-size: 10.5pt;
+  line-height: 1.35;
+  margin: 0;
+  color: var(--ink);
+}
+
+.recipient-block {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  width: 90%;
+}
+.recipient-name {
+  font-family: "new-kansas-extra-swash", serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 34pt;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.05;
+}
+.recipient-subline {
+  font-family: "new-kansas", serif;
+  font-weight: 400;
+  font-size: 15pt;
+  color: var(--ink);
+  margin: .15in 0 0;
+}
+.recipient-address {
+  margin-top: var(--gap-recipient-block);
+}
+.addr-line {
+  font-family: "mr-eaves-modern", sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: 11pt;
+  line-height: 1.5;
+  /* fit-content, not the default stretch-to-parent-width, so both the
+     natural-width measurement AND the letter-spacing balancing in
+     envelopes.js see this box's actual text width, not the container's. */
+  width: fit-content;
+  margin: 0 auto;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+@media print {
+  body { background: #fff; }
+  .env-toolbar, .env-warnings { display: none; }
+  #env-sheets { padding: 0; gap: 0; }
+  .envelope {
+    border: none;
+    box-shadow: none;
+    page-break-after: always;
+    break-after: page;
+  }
+  @page { size: 7.25in 5.25in; margin: 0; }
+}

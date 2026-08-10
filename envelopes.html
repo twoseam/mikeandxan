@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Print Envelopes — M &amp; A</title>
+
+  <link rel="stylesheet" href="https://use.typekit.net/rxb5kii.css" />
+
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="stylesheet" href="envelopes.css" />
+</head>
+<body>
+
+  <div id="gate" class="env-gate">
+    <p>Checking you're logged in&hellip;</p>
+  </div>
+
+  <div id="app" hidden>
+    <header class="env-toolbar">
+      <a href="admin.html" class="env-back">&larr; Back to Guest List</a>
+      <h1>Print Envelopes</h1>
+      <p id="env-summary" class="env-summary"></p>
+      <button type="button" id="print-btn" class="btn btn-primary">Print</button>
+    </header>
+
+    <section id="env-warnings" class="env-warnings" hidden>
+      <h2>Skipped — not printable yet</h2>
+      <ul id="env-warnings-list"></ul>
+    </section>
+
+    <main id="env-sheets"></main>
+  </div>
+
+  <script src="envelopes.js"></script>
+</body>
+</html>

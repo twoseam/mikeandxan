@@ -278,6 +278,15 @@
       ? '<button type="button" class="admin-edit-btn" data-id="' + h.id + '">Edit</button>'
       : '';
 
+    const envelopeHtml = editing
+      ? '<div class="admin-envelope-edit">' +
+          '<input type="text" class="admin-edit-input admin-edit-envelope-name" placeholder="Envelope name (e.g. The Martin Family)" value="' + escapeHtml(h.envelopeName || '') + '">' +
+          '<input type="text" class="admin-edit-input admin-edit-envelope-subline" placeholder="Envelope sub-line (e.g. Daniel, Alyson, Adalyn, & Jack)" value="' + escapeHtml(h.envelopeSubline || '') + '">' +
+        '</div>'
+      : (h.envelopeName
+          ? '<div class="admin-envelope-preview"><span class="admin-envelope-tag">Envelope</span>' + escapeHtml(h.envelopeName) + (h.envelopeSubline ? ' — ' + escapeHtml(h.envelopeSubline) : '') + '</div>'
+          : '');
+
     // A +1 slot only makes sense to offer on a solo invite (one real guest,
     // no existing +1 row) — households already invited as a pair/group get
     // their +1 (if any) from the original guest list, not this toggle.
@@ -307,6 +316,7 @@
       '<div class="admin-household' + (editing ? ' admin-household-editing' : '') + '" data-household-id="' + h.id + '">' +
         '<div class="admin-household-head">' + headHtml + editBtn + '</div>' +
         (!editing && extras.length ? '<div class="admin-household-extra">' + extras.join('') + '</div>' : '') +
+        envelopeHtml +
         memberRows +
         plusOneToggleHtml +
         footHtml +
@@ -461,6 +471,8 @@
 
     const group = card.querySelector('.admin-edit-group').value.trim();
     const address = card.querySelector('.admin-edit-address').value.trim();
+    const envelopeName = card.querySelector('.admin-edit-envelope-name').value.trim();
+    const envelopeSubline = card.querySelector('.admin-edit-envelope-subline').value.trim();
     const guests = Array.from(card.querySelectorAll('.admin-edit-name')).map(input => ({
       id: Number(input.getAttribute('data-guest-id')),
       name: input.value.trim()
@@ -479,7 +491,7 @@
       const result = await apiPost({
         action: 'adminEditHousehold',
         token: session.token,
-        payload: { householdId, group, address, guests, allowPlusOne }
+        payload: { householdId, group, address, envelopeName, envelopeSubline, guests, allowPlusOne }
       });
       if (!result || !result.ok) {
         setStatus(dashboardStatus, (result && (result.message || result.error)) || 'Could not save changes.', 'error');
