@@ -239,97 +239,123 @@
   // Shared by the main Guest List and the stat-detail expansion below —
   // opts.showRemove controls whether the per-member Remove button appears
   // (only makes sense on the main list, where removal is wired up).
+  // "City, ST" for the quiet footer line — the full street address lives
+  // behind Edit now that envelopes are generated from the data directly.
+  function cityStateOf(address) {
+    const m = String(address || '').match(/,\s*([^,]+),\s*([A-Za-z]{2})\s+\d{5}/);
+    if (m) return m[1] + ', ' + m[2].toUpperCase();
+    return address || 'No address';
+  }
+
+  function householdCounts(h) {
+    let yes = 0, no = 0;
+    h.members.forEach(m => {
+      if (m.isPlusOne && m.bringingPlusOne !== 'yes') return;
+      if (m.attending === 'yes') yes++;
+      else if (m.attending === 'no') no++;
+    });
+    return { yes, no };
+  }
+
   function householdCardHtml(h, opts) {
     const showRemove = !opts || opts.showRemove !== false;
     const editing = !!(opts && opts.editing);
-    const extras = [];
-    if (h.existing) {
-      if (h.existing.email) extras.push('<span>' + escapeHtml(h.existing.email) + '</span>');
-      if (h.existing.phone) extras.push('<span>' + escapeHtml(h.existing.phone) + '</span>');
-      if (h.existing.songRequest) extras.push('<span>🎵 ' + escapeHtml(h.existing.songRequest) + '</span>');
-      if (h.existing.pizzaTopping) extras.push('<span>🍕 ' + escapeHtml(h.existing.pizzaTopping) + '</span>');
-      if (h.existing.notes) extras.push('<span>📝 ' + escapeHtml(h.existing.notes) + '</span>');
+
+    if (editing) {
+      const memberRows = h.members.map(m =>
+        '<div class="admin-member-row">' +
+          '<span class="admin-member-name"><input type="text" class="admin-edit-input admin-edit-name" data-guest-id="' + m.id + '" value="' + escapeHtml(m.name) + '"></span>' +
+          '<button type="button" class="admin-remove-btn" data-id="' + m.id + '" data-name="' + escapeHtml(m.name) + '" title="Remove ' + escapeHtml(memberDisplayName(m)) + '" aria-label="Remove ' + escapeHtml(memberDisplayName(m)) + '">&times;</button>' +
+        '</div>'
+      ).join('');
+
+      const realGuestCount = h.members.filter(m => !m.isPlusOne).length;
+      const plusOneMember = h.members.find(m => m.isPlusOne);
+      const plusOneClaimed = !!(plusOneMember && plusOneMember.bringingPlusOne === 'yes');
+      const plusOneToggleHtml = realGuestCount === 1
+        ? '<label class="admin-plusone-toggle">' +
+            '<input type="checkbox" class="admin-edit-plusone"' +
+              (plusOneMember ? ' checked' : '') + (plusOneClaimed ? ' disabled' : '') + '>' +
+            ' Allow a +1' + (plusOneClaimed ? ' (already claimed)' : '') +
+          '</label>'
+        : '';
+
+      return (
+        '<div class="admin-household admin-household-editing" data-household-id="' + h.id + '">' +
+          '<div class="admin-household-head">' +
+            '<input type="text" class="admin-edit-input admin-edit-group" placeholder="Household label (optional)" value="' + escapeHtml(h.group || '') + '">' +
+            '<input type="text" class="admin-edit-input admin-edit-address" placeholder="Address" value="' + escapeHtml(h.address || '') + '">' +
+          '</div>' +
+          '<div class="admin-envelope-edit">' +
+            '<input type="text" class="admin-edit-input admin-edit-envelope-name" placeholder="Envelope name (e.g. The Martin Family)" value="' + escapeHtml(h.envelopeName || '') + '">' +
+            '<input type="text" class="admin-edit-input admin-edit-envelope-subline" placeholder="Envelope sub-line (e.g. Daniel, Alyson, Adalyn, & Jack)" value="' + escapeHtml(h.envelopeSubline || '') + '">' +
+          '</div>' +
+          memberRows +
+          plusOneToggleHtml +
+          '<div class="admin-household-foot admin-edit-foot">' +
+            '<button type="button" class="admin-cancel-edit-btn" data-id="' + h.id + '">Cancel</button>' +
+            '<button type="button" class="admin-save-edit-btn" data-id="' + h.id + '">Save</button>' +
+          '</div>' +
+        '</div>'
+      );
     }
 
-    const memberRows = h.members.map(m => {
+    // ---- View mode: "status at a glance" layout (Michael picked option B
+    // from the Aug 10 mockups — summary pill first, two-column members with
+    // status dots, quiet meta footer). ----
+    const counts = householdCounts(h);
+    const pill = h.alreadySubmitted
+      ? '<span class="bx-pill" data-kind="mixed">' +
+          (counts.yes ? '<b class="bx-yes">' + counts.yes + ' yes</b>' : '') +
+          (counts.yes && counts.no ? ' · ' : '') +
+          (counts.no ? '<b class="bx-no">' + counts.no + ' no</b>' : '') +
+        '</span>'
+      : '<span class="bx-pill" data-kind="none">No response</span>';
+
+    const membersHtml = h.members.map(m => {
       const st = memberStatus(m);
       const diet = dietaryLabel(m);
-      const nameHtml = editing
-        ? '<input type="text" class="admin-edit-input admin-edit-name" data-guest-id="' + m.id + '" value="' + escapeHtml(m.name) + '">'
-        : escapeHtml(memberDisplayName(m)) + (m.isPlusOne ? ' <span class="admin-member-tag">+1</span>' : '');
+      const dotState = st.status === 'yes' ? 'y' : (st.status === 'no' ? 'n' : 'p');
       return (
-        '<div class="admin-member-row">' +
-          '<span class="admin-member-name">' + nameHtml + '</span>' +
-          (!editing && diet ? '<span class="admin-member-dietary">' + escapeHtml(diet) + '</span>' : '') +
-          (!editing ? '<span class="admin-pill" data-status="' + st.status + '">' + st.label + '</span>' : '') +
-          (showRemove && !editing ? '<button type="button" class="admin-remove-btn" data-id="' + m.id + '" data-name="' + escapeHtml(m.name) + '" title="Remove ' + escapeHtml(memberDisplayName(m)) + '" aria-label="Remove ' + escapeHtml(memberDisplayName(m)) + '">&times;</button>' : '') +
+        '<div class="bx-member">' +
+          '<span class="bx-dot" data-s="' + dotState + '"></span>' +
+          '<span class="bx-name">' + escapeHtml(memberDisplayName(m)) +
+            (m.isPlusOne ? ' <span class="admin-member-tag">+1</span>' : '') +
+            (diet ? '<span class="bx-sub">' + escapeHtml(diet) + '</span>' : '') +
+          '</span>' +
         '</div>'
       );
     }).join('');
 
-    const addressAttr = escapeHtml(h.address || '');
-    const headHtml = editing
-      ? '<input type="text" class="admin-edit-input admin-edit-group" placeholder="Household label (optional)" value="' + escapeHtml(h.group || '') + '">' +
-        '<input type="text" class="admin-edit-input admin-edit-address" placeholder="Address" value="' + addressAttr + '">'
-      : (h.group ? '<span class="admin-household-group">' + escapeHtml(h.group) + '</span>' : '') +
-        '<span class="admin-household-address">' + (h.address ? escapeHtml(h.address) : '<em>No address on file</em>') + '</span>';
-    const editBtn = showRemove && !editing
-      ? '<button type="button" class="admin-edit-btn" data-id="' + h.id + '">Edit</button>'
-      : '';
-
-    const envelopeHtml = editing
-      ? '<div class="admin-envelope-edit">' +
-          '<input type="text" class="admin-edit-input admin-edit-envelope-name" placeholder="Envelope name (e.g. The Martin Family)" value="' + escapeHtml(h.envelopeName || '') + '">' +
-          '<input type="text" class="admin-edit-input admin-edit-envelope-subline" placeholder="Envelope sub-line (e.g. Daniel, Alyson, Adalyn, & Jack)" value="' + escapeHtml(h.envelopeSubline || '') + '">' +
-        '</div>'
-      : (h.envelopeName
-          ? '<div class="admin-envelope-preview"><span class="admin-envelope-tag">Envelope</span>' + escapeHtml(h.envelopeName) + (h.envelopeSubline ? ' — ' + escapeHtml(h.envelopeSubline) : '') + '</div>'
-          : '');
-
-    // A +1 slot only makes sense to offer on a solo invite (one real guest,
-    // no existing +1 row) — households already invited as a pair/group get
-    // their +1 (if any) from the original guest list, not this toggle.
-    const realGuestCount = h.members.filter(m => !m.isPlusOne).length;
-    const plusOneMember = h.members.find(m => m.isPlusOne);
-    const plusOneClaimed = !!(plusOneMember && plusOneMember.bringingPlusOne === 'yes');
-    const plusOneToggleHtml = editing && realGuestCount === 1
-      ? '<label class="admin-plusone-toggle">' +
-          '<input type="checkbox" class="admin-edit-plusone"' +
-            (plusOneMember ? ' checked' : '') + (plusOneClaimed ? ' disabled' : '') + '>' +
-          ' Allow a +1' + (plusOneClaimed ? ' (already claimed)' : '') +
-        '</label>'
-      : '';
-
-    let footHtml = '';
-    if (editing) {
-      footHtml =
-        '<div class="admin-household-foot admin-edit-foot">' +
-          '<button type="button" class="admin-cancel-edit-btn" data-id="' + h.id + '">Cancel</button>' +
-          '<button type="button" class="admin-save-edit-btn" data-id="' + h.id + '">Save</button>' +
-        '</div>';
-    } else {
-      const footBits = [];
-      // Only offer the single-envelope print when it can actually print
-      // (envelopes.html needs both an address and an envelope name).
-      if (h.envelopeName && h.address) {
-        footBits.push('<a class="admin-print-btn" href="envelopes.html?household=' + h.id + '" target="_blank" rel="noopener">Print Envelope</a>');
-      }
-      if (showRemove && h.alreadySubmitted) {
-        footBits.push('<button type="button" class="admin-reset-btn" data-id="' + h.id + '">Reset RSVP</button>');
-      }
-      if (footBits.length) {
-        footHtml = '<div class="admin-household-foot admin-foot-row">' + footBits.join('') + '</div>';
-      }
+    let detailsHtml = '';
+    if (h.existing) {
+      const d = [];
+      if (h.existing.songRequest) d.push('<div><b>Song:</b> ' + escapeHtml(h.existing.songRequest) + '</div>');
+      if (h.existing.pizzaTopping) d.push('<div><b>Pizza:</b> ' + escapeHtml(h.existing.pizzaTopping) + '</div>');
+      if (h.existing.notes) d.push('<div><b>Notes:</b> ' + escapeHtml(h.existing.notes) + '</div>');
+      const contactBits = [h.existing.email, h.existing.phone, h.existing.contactMethod ? 'prefers ' + h.existing.contactMethod.toLowerCase() : '']
+        .filter(Boolean).map(escapeHtml).join(' · ');
+      if (contactBits) d.push('<div><b>Contact:</b> ' + contactBits + '</div>');
+      if (d.length) detailsHtml = '<div class="bx-details">' + d.join('') + '</div>';
     }
 
+    const links = [];
+    if (showRemove) links.push('<button type="button" class="bx-link admin-edit-btn" data-id="' + h.id + '">Edit</button>');
+    if (h.envelopeName && h.address) links.push('<a class="bx-link" href="envelopes.html?household=' + h.id + '" target="_blank" rel="noopener">Envelope</a>');
+    if (showRemove && h.alreadySubmitted) links.push('<button type="button" class="bx-link bx-link-danger admin-reset-btn" data-id="' + h.id + '">Reset</button>');
+
     return (
-      '<div class="admin-household' + (editing ? ' admin-household-editing' : '') + '" data-household-id="' + h.id + '">' +
-        '<div class="admin-household-head">' + headHtml + editBtn + '</div>' +
-        (!editing && extras.length ? '<div class="admin-household-extra">' + extras.join('') + '</div>' : '') +
-        envelopeHtml +
-        memberRows +
-        plusOneToggleHtml +
-        footHtml +
+      '<div class="admin-household bx-card" data-household-id="' + h.id + '">' +
+        '<div class="bx-head">' +
+          '<span class="bx-title">' + escapeHtml(h.envelopeName || h.label || '') + '</span>' +
+          pill +
+        '</div>' +
+        '<div class="bx-grid">' + membersHtml + '</div>' +
+        detailsHtml +
+        '<div class="bx-meta">' +
+          '<span class="bx-meta-text">' + (h.group ? escapeHtml(h.group) + ' · ' : '') + escapeHtml(cityStateOf(h.address)) + '</span>' +
+          '<span class="bx-links">' + links.join('') + '</span>' +
+        '</div>' +
       '</div>'
     );
   }

@@ -284,6 +284,99 @@
   padding: var(--space-sm) var(--space-md);
 }
 
+/* ---------- "Status at a glance" card (option B, Aug 10 2026) ---------- */
+
+.bx-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  margin-bottom: .5rem;
+}
+.bx-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-charcoal);
+  min-width: 0;
+}
+.bx-pill {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  border-radius: 100px;
+  padding: .28rem .7rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.bx-pill[data-kind="none"] { background: #f3ede4; color: #a2937f; }
+.bx-pill[data-kind="mixed"] { background: #f2f0e6; }
+.bx-pill .bx-yes { color: #3a7a3a; }
+.bx-pill .bx-no { color: var(--color-berry); }
+
+.bx-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .1rem .9rem;
+}
+.bx-member {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .3rem 0;
+  min-width: 0;
+}
+.bx-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.bx-dot[data-s="p"] { background: #e5dccf; }
+.bx-dot[data-s="y"] { background: #4c9a4c; }
+.bx-dot[data-s="n"] { background: #c04a71; }
+.bx-name { font-size: .95rem; color: var(--color-charcoal); min-width: 0; }
+.bx-sub {
+  display: block;
+  font-size: .68rem;
+  color: #8a7f72;
+}
+
+.bx-details {
+  margin-top: .6rem;
+  border-top: 1px dashed var(--color-paper-rule);
+  padding-top: .6rem;
+  font-size: .8rem;
+  color: #6b5f52;
+  columns: 2;
+  column-gap: 1.5rem;
+}
+.bx-details div { break-inside: avoid; margin: .1rem 0; }
+.bx-details b { font-weight: 600; color: var(--color-charcoal); }
+
+.bx-meta {
+  margin-top: .65rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--color-paper-rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.bx-meta-text { font-size: .72rem; color: #b3a696; min-width: 0; }
+.bx-links { display: flex; gap: .8rem; flex-shrink: 0; }
+.bx-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  font-size: .74rem;
+  font-weight: 600;
+  color: #b3a696;
+  text-decoration: none;
+  cursor: pointer;
+}
+.bx-link:hover { color: var(--color-bg); }
+.bx-link-danger:hover { color: var(--color-berry); }
+
+@media (max-width: 560px) {
+  .bx-grid { grid-template-columns: 1fr; }
+}
+
 .admin-household-head {
   display: flex;
   align-items: baseline;
@@ -371,19 +464,8 @@
 }
 .admin-remove-btn:hover { opacity: 1; }
 
-.admin-edit-btn {
-  border: 1px solid var(--color-bg);
-  background: transparent;
-  color: var(--color-bg);
-  border-radius: 100px;
-  padding: .25rem .8rem;
-  font-size: .75rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  opacity: .75;
-}
-.admin-edit-btn:hover { opacity: 1; background: rgba(var(--color-bg-rgb), .08); }
+/* .admin-edit-btn is now a JS hook only — the footer Edit link styles via
+   .bx-link (the old pill styling here used to override it in the cascade). */
 
 .admin-edit-input {
   font: inherit;
@@ -445,17 +527,6 @@
   align-items: center;
   gap: var(--space-xs);
 }
-.admin-print-btn {
-  border: 1px solid var(--color-bg);
-  color: var(--color-bg);
-  text-decoration: none;
-  border-radius: 100px;
-  font-size: .75rem;
-  font-weight: 600;
-  padding: .3rem .8rem;
-  opacity: .75;
-}
-.admin-print-btn:hover { opacity: 1; background: rgba(var(--color-bg-rgb), .06); }
 .admin-edit-foot {
   display: flex;
   justify-content: flex-end;
@@ -484,18 +555,7 @@
   padding: .3rem .9rem;
 }
 .admin-save-edit-btn:hover { opacity: .9; }
-.admin-reset-btn {
-  border: 1px solid var(--color-berry);
-  background: transparent;
-  color: var(--color-berry);
-  border-radius: 100px;
-  font-size: .75rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: .3rem .8rem;
-  opacity: .75;
-}
-.admin-reset-btn:hover { opacity: 1; background: rgba(var(--color-bg-rgb), .06); }
+/* .admin-reset-btn is a JS hook only — footer Reset styles via .bx-link. */
 
 /* ---------- Add-guest modal ---------- */
 
