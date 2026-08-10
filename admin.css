@@ -260,6 +260,23 @@
   gap: var(--space-sm);
 }
 
+/* Two columns on wide screens to halve the scrolling. CSS columns (not
+   grid) so variable-height cards pack tightly; break-inside keeps a card
+   from splitting across the column boundary. The flex gap above doesn't
+   apply in column layout, hence the margin-bottom per card here. */
+@media (min-width: 1100px) {
+  .admin-dashboard { max-width: 1500px; }
+  .admin-households {
+    display: block;
+    columns: 2;
+    column-gap: var(--space-sm);
+  }
+  .admin-households .admin-household {
+    break-inside: avoid;
+    margin-bottom: var(--space-sm);
+  }
+}
+
 .admin-household {
   background: var(--color-paper);
   color: var(--color-bg);
