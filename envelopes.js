@@ -36,9 +36,15 @@
     const words = String(text || '').split(' ');
     return words.map((word, i) => {
       if (i === words.length - 1 || !word) return escapeHtml(word);
-      const chars = Array.from(word);
-      const lastChar = chars.pop();
-      return escapeHtml(chars.join('')) + '<span class="swash-break">' + escapeHtml(lastChar) + '</span>';
+      // Wrap the last LETTER, not blindly the last character - "Martin,"
+      // ends in a comma, and wrapping just the comma leaves the "n"'s
+      // swash exit stroke colliding with the next word (Michael caught
+      // this on "Andrew" in the Andrea/Andrew/Guest envelope). Any
+      // trailing punctuation rides along in the plain-face span.
+      const m = word.match(/^(.*?)(\p{L})(\P{L}*)$/u);
+      if (!m) return escapeHtml(word);
+      const [, head, lastLetter, tailPunct] = m;
+      return escapeHtml(head) + '<span class="swash-break">' + escapeHtml(lastLetter + tailPunct) + '</span>';
     }).join(' ');
   }
 

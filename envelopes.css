@@ -97,10 +97,11 @@ body {
    this, New Kansas Extra Swash renders its plain fallback glyphs instead of
    the actual connected swash forms, which reads as "ligatures are off". */
 .return-name, .recipient-name, .swash-break, .recipient-subline {
-  font-feature-settings: "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "calt" 1, "swsh" 1, "cswh" 1,
-    "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
-    "ss09" 1, "ss10" 1, "ss11" 1, "ss12" 1, "ss13" 1, "ss14" 1, "ss15" 1, "ss16" 1,
-    "ss17" 1, "ss18" 1, "ss19" 1, "ss20" 1;
+  /* Ligatures + contextual alternates only. Do NOT shotgun ss01-ss20 here:
+     with the full-featured font (Michael's "All characters" web project)
+     those stylistic sets actually fire and substitute alternate letterforms
+     that visibly change the design. liga/calt is what connects "Th". */
+  font-feature-settings: "liga" 1, "dlig" 1, "clig" 1, "calt" 1;
   font-variant-ligatures: common-ligatures contextual;
 }
 
