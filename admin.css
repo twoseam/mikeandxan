@@ -308,20 +308,6 @@
   flex: 1;
 }
 
-.admin-copy-btn {
-  border: 1px solid var(--color-bg);
-  background: transparent;
-  color: var(--color-bg);
-  border-radius: 100px;
-  padding: .25rem .8rem;
-  font-size: .75rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.admin-copy-btn:hover { background: rgba(var(--color-bg-rgb), .08); }
-.admin-copy-btn[data-copied="1"] { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
-
 .admin-household-extra {
   font-size: .85rem;
   opacity: .8;

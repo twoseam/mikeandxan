@@ -272,8 +272,7 @@
       ? '<input type="text" class="admin-edit-input admin-edit-group" placeholder="Household label (optional)" value="' + escapeHtml(h.group || '') + '">' +
         '<input type="text" class="admin-edit-input admin-edit-address" placeholder="Address" value="' + addressAttr + '">'
       : (h.group ? '<span class="admin-household-group">' + escapeHtml(h.group) + '</span>' : '') +
-        '<span class="admin-household-address">' + (h.address ? escapeHtml(h.address) : '<em>No address on file</em>') + '</span>' +
-        (h.address ? '<button type="button" class="admin-copy-btn" data-address="' + addressAttr + '">Copy address</button>' : '');
+        '<span class="admin-household-address">' + (h.address ? escapeHtml(h.address) : '<em>No address on file</em>') + '</span>';
     const editBtn = showRemove && !editing
       ? '<button type="button" class="admin-edit-btn" data-id="' + h.id + '">Edit</button>'
       : '';
@@ -561,23 +560,7 @@
   addGuestForm.addEventListener('submit', addGuest);
   newGuestHousehold.addEventListener('change', toggleNewHouseholdFields);
 
-  function handleCopyAddressClick(e) {
-    const copyBtn = e.target.closest('.admin-copy-btn');
-    if (!copyBtn) return false;
-    const address = copyBtn.getAttribute('data-address');
-    navigator.clipboard.writeText(address).then(function () {
-      copyBtn.setAttribute('data-copied', '1');
-      copyBtn.textContent = 'Copied!';
-      setTimeout(function () {
-        copyBtn.removeAttribute('data-copied');
-        copyBtn.textContent = 'Copy address';
-      }, 1500);
-    });
-    return true;
-  }
-
   householdsEl.addEventListener('click', function (e) {
-    if (handleCopyAddressClick(e)) return;
     const editBtn = e.target.closest('.admin-edit-btn');
     if (editBtn) {
       editingHouseholdId = Number(editBtn.getAttribute('data-id'));
@@ -607,7 +590,6 @@
   });
 
   statListContent.addEventListener('click', function (e) {
-    if (handleCopyAddressClick(e)) return;
     const nameBtn = e.target.closest('.stat-list-name');
     if (!nameBtn) return;
     const li = nameBtn.closest('.stat-list-item');
