@@ -40,6 +40,7 @@
   const newGuestAddress = document.getElementById('new-guest-address');
 
   let lastData = null;
+  let editingHouseholdId = null;
 
   function getSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
@@ -240,6 +241,7 @@
   // (only makes sense on the main list, where removal is wired up).
   function householdCardHtml(h, opts) {
     const showRemove = !opts || opts.showRemove !== false;
+    const editing = !!(opts && opts.editing);
     const extras = [];
     if (h.existing) {
       if (h.existing.email) extras.push('<span>' + escapeHtml(h.existing.email) + '</span>');
@@ -252,31 +254,62 @@
     const memberRows = h.members.map(m => {
       const st = memberStatus(m);
       const diet = dietaryLabel(m);
+      const nameHtml = editing
+        ? '<input type="text" class="admin-edit-input admin-edit-name" data-guest-id="' + m.id + '" value="' + escapeHtml(m.name) + '">'
+        : escapeHtml(memberDisplayName(m)) + (m.isPlusOne ? ' <span class="admin-member-tag">+1</span>' : '');
       return (
         '<div class="admin-member-row">' +
-          '<span class="admin-member-name">' + escapeHtml(memberDisplayName(m)) +
-            (m.isPlusOne ? ' <span class="admin-member-tag">+1</span>' : '') +
-          '</span>' +
-          (diet ? '<span class="admin-member-dietary">' + escapeHtml(diet) + '</span>' : '') +
-          '<span class="admin-pill" data-status="' + st.status + '">' + st.label + '</span>' +
-          (showRemove ? '<button type="button" class="admin-remove-btn" data-id="' + m.id + '" data-name="' + escapeHtml(m.name) + '">Remove</button>' : '') +
+          '<span class="admin-member-name">' + nameHtml + '</span>' +
+          (!editing && diet ? '<span class="admin-member-dietary">' + escapeHtml(diet) + '</span>' : '') +
+          (!editing ? '<span class="admin-pill" data-status="' + st.status + '">' + st.label + '</span>' : '') +
+          (showRemove && !editing ? '<button type="button" class="admin-remove-btn" data-id="' + m.id + '" data-name="' + escapeHtml(m.name) + '">Remove</button>' : '') +
         '</div>'
       );
     }).join('');
 
     const addressAttr = escapeHtml(h.address || '');
+    const headHtml = editing
+      ? '<input type="text" class="admin-edit-input admin-edit-group" placeholder="Household label (optional)" value="' + escapeHtml(h.group || '') + '">' +
+        '<input type="text" class="admin-edit-input admin-edit-address" placeholder="Address" value="' + addressAttr + '">'
+      : (h.group ? '<span class="admin-household-group">' + escapeHtml(h.group) + '</span>' : '') +
+        '<span class="admin-household-address">' + (h.address ? escapeHtml(h.address) : '<em>No address on file</em>') + '</span>' +
+        (h.address ? '<button type="button" class="admin-copy-btn" data-address="' + addressAttr + '">Copy address</button>' : '');
+    const editBtn = showRemove && !editing
+      ? '<button type="button" class="admin-edit-btn" data-id="' + h.id + '">Edit</button>'
+      : '';
+
+    // A +1 slot only makes sense to offer on a solo invite (one real guest,
+    // no existing +1 row) — households already invited as a pair/group get
+    // their +1 (if any) from the original guest list, not this toggle.
+    const realGuestCount = h.members.filter(m => !m.isPlusOne).length;
+    const plusOneMember = h.members.find(m => m.isPlusOne);
+    const plusOneClaimed = !!(plusOneMember && plusOneMember.bringingPlusOne === 'yes');
+    const plusOneToggleHtml = editing && realGuestCount === 1
+      ? '<label class="admin-plusone-toggle">' +
+          '<input type="checkbox" class="admin-edit-plusone"' +
+            (plusOneMember ? ' checked' : '') + (plusOneClaimed ? ' disabled' : '') + '>' +
+          ' Allow a +1' + (plusOneClaimed ? ' (already claimed)' : '') +
+        '</label>'
+      : '';
+
+    let footHtml = '';
+    if (editing) {
+      footHtml =
+        '<div class="admin-household-foot admin-edit-foot">' +
+          '<button type="button" class="admin-cancel-edit-btn" data-id="' + h.id + '">Cancel</button>' +
+          '<button type="button" class="admin-save-edit-btn" data-id="' + h.id + '">Save</button>' +
+        '</div>';
+    } else if (showRemove && h.alreadySubmitted) {
+      footHtml = '<div class="admin-household-foot"><button type="button" class="admin-reset-btn" data-id="' + h.id + '">Reset RSVP</button></div>';
+    }
+
     return (
-      '<div class="admin-household">' +
-        '<div class="admin-household-head">' +
-          (h.group ? '<span class="admin-household-group">' + escapeHtml(h.group) + '</span>' : '') +
-          '<span class="admin-household-address">' + (h.address ? escapeHtml(h.address) : '<em>No address on file</em>') + '</span>' +
-          (h.address ? '<button type="button" class="admin-copy-btn" data-address="' + addressAttr + '">Copy address</button>' : '') +
-        '</div>' +
-        (extras.length ? '<div class="admin-household-extra">' + extras.join('') + '</div>' : '') +
+      '<div class="admin-household' + (editing ? ' admin-household-editing' : '') + '" data-household-id="' + h.id + '">' +
+        '<div class="admin-household-head">' + headHtml + editBtn + '</div>' +
+        (!editing && extras.length ? '<div class="admin-household-extra">' + extras.join('') + '</div>' : '') +
         memberRows +
-        (showRemove && h.alreadySubmitted
-          ? '<div class="admin-household-foot"><button type="button" class="admin-reset-btn" data-id="' + h.id + '">Reset RSVP</button></div>'
-          : '') +
+        plusOneToggleHtml +
+        footHtml +
       '</div>'
     );
   }
@@ -293,7 +326,7 @@
       return;
     }
 
-    householdsEl.innerHTML = filtered.map(h => householdCardHtml(h)).join('');
+    householdsEl.innerHTML = filtered.map(h => householdCardHtml(h, { editing: h.id === editingHouseholdId })).join('');
   }
 
   function populateHouseholdPicker(households) {
@@ -420,6 +453,46 @@
     }
   }
 
+  async function saveHouseholdEdit(householdId) {
+    const session = getSession();
+    if (!session) { showLogin(); return; }
+    const card = householdsEl.querySelector('.admin-household[data-household-id="' + householdId + '"]');
+    if (!card) return;
+
+    const group = card.querySelector('.admin-edit-group').value.trim();
+    const address = card.querySelector('.admin-edit-address').value.trim();
+    const guests = Array.from(card.querySelectorAll('.admin-edit-name')).map(input => ({
+      id: Number(input.getAttribute('data-guest-id')),
+      name: input.value.trim()
+    }));
+
+    if (guests.some(g => !g.name)) {
+      setStatus(dashboardStatus, "Names can't be blank.", 'error');
+      return;
+    }
+
+    const plusOneCheckbox = card.querySelector('.admin-edit-plusone');
+    const allowPlusOne = plusOneCheckbox ? plusOneCheckbox.checked : null;
+
+    setStatus(dashboardStatus, 'Saving…');
+    try {
+      const result = await apiPost({
+        action: 'adminEditHousehold',
+        token: session.token,
+        payload: { householdId, group, address, guests, allowPlusOne }
+      });
+      if (!result || !result.ok) {
+        setStatus(dashboardStatus, (result && (result.message || result.error)) || 'Could not save changes.', 'error');
+        return;
+      }
+      editingHouseholdId = null;
+      setStatus(dashboardStatus, '');
+      loadDashboard();
+    } catch (err) {
+      setStatus(dashboardStatus, 'Something went wrong — try again.', 'error');
+    }
+  }
+
   // Mirrors the server's buildAdminData() counting rules, for instant local
   // re-renders after an optimistic update (add/remove) without a round trip.
   function recomputeStats(households) {
@@ -482,6 +555,23 @@
 
   householdsEl.addEventListener('click', function (e) {
     if (handleCopyAddressClick(e)) return;
+    const editBtn = e.target.closest('.admin-edit-btn');
+    if (editBtn) {
+      editingHouseholdId = Number(editBtn.getAttribute('data-id'));
+      renderHouseholds(lastData.households, searchInput.value);
+      return;
+    }
+    const cancelBtn = e.target.closest('.admin-cancel-edit-btn');
+    if (cancelBtn) {
+      editingHouseholdId = null;
+      renderHouseholds(lastData.households, searchInput.value);
+      return;
+    }
+    const saveBtn = e.target.closest('.admin-save-edit-btn');
+    if (saveBtn) {
+      saveHouseholdEdit(Number(saveBtn.getAttribute('data-id')));
+      return;
+    }
     const removeBtn = e.target.closest('.admin-remove-btn');
     if (removeBtn) {
       removeGuest(removeBtn.getAttribute('data-id'), removeBtn.getAttribute('data-name'));
