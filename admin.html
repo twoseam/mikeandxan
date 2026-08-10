@@ -36,16 +36,24 @@
       <button type="button" id="logout-btn" class="btn btn-secondary admin-logout">Log out</button>
     </header>
 
-    <section class="admin-stats" id="admin-stats" aria-label="RSVP stats"></section>
+    <div id="stat-list-view" hidden>
+      <a href="admin.html" class="admin-back-link">&larr; Back to Guest List</a>
+      <h2 id="stat-list-title"></h2>
+      <ul id="stat-list-content" class="admin-plain-list"></ul>
+    </div>
 
-    <section class="admin-toolbar">
-      <input type="text" id="search-input" class="admin-search" placeholder="Search guests…" />
-      <button type="button" id="add-guest-open" class="btn btn-primary">+ Add Guest</button>
-    </section>
+    <div id="dashboard-main">
+      <section class="admin-stats" id="admin-stats" aria-label="RSVP stats"></section>
 
-    <p id="dashboard-status" class="admin-status" role="status" aria-live="polite"></p>
+      <section class="admin-toolbar">
+        <input type="text" id="search-input" class="admin-search" placeholder="Search guests…" />
+        <button type="button" id="add-guest-open" class="btn btn-primary">+ Add Guest</button>
+      </section>
 
-    <div id="households-list" class="admin-households"></div>
+      <p id="dashboard-status" class="admin-status" role="status" aria-live="polite"></p>
+
+      <div id="households-list" class="admin-households"></div>
+    </div>
   </div>
 
   <div id="add-guest-modal" class="admin-modal" hidden>

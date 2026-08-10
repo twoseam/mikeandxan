@@ -16,6 +16,18 @@
   const householdsEl = document.getElementById('households-list');
   const dashboardStatus = document.getElementById('dashboard-status');
   const searchInput = document.getElementById('search-input');
+  const dashboardMain = document.getElementById('dashboard-main');
+  const statListView = document.getElementById('stat-list-view');
+  const statListTitle = document.getElementById('stat-list-title');
+  const statListContent = document.getElementById('stat-list-content');
+
+  const STAT_LABELS = {
+    invited: 'Invited',
+    responded: 'Responded',
+    notResponded: 'Not Yet Responded',
+    attending: 'Attending',
+    declined: 'Declined'
+  };
 
   const addGuestOpen = document.getElementById('add-guest-open');
   const addGuestClose = document.getElementById('add-guest-close');
@@ -120,12 +132,35 @@
       }
       lastData = data;
       setStatus(dashboardStatus, '');
-      renderStats(data.stats, data.households);
+
+      // A stat tile is a real link to admin.html?list=<key> — if that's
+      // present, show the dedicated list page and skip the normal
+      // dashboard rendering entirely (nothing else is visible anyway).
+      const listKey = new URLSearchParams(location.search).get('list');
+      if (listKey && STAT_LABELS[listKey]) {
+        renderStatListPage(listKey, data.households);
+        return;
+      }
+
+      statListView.hidden = true;
+      dashboardMain.hidden = false;
+      renderStats(data.stats);
       renderHouseholds(data.households, searchInput.value);
       populateHouseholdPicker(data.households);
     } catch (err) {
       setStatus(dashboardStatus, 'Could not load guest list — check your connection and try again.', 'error');
     }
+  }
+
+  function renderStatListPage(key, households) {
+    const cats = categorizeGuests(households);
+    const names = cats[key] || [];
+    statListTitle.textContent = STAT_LABELS[key] + ' (' + names.length + ')';
+    statListContent.innerHTML = names.length
+      ? names.map(n => '<li>' + escapeHtml(n) + '</li>').join('')
+      : '<li class="admin-stat-empty">None</li>';
+    dashboardMain.hidden = true;
+    statListView.hidden = false;
   }
 
   function categorizeGuests(households) {
@@ -147,25 +182,19 @@
     return cats;
   }
 
-  function renderStats(stats, households) {
-    const cats = categorizeGuests(households);
+  function renderStats(stats) {
     const tiles = [
-      ['invited', 'Invited', stats.invited, cats.invited],
-      ['responded', 'Responded', stats.responded, cats.responded],
-      ['notResponded', 'Not Yet', stats.notResponded, cats.notResponded],
-      ['attending', 'Attending', stats.attending, cats.attending],
-      ['declined', 'Declined', stats.declined, cats.declined]
+      ['invited', 'Invited', stats.invited],
+      ['responded', 'Responded', stats.responded],
+      ['notResponded', 'Not Yet', stats.notResponded],
+      ['attending', 'Attending', stats.attending],
+      ['declined', 'Declined', stats.declined]
     ];
-    statsEl.innerHTML = tiles.map(([key, label, num, names]) =>
-      '<div class="admin-stat" data-stat="' + key + '" tabindex="0" role="button" aria-expanded="false">' +
+    statsEl.innerHTML = tiles.map(([key, label, num]) =>
+      '<a class="admin-stat" href="?list=' + key + '">' +
         '<div class="admin-stat-num">' + num + '</div>' +
         '<div class="admin-stat-label">' + label + '</div>' +
-        '<div class="admin-stat-names" hidden>' +
-          (names.length
-            ? '<ul>' + names.map(n => '<li>' + escapeHtml(n) + '</li>').join('') + '</ul>'
-            : '<p class="admin-stat-empty">None</p>') +
-        '</div>' +
-      '</div>'
+      '</a>'
     ).join('');
   }
 
@@ -307,10 +336,36 @@
         setStatus(dashboardStatus, result.message || result.error || 'Could not remove guest.', 'error');
         return;
       }
+      // Update the view immediately from what we already have in memory —
+      // don't wait on a fresh fetch (Sheets can be slow to reflect a write
+      // on the very next read). Still reconcile with the server after.
+      if (lastData) {
+        lastData.households = lastData.households
+          .map(h => ({ ...h, members: h.members.filter(m => m.sheetRow !== sheetRow) }))
+          .filter(h => h.members.length > 0);
+        renderStats(recomputeStats(lastData.households));
+        renderHouseholds(lastData.households, searchInput.value);
+        populateHouseholdPicker(lastData.households);
+      }
       loadDashboard();
     } catch (err) {
       setStatus(dashboardStatus, 'Something went wrong — try again.', 'error');
     }
+  }
+
+  // Mirrors the server's buildAdminData() counting rules, for instant local
+  // re-renders after an optimistic update (add/remove) without a round trip.
+  function recomputeStats(households) {
+    let invited = 0, responded = 0, attending = 0, declined = 0;
+    households.forEach(h => {
+      h.members.forEach(m => {
+        invited++;
+        if (m.isPlusOne && m.bringingPlusOne !== 'yes') return;
+        if (m.attending === 'yes') { responded++; attending++; }
+        else if (m.attending === 'no') { responded++; declined++; }
+      });
+    });
+    return { invited, responded, notResponded: invited - responded, attending, declined };
   }
 
   function openAddGuestModal() {
@@ -333,21 +388,6 @@
 
   searchInput.addEventListener('input', function () {
     if (lastData) renderHouseholds(lastData.households, searchInput.value);
-  });
-
-  statsEl.addEventListener('click', function (e) {
-    const tile = e.target.closest('.admin-stat');
-    if (!tile) return;
-    const namesEl = tile.querySelector('.admin-stat-names');
-    const expanded = tile.getAttribute('aria-expanded') === 'true';
-    namesEl.hidden = expanded;
-    tile.setAttribute('aria-expanded', String(!expanded));
-  });
-  statsEl.addEventListener('keydown', function (e) {
-    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('admin-stat')) {
-      e.preventDefault();
-      e.target.click();
-    }
   });
 
   addGuestOpen.addEventListener('click', openAddGuestModal);
