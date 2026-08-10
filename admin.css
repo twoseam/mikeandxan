@@ -435,6 +435,23 @@
   padding-top: .5rem;
   text-align: right;
 }
+.admin-foot-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.admin-print-btn {
+  border: 1px solid var(--color-bg);
+  color: var(--color-bg);
+  text-decoration: none;
+  border-radius: 100px;
+  font-size: .75rem;
+  font-weight: 600;
+  padding: .3rem .8rem;
+  opacity: .75;
+}
+.admin-print-btn:hover { opacity: 1; background: rgba(var(--color-bg-rgb), .06); }
 .admin-edit-foot {
   display: flex;
   justify-content: flex-end;

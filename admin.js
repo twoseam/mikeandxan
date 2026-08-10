@@ -308,8 +308,19 @@
           '<button type="button" class="admin-cancel-edit-btn" data-id="' + h.id + '">Cancel</button>' +
           '<button type="button" class="admin-save-edit-btn" data-id="' + h.id + '">Save</button>' +
         '</div>';
-    } else if (showRemove && h.alreadySubmitted) {
-      footHtml = '<div class="admin-household-foot"><button type="button" class="admin-reset-btn" data-id="' + h.id + '">Reset RSVP</button></div>';
+    } else {
+      const footBits = [];
+      // Only offer the single-envelope print when it can actually print
+      // (envelopes.html needs both an address and an envelope name).
+      if (h.envelopeName && h.address) {
+        footBits.push('<a class="admin-print-btn" href="envelopes.html?household=' + h.id + '" target="_blank" rel="noopener">Print Envelope</a>');
+      }
+      if (showRemove && h.alreadySubmitted) {
+        footBits.push('<button type="button" class="admin-reset-btn" data-id="' + h.id + '">Reset RSVP</button>');
+      }
+      if (footBits.length) {
+        footHtml = '<div class="admin-household-foot admin-foot-row">' + footBits.join('') + '</div>';
+      }
     }
 
     return (

@@ -193,20 +193,36 @@
     }
 
     const households = data.households || [];
-    const printable = households.filter(h => h.address && h.envelopeName);
+
+    // ?household=<id> prints a single household's envelope (the per-card
+    // "Print Envelope" button on the Guest List links here with it set).
+    const singleId = Number(new URLSearchParams(location.search).get('household')) || null;
+
+    let printable = households.filter(h => h.address && h.envelopeName);
+    if (singleId) {
+      printable = printable.filter(h => h.id === singleId);
+      if (!printable.length) {
+        gate.textContent = "That household isn't printable yet — it needs both an address and an envelope name (set them in the Guest List).";
+        return;
+      }
+    }
     const missingEnvelopeName = households.filter(h => h.address && !h.envelopeName);
     const missingAddress = households.filter(h => h.envelopeName && !h.address);
 
     gate.hidden = true;
     app.hidden = false;
-    summaryEl.textContent = printable.length + ' envelope' + (printable.length === 1 ? '' : 's') + ' ready to print';
+    summaryEl.textContent = singleId
+      ? 'Printing one envelope: ' + labelFor(printable[0])
+      : printable.length + ' envelope' + (printable.length === 1 ? '' : 's') + ' ready to print';
 
-    const warnings = [];
-    missingEnvelopeName.forEach(h => warnings.push(labelFor(h) + ' — has an address but no envelope name yet (set it in the Guest List).'));
-    missingAddress.forEach(h => warnings.push(labelFor(h) + ' — has an envelope name but no address on file.'));
-    if (warnings.length) {
-      warningsEl.hidden = false;
-      warningsListEl.innerHTML = warnings.map(w => '<li>' + escapeHtml(w) + '</li>').join('');
+    if (!singleId) {
+      const warnings = [];
+      missingEnvelopeName.forEach(h => warnings.push(labelFor(h) + ' — has an address but no envelope name yet (set it in the Guest List).'));
+      missingAddress.forEach(h => warnings.push(labelFor(h) + ' — has an envelope name but no address on file.'));
+      if (warnings.length) {
+        warningsEl.hidden = false;
+        warningsListEl.innerHTML = warnings.map(w => '<li>' + escapeHtml(w) + '</li>').join('');
+      }
     }
 
     sheetsEl.innerHTML = printable.map(envelopeHtml).join('');
