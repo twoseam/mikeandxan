@@ -656,6 +656,15 @@
 
   <script src="script.js"></script>
   <script>
+    // Single Escape press anywhere → private guest-list admin login.
+    // Skipped while the photo lightbox is open (it uses Escape to close itself).
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !document.querySelector('.polaroid-lightbox')) {
+        location.href = '/admin.html';
+      }
+    });
+  </script>
+  <script>
     // Load dev-tools.js only on localhost / private LAN — never on the public site.
     (function () {
       var h = location.hostname;

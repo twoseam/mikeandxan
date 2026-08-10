@@ -111,5 +111,12 @@
     <p class="place">Lenexa, Kansas</p>
   </main>
 
+  <script>
+    // Single Escape press anywhere → private guest-list admin login.
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') location.href = '/admin.html';
+    });
+  </script>
+
 </body>
 </html>

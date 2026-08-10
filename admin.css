@@ -1,0 +1,311 @@
+/* Guest List admin dashboard — reuses site.html's palette/fonts (style.css)
+   and just adds the dashboard-specific layout. */
+
+.admin-body {
+  min-height: 100vh;
+}
+
+/* ---------- Login gate ---------- */
+
+.admin-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+
+.admin-login-card {
+  background: var(--color-paper);
+  color: var(--color-bg);
+  border-radius: var(--radius);
+  padding: var(--space-lg) var(--space-md);
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+}
+
+.admin-login-brand {
+  font-size: 2.6rem;
+  color: var(--color-bg);
+  -webkit-text-stroke: 0 transparent;
+  margin-bottom: var(--space-sm);
+}
+
+.admin-login-card h1 {
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  margin-bottom: var(--space-md);
+}
+
+.admin-login-card .rsvp-form label {
+  color: var(--color-bg);
+  text-align: left;
+}
+
+.admin-login-btn {
+  width: 100%;
+  margin-top: var(--space-md);
+}
+
+.admin-status {
+  min-height: 1.4em;
+  font-size: .9rem;
+  margin-top: var(--space-xs);
+}
+.admin-status[data-tone="error"] { color: var(--color-berry); }
+.admin-status[data-tone="ok"] { color: var(--color-bg); font-weight: 600; }
+
+/* ---------- Dashboard ---------- */
+
+.admin-dashboard {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 var(--space-sm) var(--space-lg);
+}
+
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: var(--header-height);
+  background: rgba(241, 88, 38, .95);
+  backdrop-filter: saturate(180%) blur(8px);
+  border-bottom: 1px solid var(--color-text);
+  margin: 0 calc(-1 * var(--space-sm));
+  padding: 0 var(--space-sm);
+}
+
+.admin-brand { font-size: 1.8rem; flex-shrink: 0; }
+
+.admin-title {
+  font-family: var(--font-body);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+  flex: 1;
+}
+
+.admin-logout {
+  padding: .6rem 1.4rem;
+  font-size: .85rem;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1.5px solid var(--color-text);
+}
+.btn-secondary:hover { background: rgba(255,255,255,.15); }
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-xs);
+  margin: var(--space-md) 0;
+}
+
+.admin-stat {
+  background: var(--color-paper);
+  border-radius: var(--radius);
+  padding: var(--space-sm);
+  text-align: center;
+}
+
+.admin-stat-num {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  color: var(--color-bg);
+  line-height: 1;
+}
+
+.admin-stat-label {
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: var(--color-bg);
+  opacity: .7;
+  margin-top: .3rem;
+}
+
+.admin-toolbar {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-sm);
+}
+
+.admin-search {
+  flex: 1;
+  min-width: 180px;
+  padding: .85rem 1rem;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--color-bg);
+  background: #fff;
+  border: 2px solid var(--color-bg);
+  border-radius: 100px;
+  min-height: 44px;
+  outline: none;
+}
+
+.admin-households {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.admin-household {
+  background: var(--color-paper);
+  color: var(--color-bg);
+  border-radius: var(--radius);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.admin-household-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--color-paper-rule);
+  padding-bottom: var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+
+.admin-household-group {
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  opacity: .6;
+  flex-basis: 100%;
+}
+
+.admin-household-address {
+  font-size: .9rem;
+  opacity: .85;
+  flex: 1;
+}
+
+.admin-copy-btn {
+  border: 1px solid var(--color-bg);
+  background: transparent;
+  color: var(--color-bg);
+  border-radius: 100px;
+  padding: .25rem .8rem;
+  font-size: .75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.admin-copy-btn:hover { background: rgba(var(--color-bg-rgb), .08); }
+.admin-copy-btn[data-copied="1"] { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+
+.admin-household-extra {
+  font-size: .85rem;
+  opacity: .8;
+  margin: var(--space-xs) 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem 1rem;
+}
+.admin-household-extra span { white-space: nowrap; }
+
+.admin-member-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: .55rem 0;
+  border-top: 1px solid var(--color-paper-rule);
+}
+.admin-member-row:first-of-type { border-top: none; }
+
+.admin-member-name {
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-member-tag {
+  font-size: .7rem;
+  opacity: .65;
+  font-weight: 400;
+}
+
+.admin-pill {
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  padding: .25rem .6rem;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+.admin-pill[data-status="yes"]      { background: var(--color-accent); color: #fff; }
+.admin-pill[data-status="no"]       { background: var(--color-berry); color: #fff; }
+.admin-pill[data-status="pending"]  { background: var(--color-orange-lt); color: var(--color-bg); }
+
+.admin-member-dietary {
+  font-size: .75rem;
+  opacity: .7;
+  max-width: 160px;
+}
+
+.admin-remove-btn {
+  border: 0;
+  background: transparent;
+  color: var(--color-berry);
+  font-size: .75rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: .25rem .4rem;
+  opacity: .6;
+}
+.admin-remove-btn:hover { opacity: 1; }
+
+/* ---------- Add-guest modal ---------- */
+
+.admin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm);
+}
+
+.admin-modal-card {
+  position: relative;
+  background: var(--color-paper);
+  color: var(--color-bg);
+  border-radius: var(--radius);
+  padding: var(--space-lg) var(--space-md) var(--space-md);
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.admin-modal-card h2 { color: var(--color-bg); }
+.admin-modal-card .rsvp-form label { color: var(--color-bg); }
+
+.admin-modal-close {
+  position: absolute;
+  top: var(--space-xs);
+  right: var(--space-xs);
+  border: 0;
+  background: transparent;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: var(--color-bg);
+  cursor: pointer;
+  opacity: .6;
+}
+.admin-modal-close:hover { opacity: 1; }
+
+@media (max-width: 640px) {
+  .admin-title { font-size: 1rem; }
+  .admin-household-address { flex-basis: 100%; }
+}

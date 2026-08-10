@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Guest List — M &amp; A</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin-body">
+
+  <div id="login-gate" class="admin-login">
+    <div class="admin-login-card">
+      <p class="brand admin-login-brand"><span class="b-m">m</span> <span class="brand-amp">&amp;</span> <span class="b-a">a</span></p>
+      <h1>Guest List</h1>
+      <form id="login-form" class="rsvp-form" novalidate>
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" name="password" autocomplete="current-password" required />
+        <button type="submit" class="btn btn-primary admin-login-btn">Enter</button>
+        <p id="login-status" class="admin-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="dashboard" class="admin-dashboard" hidden>
+    <header class="admin-header">
+      <p class="brand admin-brand"><span class="b-m">m</span> <span class="brand-amp">&amp;</span> <span class="b-a">a</span></p>
+      <h1 class="admin-title">Guest List</h1>
+      <button type="button" id="logout-btn" class="btn btn-secondary admin-logout">Log out</button>
+    </header>
+
+    <section class="admin-stats" id="admin-stats" aria-label="RSVP stats"></section>
+
+    <section class="admin-toolbar">
+      <input type="text" id="search-input" class="admin-search" placeholder="Search guests…" />
+      <button type="button" id="add-guest-open" class="btn btn-primary">+ Add Guest</button>
+    </section>
+
+    <p id="dashboard-status" class="admin-status" role="status" aria-live="polite"></p>
+
+    <div id="households-list" class="admin-households"></div>
+  </div>
+
+  <div id="add-guest-modal" class="admin-modal" hidden>
+    <div class="admin-modal-card">
+      <button type="button" class="admin-modal-close" id="add-guest-close" aria-label="Close">&times;</button>
+      <h2>Add Guest</h2>
+      <form id="add-guest-form" class="rsvp-form" novalidate>
+        <label for="new-guest-name">Name</label>
+        <input type="text" id="new-guest-name" required />
+
+        <label for="new-guest-household">Household</label>
+        <select id="new-guest-household">
+          <option value="">+ Start a new household</option>
+        </select>
+
+        <div id="new-household-fields">
+          <label for="new-guest-group">Group <span class="hint">(e.g. "Michael's Immediate Family")</span></label>
+          <input type="text" id="new-guest-group" />
+
+          <label for="new-guest-address">Address <span class="hint">(optional)</span></label>
+          <input type="text" id="new-guest-address" placeholder="123 Main St, City, ST 00000" />
+        </div>
+
+        <button type="submit" class="btn btn-primary admin-login-btn">Add Guest</button>
+        <p id="add-guest-status" class="admin-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
