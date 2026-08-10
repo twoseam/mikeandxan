@@ -32,19 +32,42 @@
   // names counts as its own word and gets the same treatment) and swaps
   // just the final character of every non-terminal word into a plain
   // New Kansas span.
+  // Letters whose Extra Swash forms Michael wants suppressed EVERYWHERE
+  // in swash text, not just at word ends (their flourishes look wrong
+  // mid-word too). Rendered in plain New Kansas Regular Italic instead.
+  const NO_SWASH_LETTERS = /[vw]/;
+
   function swashify(text) {
     const words = String(text || '').split(' ');
     return words.map((word, i) => {
-      if (i === words.length - 1 || !word) return escapeHtml(word);
-      // Wrap the last LETTER, not blindly the last character - "Martin,"
-      // ends in a comma, and wrapping just the comma leaves the "n"'s
-      // swash exit stroke colliding with the next word (Michael caught
-      // this on "Andrew" in the Andrea/Andrew/Guest envelope). Any
-      // trailing punctuation rides along in the plain-face span.
-      const m = word.match(/^(.*?)(\p{L})(\P{L}*)$/u);
-      if (!m) return escapeHtml(word);
-      const [, head, lastLetter, tailPunct] = m;
-      return escapeHtml(head) + '<span class="swash-break">' + escapeHtml(lastLetter + tailPunct) + '</span>';
+      if (!word) return '';
+      const chars = Array.from(word);
+      const plain = chars.map(c => NO_SWASH_LETTERS.test(c));
+      // Non-terminal words: the last LETTER (not blindly the last char -
+      // "Martin," must break on "n", not ",") plus any trailing
+      // punctuation also drops to the plain face, because Extra Swash
+      // exit flourishes are end-of-phrase forms that collide with the
+      // next word (Michael caught this on the Andrew envelope).
+      if (i < words.length - 1) {
+        let L = -1;
+        for (let j = chars.length - 1; j >= 0; j--) {
+          if (/\p{L}/u.test(chars[j])) { L = j; break; }
+        }
+        if (L >= 0) for (let j = L; j < chars.length; j++) plain[j] = true;
+      }
+      // Group consecutive same-face runs into minimal spans.
+      let html = '', run = '', runPlain = plain[0];
+      const flush = () => {
+        if (!run) return;
+        html += runPlain ? '<span class="swash-break">' + escapeHtml(run) + '</span>' : escapeHtml(run);
+        run = '';
+      };
+      chars.forEach((c, j) => {
+        if (plain[j] !== runPlain) { flush(); runPlain = plain[j]; }
+        run += c;
+      });
+      flush();
+      return html;
     }).join(' ');
   }
 
