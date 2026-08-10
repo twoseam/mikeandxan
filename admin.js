@@ -262,7 +262,7 @@
           '<span class="admin-member-name">' + nameHtml + '</span>' +
           (!editing && diet ? '<span class="admin-member-dietary">' + escapeHtml(diet) + '</span>' : '') +
           (!editing ? '<span class="admin-pill" data-status="' + st.status + '">' + st.label + '</span>' : '') +
-          (showRemove && !editing ? '<button type="button" class="admin-remove-btn" data-id="' + m.id + '" data-name="' + escapeHtml(m.name) + '">Remove</button>' : '') +
+          (showRemove && !editing ? '<button type="button" class="admin-remove-btn" data-id="' + m.id + '" data-name="' + escapeHtml(m.name) + '" title="Remove ' + escapeHtml(memberDisplayName(m)) + '" aria-label="Remove ' + escapeHtml(memberDisplayName(m)) + '">&times;</button>' : '') +
         '</div>'
       );
     }).join('');
