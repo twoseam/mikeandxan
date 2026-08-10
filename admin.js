@@ -23,7 +23,6 @@
 
   const STAT_LABELS = {
     invited: 'Invited',
-    responded: 'Responded',
     notResponded: 'Not Yet Responded',
     attending: 'Attending',
     declined: 'Declined'
@@ -201,7 +200,6 @@
   function renderStats(stats) {
     const tiles = [
       ['invited', 'Invited', stats.invited],
-      ['responded', 'Responded', stats.responded],
       ['notResponded', 'Not Yet', stats.notResponded],
       ['attending', 'Attending', stats.attending],
       ['declined', 'Declined', stats.declined]
