@@ -45,8 +45,32 @@
     return { street: streetLine, cityStateZip: city + ', ' + state.toUpperCase() + ' ' + zip };
   }
 
+  // Matches Michael's own reference design exactly: directionals abbreviate
+  // (SE, NW...) but street-suffix words stay spelled out ("12TH STREET",
+  // not "12TH ST") — his sample did the former and not the latter on both
+  // envelopes, so this isn't the full USPS Pub 28 standard, just the half
+  // of it he actually used. The database itself stays spelled out (that's
+  // a separate, deliberate choice from earlier cleanup); this abbreviates
+  // only for what's printed. NOT \bTOKEN\b - a plain word boundary treats
+  // an apostrophe as a break, so "Lee's" reads as two words and corrupts
+  // into "Lee'S". Lookaround against real separator chars avoids that
+  // (same fix as the address cleanup script).
+  const USPS_ABBR = [
+    ['Northeast', 'NE'], ['Northwest', 'NW'], ['Southeast', 'SE'], ['Southwest', 'SW'],
+    ['North', 'N'], ['South', 'S'], ['East', 'E'], ['West', 'W']
+  ];
+  function abbreviateForEnvelope(text) {
+    let out = String(text || '');
+    USPS_ABBR.forEach(([full, abbr]) => {
+      out = out.replace(new RegExp('(?<=^|[\\s,])' + full + '(?=$|[\\s,.])', 'gi'), abbr);
+    });
+    return out;
+  }
+
   function envelopeHtml(h) {
     const addr = splitAddress(h.address);
+    addr.street = abbreviateForEnvelope(addr.street);
+    addr.cityStateZip = abbreviateForEnvelope(addr.cityStateZip);
     const sublineHtml = h.envelopeSubline
       ? '<p class="recipient-subline">' + escapeHtml(h.envelopeSubline) + '</p>'
       : '';
