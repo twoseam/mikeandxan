@@ -120,7 +120,7 @@
       }
       lastData = data;
       setStatus(dashboardStatus, '');
-      renderStats(data.stats);
+      renderStats(data.stats, data.households);
       renderHouseholds(data.households, searchInput.value);
       populateHouseholdPicker(data.households);
     } catch (err) {
@@ -128,17 +128,44 @@
     }
   }
 
-  function renderStats(stats) {
+  function categorizeGuests(households) {
+    const cats = { invited: [], responded: [], notResponded: [], attending: [], declined: [] };
+    households.forEach(h => {
+      h.members.forEach(m => {
+        const name = memberDisplayName(m);
+        cats.invited.push(name);
+        if (m.isPlusOne && m.bringingPlusOne !== 'yes') {
+          cats.notResponded.push(name); // matches server stats: unclaimed +1 slots count as not-responded
+          return;
+        }
+        if (m.attending === 'yes') { cats.responded.push(name); cats.attending.push(name); }
+        else if (m.attending === 'no') { cats.responded.push(name); cats.declined.push(name); }
+        else { cats.notResponded.push(name); }
+      });
+    });
+    Object.keys(cats).forEach(k => cats[k].sort((a, b) => a.localeCompare(b)));
+    return cats;
+  }
+
+  function renderStats(stats, households) {
+    const cats = categorizeGuests(households);
     const tiles = [
-      ['Invited', stats.invited],
-      ['Responded', stats.responded],
-      ['Not Yet', stats.notResponded],
-      ['Attending', stats.attending],
-      ['Declined', stats.declined]
+      ['invited', 'Invited', stats.invited, cats.invited],
+      ['responded', 'Responded', stats.responded, cats.responded],
+      ['notResponded', 'Not Yet', stats.notResponded, cats.notResponded],
+      ['attending', 'Attending', stats.attending, cats.attending],
+      ['declined', 'Declined', stats.declined, cats.declined]
     ];
-    statsEl.innerHTML = tiles.map(([label, num]) =>
-      '<div class="admin-stat"><div class="admin-stat-num">' + num + '</div>' +
-      '<div class="admin-stat-label">' + label + '</div></div>'
+    statsEl.innerHTML = tiles.map(([key, label, num, names]) =>
+      '<div class="admin-stat" data-stat="' + key + '" tabindex="0" role="button" aria-expanded="false">' +
+        '<div class="admin-stat-num">' + num + '</div>' +
+        '<div class="admin-stat-label">' + label + '</div>' +
+        '<div class="admin-stat-names" hidden>' +
+          (names.length
+            ? '<ul>' + names.map(n => '<li>' + escapeHtml(n) + '</li>').join('') + '</ul>'
+            : '<p class="admin-stat-empty">None</p>') +
+        '</div>' +
+      '</div>'
     ).join('');
   }
 
@@ -306,6 +333,21 @@
 
   searchInput.addEventListener('input', function () {
     if (lastData) renderHouseholds(lastData.households, searchInput.value);
+  });
+
+  statsEl.addEventListener('click', function (e) {
+    const tile = e.target.closest('.admin-stat');
+    if (!tile) return;
+    const namesEl = tile.querySelector('.admin-stat-names');
+    const expanded = tile.getAttribute('aria-expanded') === 'true';
+    namesEl.hidden = expanded;
+    tile.setAttribute('aria-expanded', String(!expanded));
+  });
+  statsEl.addEventListener('keydown', function (e) {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('admin-stat')) {
+      e.preventDefault();
+      e.target.click();
+    }
   });
 
   addGuestOpen.addEventListener('click', openAddGuestModal);
