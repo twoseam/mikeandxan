@@ -14,7 +14,9 @@
   <link rel="stylesheet" href="https://use.typekit.net/qho3mum.css" />
 
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
-  <link rel="stylesheet" href="envelopes.css" />
+  <!-- ?v= busts browser caches - Michael repeatedly got stale JS/CSS on
+       this page. Bump the number in BOTH tags whenever either file changes. -->
+  <link rel="stylesheet" href="envelopes.css?v=2" />
 </head>
 <body>
 
@@ -38,6 +40,6 @@
     <main id="env-sheets"></main>
   </div>
 
-  <script src="envelopes.js"></script>
+  <script src="envelopes.js?v=2"></script>
 </body>
 </html>

@@ -13,7 +13,8 @@
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="icon" href="favicon-64.png" type="image/png" sizes="64x64" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="admin.css" />
+  <!-- ?v= busts browser caches - bump alongside admin.js's when either changes -->
+  <link rel="stylesheet" href="admin.css?v=2" />
 </head>
 <body class="admin-body">
 
@@ -48,7 +49,7 @@
 
       <section class="admin-toolbar">
         <input type="text" id="search-input" class="admin-search" placeholder="Search guests…" />
-        <a href="envelopes.html" class="btn btn-secondary">Print Envelopes</a>
+        <a href="envelopes.html" class="btn btn-secondary" target="_blank" rel="noopener">Print Envelopes</a>
         <button type="button" id="add-guest-open" class="btn btn-primary">+ Add Guest</button>
       </section>
 
@@ -85,6 +86,6 @@
     </div>
   </div>
 
-  <script src="admin.js"></script>
+  <script src="admin.js?v=2"></script>
 </body>
 </html>
