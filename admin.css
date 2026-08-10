@@ -223,10 +223,14 @@
   font-size: 1rem;
   color: var(--color-bg);
   background: #fff;
-  border: 2px solid var(--color-bg);
+  border: 2px solid #b8410f;
   border-radius: 100px;
   min-height: 44px;
   outline: none;
+  transition: box-shadow .15s ease;
+}
+.admin-search:focus {
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), .55);
 }
 
 .admin-households {
