@@ -80,8 +80,13 @@
   async function apiGet(params) {
     const url = WORKER_URL + '?' + new URLSearchParams(params).toString();
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Request failed: ' + res.status);
-    return res.json();
+    // The Worker sends a real HTTP status (401/404/500) alongside a JSON
+    // body ({error: '...'}) — read the body first so callers can act on
+    // data.error (e.g. "session expired") instead of just seeing a generic
+    // failure for anything that isn't a 200.
+    const data = await res.json().catch(() => null);
+    if (!res.ok && !data) throw new Error('Request failed: ' + res.status);
+    return data;
   }
 
   async function apiPost(body) {
@@ -90,8 +95,9 @@
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(body)
     });
-    if (!res.ok) throw new Error('Request failed: ' + res.status);
-    return res.json();
+    const data = await res.json().catch(() => null);
+    if (!res.ok && !data) throw new Error('Request failed: ' + res.status);
+    return data;
   }
 
   // ---- Auth ----
@@ -100,8 +106,8 @@
     setStatus(loginStatus, 'Checking…');
     try {
       const result = await apiPost({ action: 'adminLogin', password });
-      if (!result.ok) {
-        setStatus(loginStatus, result.error || 'Wrong password.', 'error');
+      if (!result || !result.ok) {
+        setStatus(loginStatus, (result && result.error) || 'Wrong password.', 'error');
         return;
       }
       setSession(result.token, result.expiresAt);
@@ -125,7 +131,7 @@
     setStatus(dashboardStatus, 'Loading…');
     try {
       const data = await apiGet({ action: 'admin', token: session.token });
-      if (data.error) {
+      if (!data || data.error) {
         clearSession();
         showLogin('Session expired — log in again.');
         return;
@@ -152,12 +158,22 @@
     }
   }
 
+  let statListHouseholdsById = {};
+
   function renderStatListPage(key, households) {
+    statListHouseholdsById = {};
+    households.forEach(h => { statListHouseholdsById[h.id] = h; });
+
     const cats = categorizeGuests(households);
-    const names = cats[key] || [];
-    statListTitle.textContent = STAT_LABELS[key] + ' (' + names.length + ')';
-    statListContent.innerHTML = names.length
-      ? names.map(n => '<li>' + escapeHtml(n) + '</li>').join('')
+    const entries = cats[key] || [];
+    statListTitle.textContent = STAT_LABELS[key] + ' (' + entries.length + ')';
+    statListContent.innerHTML = entries.length
+      ? entries.map(e =>
+          '<li class="stat-list-item" data-household-id="' + e.householdId + '">' +
+            '<button type="button" class="stat-list-name">' + escapeHtml(e.name) + '</button>' +
+            '<div class="stat-list-detail" hidden></div>' +
+          '</li>'
+        ).join('')
       : '<li class="admin-stat-empty">None</li>';
     dashboardMain.hidden = true;
     statListView.hidden = false;
@@ -167,18 +183,18 @@
     const cats = { invited: [], responded: [], notResponded: [], attending: [], declined: [] };
     households.forEach(h => {
       h.members.forEach(m => {
-        const name = memberDisplayName(m);
-        cats.invited.push(name);
+        const entry = { name: memberDisplayName(m), householdId: h.id };
+        cats.invited.push(entry);
         if (m.isPlusOne && m.bringingPlusOne !== 'yes') {
-          cats.notResponded.push(name); // matches server stats: unclaimed +1 slots count as not-responded
+          cats.notResponded.push(entry); // matches server stats: unclaimed +1 slots count as not-responded
           return;
         }
-        if (m.attending === 'yes') { cats.responded.push(name); cats.attending.push(name); }
-        else if (m.attending === 'no') { cats.responded.push(name); cats.declined.push(name); }
-        else { cats.notResponded.push(name); }
+        if (m.attending === 'yes') { cats.responded.push(entry); cats.attending.push(entry); }
+        else if (m.attending === 'no') { cats.responded.push(entry); cats.declined.push(entry); }
+        else { cats.notResponded.push(entry); }
       });
     });
-    Object.keys(cats).forEach(k => cats[k].sort((a, b) => a.localeCompare(b)));
+    Object.keys(cats).forEach(k => cats[k].sort((a, b) => a.name.localeCompare(b.name)));
     return cats;
   }
 
@@ -221,6 +237,49 @@
     return m.dietary.charAt(0).toUpperCase() + m.dietary.slice(1);
   }
 
+  // Shared by the main Guest List and the stat-detail expansion below —
+  // opts.showRemove controls whether the per-member Remove button appears
+  // (only makes sense on the main list, where removal is wired up).
+  function householdCardHtml(h, opts) {
+    const showRemove = !opts || opts.showRemove !== false;
+    const extras = [];
+    if (h.existing) {
+      if (h.existing.email) extras.push('<span>' + escapeHtml(h.existing.email) + '</span>');
+      if (h.existing.phone) extras.push('<span>' + escapeHtml(h.existing.phone) + '</span>');
+      if (h.existing.songRequest) extras.push('<span>🎵 ' + escapeHtml(h.existing.songRequest) + '</span>');
+      if (h.existing.pizzaTopping) extras.push('<span>🍕 ' + escapeHtml(h.existing.pizzaTopping) + '</span>');
+      if (h.existing.notes) extras.push('<span>📝 ' + escapeHtml(h.existing.notes) + '</span>');
+    }
+
+    const memberRows = h.members.map(m => {
+      const st = memberStatus(m);
+      const diet = dietaryLabel(m);
+      return (
+        '<div class="admin-member-row">' +
+          '<span class="admin-member-name">' + escapeHtml(memberDisplayName(m)) +
+            (m.isPlusOne ? ' <span class="admin-member-tag">+1</span>' : '') +
+          '</span>' +
+          (diet ? '<span class="admin-member-dietary">' + escapeHtml(diet) + '</span>' : '') +
+          '<span class="admin-pill" data-status="' + st.status + '">' + st.label + '</span>' +
+          (showRemove ? '<button type="button" class="admin-remove-btn" data-id="' + m.id + '" data-name="' + escapeHtml(m.name) + '">Remove</button>' : '') +
+        '</div>'
+      );
+    }).join('');
+
+    const addressAttr = escapeHtml(h.address || '');
+    return (
+      '<div class="admin-household">' +
+        '<div class="admin-household-head">' +
+          (h.group ? '<span class="admin-household-group">' + escapeHtml(h.group) + '</span>' : '') +
+          '<span class="admin-household-address">' + (h.address ? escapeHtml(h.address) : '<em>No address on file</em>') + '</span>' +
+          (h.address ? '<button type="button" class="admin-copy-btn" data-address="' + addressAttr + '">Copy address</button>' : '') +
+        '</div>' +
+        (extras.length ? '<div class="admin-household-extra">' + extras.join('') + '</div>' : '') +
+        memberRows +
+      '</div>'
+    );
+  }
+
   function renderHouseholds(households, filterText) {
     const q = (filterText || '').trim().toLowerCase();
     const filtered = !q ? households : households.filter(h =>
@@ -233,44 +292,7 @@
       return;
     }
 
-    householdsEl.innerHTML = filtered.map(h => {
-      const extras = [];
-      if (h.existing) {
-        if (h.existing.email) extras.push('<span>' + escapeHtml(h.existing.email) + '</span>');
-        if (h.existing.phone) extras.push('<span>' + escapeHtml(h.existing.phone) + '</span>');
-        if (h.existing.songRequest) extras.push('<span>🎵 ' + escapeHtml(h.existing.songRequest) + '</span>');
-        if (h.existing.pizzaTopping) extras.push('<span>🍕 ' + escapeHtml(h.existing.pizzaTopping) + '</span>');
-        if (h.existing.notes) extras.push('<span>📝 ' + escapeHtml(h.existing.notes) + '</span>');
-      }
-
-      const memberRows = h.members.map(m => {
-        const st = memberStatus(m);
-        const diet = dietaryLabel(m);
-        return (
-          '<div class="admin-member-row">' +
-            '<span class="admin-member-name">' + escapeHtml(memberDisplayName(m)) +
-              (m.isPlusOne ? ' <span class="admin-member-tag">+1</span>' : '') +
-            '</span>' +
-            (diet ? '<span class="admin-member-dietary">' + escapeHtml(diet) + '</span>' : '') +
-            '<span class="admin-pill" data-status="' + st.status + '">' + st.label + '</span>' +
-            '<button type="button" class="admin-remove-btn" data-id="' + m.id + '" data-name="' + escapeHtml(m.name) + '">Remove</button>' +
-          '</div>'
-        );
-      }).join('');
-
-      const addressAttr = escapeHtml(h.address || '');
-      return (
-        '<div class="admin-household">' +
-          '<div class="admin-household-head">' +
-            (h.group ? '<span class="admin-household-group">' + escapeHtml(h.group) + '</span>' : '') +
-            '<span class="admin-household-address">' + (h.address ? escapeHtml(h.address) : '<em>No address on file</em>') + '</span>' +
-            (h.address ? '<button type="button" class="admin-copy-btn" data-address="' + addressAttr + '">Copy address</button>' : '') +
-          '</div>' +
-          (extras.length ? '<div class="admin-household-extra">' + extras.join('') + '</div>' : '') +
-          memberRows +
-        '</div>'
-      );
-    }).join('');
+    householdsEl.innerHTML = filtered.map(h => householdCardHtml(h)).join('');
   }
 
   function populateHouseholdPicker(households) {
@@ -309,8 +331,8 @@
     setStatus(addGuestStatus, 'Adding…');
     try {
       const result = await apiPost({ action: 'adminAddGuest', token: session.token, payload });
-      if (!result.ok) {
-        setStatus(addGuestStatus, result.error || 'Could not add guest.', 'error');
+      if (!result || !result.ok) {
+        setStatus(addGuestStatus, (result && result.error) || 'Could not add guest.', 'error');
         return;
       }
       addGuestForm.reset();
@@ -333,8 +355,8 @@
         token: session.token,
         payload: { guestId: guestId, name: name }
       });
-      if (!result.ok) {
-        setStatus(dashboardStatus, result.message || result.error || 'Could not remove guest.', 'error');
+      if (!result || !result.ok) {
+        setStatus(dashboardStatus, (result && (result.message || result.error)) || 'Could not remove guest.', 'error');
         return;
       }
       // Update the view immediately from what we already have in memory —
@@ -398,24 +420,39 @@
   addGuestForm.addEventListener('submit', addGuest);
   newGuestHousehold.addEventListener('change', toggleNewHouseholdFields);
 
-  householdsEl.addEventListener('click', function (e) {
+  function handleCopyAddressClick(e) {
     const copyBtn = e.target.closest('.admin-copy-btn');
-    if (copyBtn) {
-      const address = copyBtn.getAttribute('data-address');
-      navigator.clipboard.writeText(address).then(function () {
-        copyBtn.setAttribute('data-copied', '1');
-        copyBtn.textContent = 'Copied!';
-        setTimeout(function () {
-          copyBtn.removeAttribute('data-copied');
-          copyBtn.textContent = 'Copy address';
-        }, 1500);
-      });
-      return;
-    }
+    if (!copyBtn) return false;
+    const address = copyBtn.getAttribute('data-address');
+    navigator.clipboard.writeText(address).then(function () {
+      copyBtn.setAttribute('data-copied', '1');
+      copyBtn.textContent = 'Copied!';
+      setTimeout(function () {
+        copyBtn.removeAttribute('data-copied');
+        copyBtn.textContent = 'Copy address';
+      }, 1500);
+    });
+    return true;
+  }
+
+  householdsEl.addEventListener('click', function (e) {
+    if (handleCopyAddressClick(e)) return;
     const removeBtn = e.target.closest('.admin-remove-btn');
     if (removeBtn) {
       removeGuest(removeBtn.getAttribute('data-id'), removeBtn.getAttribute('data-name'));
     }
+  });
+
+  statListContent.addEventListener('click', function (e) {
+    if (handleCopyAddressClick(e)) return;
+    const nameBtn = e.target.closest('.stat-list-name');
+    if (!nameBtn) return;
+    const li = nameBtn.closest('.stat-list-item');
+    const detail = li.querySelector('.stat-list-detail');
+    if (!detail.hidden) { detail.hidden = true; return; }
+    const household = statListHouseholdsById[Number(li.getAttribute('data-household-id'))];
+    detail.innerHTML = household ? householdCardHtml(household, { showRemove: false }) : '';
+    detail.hidden = false;
   });
 
   document.addEventListener('keydown', function (e) {

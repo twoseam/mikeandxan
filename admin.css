@@ -208,6 +208,27 @@
 }
 .admin-plain-list li:first-child { border-top: none; }
 
+.stat-list-name {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-bg);
+  cursor: pointer;
+}
+.stat-list-name:hover { text-decoration: underline; }
+.stat-list-detail {
+  margin: var(--space-xs) calc(-1 * var(--space-sm)) calc(-1 * .7rem);
+}
+.stat-list-detail .admin-household {
+  border-radius: 0;
+  background: var(--color-cream);
+}
+
 .admin-toolbar {
   display: flex;
   gap: var(--space-sm);
