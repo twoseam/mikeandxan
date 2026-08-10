@@ -117,14 +117,19 @@
   function balanceAddressLines(block) {
     const lines = block.querySelectorAll('.addr-line');
     if (lines.length < 2) return;
-    lines.forEach(l => { l.style.letterSpacing = 'normal'; });
+    // The stylesheet sets a base tracking (90 = 0.09em) on .addr-line -
+    // this ADDS more letter-spacing on top of that to equalize widths, it
+    // doesn't reset to 'normal' first and replace it. Read the base as
+    // computed px so the final inline value (which overrides the CSS em
+    // value) still includes it.
+    const basePx = parseFloat(getComputedStyle(lines[0]).letterSpacing) || 0;
     const widths = Array.from(lines).map(l => l.getBoundingClientRect().width);
     const maxWidth = Math.max.apply(null, widths);
     lines.forEach((l, i) => {
       const w = widths[i];
       if (maxWidth - w < 0.5) return;
       const len = l.textContent.length || 1;
-      l.style.letterSpacing = ((maxWidth - w) / len) + 'px';
+      l.style.letterSpacing = (basePx + (maxWidth - w) / len) + 'px';
     });
   }
 

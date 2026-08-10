@@ -9,7 +9,7 @@
   --ink: #262220;
   --paper-preview: #ffffff;
   --border-preview: #ddd6cc;
-  --gap-return-name: .15in;
+  --gap-return-name: .06in;
   --margin-top: .28in;
   --margin-left: .26in;
   --gap-recipient-block: .3in;
@@ -92,6 +92,15 @@ body {
   top: var(--margin-top);
   left: var(--margin-left);
 }
+/* Script/swash faces pack their connecting forms behind OpenType features
+   (liga/dlig/swsh/calt) that browsers don't all enable by default - without
+   this, New Kansas Extra Swash renders its plain fallback glyphs instead of
+   the actual connected swash forms, which reads as "ligatures are off". */
+.return-name, .recipient-name, .swash-break, .recipient-subline {
+  font-feature-settings: "liga" 1, "dlig" 1, "clig" 1, "calt" 1, "swsh" 1;
+  font-variant-ligatures: common-ligatures contextual;
+}
+
 .return-name {
   font-family: "new-kansas-extra-swash", serif;
   font-style: italic;
@@ -112,11 +121,14 @@ body {
   font-weight: 400;
 }
 
+/* Mr Eaves Mod OT - Book weight is the only style in the font kit, so
+   font-weight is along for the ride here, not actually selecting it.
+   Tracking 60 (Adobe units, 1 unit = 1/1000 em) = 0.06em. */
 .return-addr-line {
   font-family: "mr-eaves-modern", sans-serif;
   font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: .02em;
+  letter-spacing: .06em;
   font-size: 8pt;
   line-height: 1.35;
   margin: 0;
@@ -145,15 +157,19 @@ body {
   font-weight: 400;
   font-size: 12pt;
   color: var(--ink);
-  margin: .15in 0 0;
+  margin: .06in 0 0;
 }
 .recipient-address {
   margin-top: var(--gap-recipient-block);
 }
+/* Tracking 90 (Adobe units) = 0.09em base - envelopes.js's balanceAddressLines()
+   adds MORE letter-spacing on top of this to equalize the two lines' widths,
+   it doesn't replace it (see the comment there). */
 .addr-line {
   font-family: "mr-eaves-modern", sans-serif;
   font-weight: 400;
   text-transform: uppercase;
+  letter-spacing: .09em;
   font-size: 10pt;
   line-height: 1.5;
   /* fit-content, not the default stretch-to-parent-width, so both the
