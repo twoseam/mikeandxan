@@ -24,6 +24,24 @@
     }[c]));
   }
 
+  // Extra Swash's flourishes are drawn for a word at the END of a phrase -
+  // mid-phrase, a swash exit stroke runs into the next word. Michael's
+  // rule: every word except the last should end in plain New Kansas, not
+  // Extra Swash - so only the last word (and the swash typeface as a
+  // whole) gets the full flourish. Splits on spaces (so "&" between two
+  // names counts as its own word and gets the same treatment) and swaps
+  // just the final character of every non-terminal word into a plain
+  // New Kansas span.
+  function swashify(text) {
+    const words = String(text || '').split(' ');
+    return words.map((word, i) => {
+      if (i === words.length - 1 || !word) return escapeHtml(word);
+      const chars = Array.from(word);
+      const lastChar = chars.pop();
+      return escapeHtml(chars.join('')) + '<span class="swash-break">' + escapeHtml(lastChar) + '</span>';
+    }).join(' ');
+  }
+
   function getSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
     catch (_) { return null; }
@@ -77,12 +95,12 @@
     return (
       '<div class="envelope" data-household-id="' + h.id + '">' +
         '<div class="return-block">' +
-          '<p class="return-name">' + escapeHtml(RETURN_NAME) + '</p>' +
+          '<p class="return-name">' + swashify(RETURN_NAME) + '</p>' +
           '<p class="return-addr-line">' + escapeHtml(RETURN_LINE_1) + '</p>' +
           '<p class="return-addr-line">' + escapeHtml(RETURN_LINE_2) + '</p>' +
         '</div>' +
         '<div class="recipient-block">' +
-          '<p class="recipient-name">' + escapeHtml(h.envelopeName) + '</p>' +
+          '<p class="recipient-name">' + swashify(h.envelopeName) + '</p>' +
           sublineHtml +
           '<div class="recipient-address">' +
             '<p class="addr-line">' + escapeHtml(addr.street) + '</p>' +

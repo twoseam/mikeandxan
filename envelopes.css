@@ -95,12 +95,23 @@ body {
 .return-name {
   font-family: "new-kansas-extra-swash", serif;
   font-style: italic;
-  font-weight: 500;
+  font-weight: 400;
   font-size: 10pt;
   color: var(--ink);
   margin: 0 0 var(--gap-return-name);
   line-height: 1;
 }
+/* Extra Swash's flourish is drawn for the end of a phrase - mid-phrase it
+   collides with the next word, so every word but the last ends in plain
+   New Kansas instead (see swashify() in envelopes.js). Italic (New Kansas
+   Regular Italic, bundled in the same "new-kansas" kit family) keeps the
+   same slant as the surrounding swash text - just without the flourish. */
+.swash-break {
+  font-family: "new-kansas", serif;
+  font-style: italic;
+  font-weight: 400;
+}
+
 .return-addr-line {
   font-family: "mr-eaves-modern", sans-serif;
   font-weight: 400;
