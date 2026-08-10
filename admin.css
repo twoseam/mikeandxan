@@ -1,6 +1,11 @@
 /* Guest List admin dashboard — reuses site.html's palette/fonts (style.css)
    and just adds the dashboard-specific layout. */
 
+/* The `hidden` attribute only wins over an element's own `display: flex`
+   rule if nothing else out-specifies it — without this, .admin-modal /
+   .admin-login staying "hidden" via JS has no visual effect. */
+[hidden] { display: none !important; }
+
 .admin-body {
   min-height: 100vh;
 }
