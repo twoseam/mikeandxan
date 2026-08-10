@@ -97,7 +97,10 @@ body {
    this, New Kansas Extra Swash renders its plain fallback glyphs instead of
    the actual connected swash forms, which reads as "ligatures are off". */
 .return-name, .recipient-name, .swash-break, .recipient-subline {
-  font-feature-settings: "liga" 1, "dlig" 1, "clig" 1, "calt" 1, "swsh" 1;
+  font-feature-settings: "liga" 1, "dlig" 1, "hlig" 1, "clig" 1, "calt" 1, "swsh" 1, "cswh" 1,
+    "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+    "ss09" 1, "ss10" 1, "ss11" 1, "ss12" 1, "ss13" 1, "ss14" 1, "ss15" 1, "ss16" 1,
+    "ss17" 1, "ss18" 1, "ss19" 1, "ss20" 1;
   font-variant-ligatures: common-ligatures contextual;
 }
 
@@ -121,12 +124,12 @@ body {
   font-weight: 400;
 }
 
-/* Mr Eaves Mod OT - Book weight is the only style in the font kit, so
-   font-weight is along for the ride here, not actually selecting it.
+/* Mr Eaves Mod OT Light - kit vyw1cvc maps Light to weight 300 (Book sits
+   at 400; Michael compared both and picked Light, Aug 10 2026).
    Tracking 60 (Adobe units, 1 unit = 1/1000 em) = 0.06em. */
 .return-addr-line {
   font-family: "mr-eaves-modern", sans-serif;
-  font-weight: 400;
+  font-weight: 300;
   text-transform: uppercase;
   letter-spacing: .06em;
   font-size: 8pt;
@@ -167,7 +170,7 @@ body {
    it doesn't replace it (see the comment there). */
 .addr-line {
   font-family: "mr-eaves-modern", sans-serif;
-  font-weight: 400;
+  font-weight: 300; /* Light - see note on .return-addr-line */
   text-transform: uppercase;
   letter-spacing: .09em;
   font-size: 10pt;
