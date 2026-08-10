@@ -114,7 +114,10 @@
   <script>
     // Single Escape press anywhere → private guest-list admin login.
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') location.href = '/admin.html';
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        location.href = '/admin.html';
+      }
     });
   </script>
 
