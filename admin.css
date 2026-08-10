@@ -294,6 +294,17 @@
 }
 .bx-head .bx-pill { margin-left: auto; }
 
+.bx-p1 {
+  font-size: .68rem;
+  font-weight: 800;
+  color: var(--color-bg);
+  background: var(--color-orange-lt);
+  border-radius: 100px;
+  padding: .12rem .5rem;
+  flex-shrink: 0;
+  cursor: default;
+}
+
 .bx-expand-toggle {
   border: 0;
   background: transparent;

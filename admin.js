@@ -328,7 +328,9 @@
     const title = h.envelopeName || h.label || '';
     const titleLower = title.toLowerCase();
     const membersRedundant = !h.alreadySubmitted && h.members.length > 0 && h.members.every(m => {
-      if (m.isPlusOne) return titleLower.indexOf('guest') !== -1;
+      // Open +1 slots are covered by the header's +N chip, so a "Plus 1
+      // (open slot)" row never justifies keeping the list expanded.
+      if (m.isPlusOne) return true;
       const first = m.name.trim().split(/\s+/)[0].toLowerCase();
       return first && titleLower.indexOf(first) !== -1;
     });
@@ -377,10 +379,19 @@
     const gridHtml =
       '<div class="bx-reveal' + (expanded ? ' open' : '') + '"><div class="bx-reveal-inner"><div class="bx-grid">' + membersHtml + '</div></div></div>';
 
+    // At-a-glance +1 marker: envelopes no longer say "& Guest" (that moved
+    // to an insert card), so the card header is where Michael sees who has
+    // a plus-one invited. Counts every +1 slot the household was given.
+    const plusOneCount = h.members.filter(m => m.isPlusOne).length;
+    const plusOneChip = plusOneCount
+      ? '<span class="bx-p1" title="' + plusOneCount + ' plus-one slot' + (plusOneCount === 1 ? '' : 's') + '">+' + plusOneCount + '</span>'
+      : '';
+
     return (
       '<div class="admin-household bx-card" data-household-id="' + h.id + '">' +
         '<div class="bx-head">' +
           '<span class="bx-title">' + escapeHtml(title) + '</span>' +
+          plusOneChip +
           chevron +
           pill +
         '</div>' +
