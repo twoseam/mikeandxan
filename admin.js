@@ -312,7 +312,22 @@
         '</span>'
       : '<span class="bx-pill" data-kind="none">No response</span>';
 
-    const membersHtml = h.members.map(m => {
+    // For an unanswered couple the member rows just restate the title
+    // ("Dayly & Landon Ginnings" → "Landon Ginnings / Dayly Ginnings" —
+    // Michael flagged the redundancy), so skip them when the title already
+    // names everyone: every real member's first name appears in it, and
+    // any open +1 slot is covered by a "Guest" mention. Rows come back the
+    // moment the household responds, because then each row carries its own
+    // status dot / dietary info.
+    const title = h.envelopeName || h.label || '';
+    const titleLower = title.toLowerCase();
+    const membersRedundant = !h.alreadySubmitted && h.members.length > 0 && h.members.every(m => {
+      if (m.isPlusOne) return titleLower.indexOf('guest') !== -1;
+      const first = m.name.trim().split(/\s+/)[0].toLowerCase();
+      return first && titleLower.indexOf(first) !== -1;
+    });
+
+    const membersHtml = membersRedundant ? '' : h.members.map(m => {
       const st = memberStatus(m);
       const diet = dietaryLabel(m);
       const dotState = st.status === 'yes' ? 'y' : (st.status === 'no' ? 'n' : 'p');
@@ -347,10 +362,10 @@
     return (
       '<div class="admin-household bx-card" data-household-id="' + h.id + '">' +
         '<div class="bx-head">' +
-          '<span class="bx-title">' + escapeHtml(h.envelopeName || h.label || '') + '</span>' +
+          '<span class="bx-title">' + escapeHtml(title) + '</span>' +
           pill +
         '</div>' +
-        '<div class="bx-grid">' + membersHtml + '</div>' +
+        (membersHtml ? '<div class="bx-grid">' + membersHtml + '</div>' : '') +
         detailsHtml +
         '<div class="bx-meta">' +
           '<span class="bx-meta-text">' + (h.group ? escapeHtml(h.group) + ' · ' : '') + escapeHtml(cityStateOf(h.address)) + '</span>' +

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Stats — M &amp; A</title>
+
+  <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="stats.css?v=1" />
+</head>
+<body class="stats-body">
+
+  <div id="gate" class="stats-gate">
+    <p>Checking you're logged in&hellip;</p>
+  </div>
+
+  <div id="app" hidden>
+    <header class="stats-toolbar">
+      <a href="admin.html" class="stats-back">&larr; Back to Guest List</a>
+      <h1>Food &amp; Music</h1>
+      <p id="stats-updated" class="stats-updated"></p>
+    </header>
+
+    <main class="stats-grid">
+      <section class="stats-card">
+        <p class="stats-label" id="dietary-label">Dietary</p>
+        <div class="stats-hero"><b id="dietary-hero">–</b><span id="dietary-hero-sub"></span></div>
+        <div id="dietary-bars"></div>
+      </section>
+
+      <section class="stats-card">
+        <p class="stats-label" id="toppings-label">Pizza toppings</p>
+        <div class="stats-hero"><b id="toppings-hero">–</b><span id="toppings-hero-sub"></span></div>
+        <div id="toppings-bars"></div>
+      </section>
+
+      <section class="stats-card">
+        <p class="stats-label" id="songs-label">Song requests</p>
+        <div id="songs-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="stats.js?v=1"></script>
+</body>
+</html>
