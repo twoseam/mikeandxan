@@ -6,11 +6,11 @@ METHOD:PUBLISH
 BEGIN:VEVENT
 UID:wedding-2026-11-14@mikeandxan.com
 DTSTAMP:20260101T000000Z
-DTSTART:20261114T230000Z
-DTEND:20261115T050000Z
+DTSTART:20261114T220000Z
+DTEND:20261115T040000Z
 SUMMARY:Michael & Alexandria's Wedding
 LOCATION:The Thompson Barn\, 11184 Lackman Rd\, Lenexa\, KS 66219
-DESCRIPTION:Arrive by 5:00 pm. Ceremony at 5:30 pm. Reception at 6:30 pm.\n\nCheck mikeandxan.com for the latest details\, travel info\, and updates as the day approaches.
+DESCRIPTION:Arrive by 4:00 pm. Ceremony at 4:00 pm. Reception at 4:00 pm.\n\nCheck mikeandxan.com for the latest details\, travel info\, and updates as the day approaches.
 URL:https://mikeandxan.com/
 STATUS:CONFIRMED
 TRANSP:OPAQUE

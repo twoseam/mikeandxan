@@ -227,7 +227,7 @@ async function getPolaroids() { return _polaroids; }
 
 /* ============================================================
    Hero countdown — proper flip-clock cards counting down to the
-   wedding (Saturday Nov 14, 2026, 5:30pm CST / UTC-6).
+   wedding (Saturday Nov 14, 2026, 4:00pm CST / UTC-6).
 
    Each card has four stacked halves:
      .flip-static-top    — always shows the current top half
@@ -240,7 +240,7 @@ async function getPolaroids() { return _polaroids; }
    ============================================================ */
 (function () {
   'use strict';
-  const target = new Date('2026-11-14T17:30:00-06:00');
+  const target = new Date('2026-11-14T16:00:00-06:00');
   const root = document.getElementById('countdown');
   if (!root) return;
 
