@@ -10,8 +10,8 @@
   --paper-preview: #ffffff;
   --border-preview: #ddd6cc;
   --gap-return-name: .15in;
-  --margin-top: .38in;
-  --margin-left: .4in;
+  --margin-top: .28in;
+  --margin-left: .26in;
   --gap-recipient-block: .3in;
 }
 
@@ -124,7 +124,7 @@ body {
   font-family: "new-kansas-extra-swash", serif;
   font-style: italic;
   font-weight: 400;
-  font-size: 34pt;
+  font-size: 24pt;
   color: var(--ink);
   margin: 0;
   line-height: 1.05;
@@ -132,7 +132,7 @@ body {
 .recipient-subline {
   font-family: "new-kansas", serif;
   font-weight: 400;
-  font-size: 15pt;
+  font-size: 13pt;
   color: var(--ink);
   margin: .15in 0 0;
 }

@@ -114,7 +114,7 @@
   // a second line at the script font's natural 34pt — shrink until it fits
   // one line rather than let it collide with the sub-line/address below.
   function fitNameToOneLine(el) {
-    const minSizePt = 20;
+    const minSizePt = 15;
     let sizePt = parseFloat(getComputedStyle(el).fontSize) / (96 / 72);
     const lineHeightPx = () => parseFloat(getComputedStyle(el).lineHeight);
     while (el.getBoundingClientRect().height > lineHeightPx() * 1.3 && sizePt > minSizePt) {
