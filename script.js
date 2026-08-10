@@ -1249,26 +1249,42 @@ async function getPolaroids() { return _polaroids; }
       : false;
     const baseRot = isEven ? 2 : -2;
 
-    function showSlide(idx) {
+    function restingStyle(offset) {
+      if (offset === 0) return { position: 'relative', zIndex: 10, transform: `rotate(${baseRot}deg)` };
+      if (offset === 1) return { position: 'absolute', zIndex: 5, transform: 'rotate(5deg) translate(18px, 8px)' };
+      return { position: 'absolute', zIndex: 3, transform: 'rotate(-6deg) translate(-14px, 12px)' };
+    }
+
+    function applyStyle(photo, style, transition) {
+      photo.style.position = style.position;
+      if (style.position === 'absolute') { photo.style.top = '0'; photo.style.left = '0'; }
+      photo.style.zIndex = String(style.zIndex);
+      photo.style.transition = transition;
+      photo.style.transform = style.transform;
+    }
+
+    // idx=0 on load is instant. Advancing (animate=true) gives the card
+    // leaving the front a two-phase "lift and tuck": it arcs up and over
+    // — briefly above everything, scaled up like a hand picked it up —
+    // then settles into its resting spot at the back of the stack.
+    function showSlide(idx, animate) {
+      const prevIdx = parseInt(stack.dataset.current) || 0;
+      const outgoing = animate && photos.length > 1 ? photos[prevIdx] : null;
+
       photos.forEach((photo, i) => {
         const offset = (i - idx + photos.length) % photos.length;
-        if (offset === 0) {
-          photo.style.position  = 'relative';
-          photo.style.zIndex    = '10';
-          photo.style.transform = `rotate(${baseRot}deg)`;
-        } else if (offset === 1) {
-          photo.style.position  = 'absolute';
-          photo.style.top       = '0';
-          photo.style.left      = '0';
-          photo.style.zIndex    = '5';
-          photo.style.transform = 'rotate(5deg) translate(18px, 8px)';
-        } else {
-          photo.style.position  = 'absolute';
-          photo.style.top       = '0';
-          photo.style.left      = '0';
-          photo.style.zIndex    = '3';
-          photo.style.transform = 'rotate(-6deg) translate(-14px, 12px)';
+        if (photo === outgoing && offset !== 0) {
+          const lift = isEven ? 26 : -26;
+          applyStyle(photo, {
+            position: 'absolute',
+            zIndex: 20,
+            transform: `rotate(${baseRot + (isEven ? 10 : -10)}deg) translate(${lift}px, -34px) scale(1.06)`
+          }, 'transform 0.16s ease-out');
+          const rest = restingStyle(offset);
+          setTimeout(() => applyStyle(photo, rest, 'transform 0.38s cubic-bezier(0.34, 1.2, 0.64, 1)'), 160);
+          return;
         }
+        applyStyle(photo, restingStyle(offset), 'transform 0.45s cubic-bezier(0.34, 1.2, 0.64, 1)');
       });
       stack.dataset.current = idx;
     }
@@ -1278,15 +1294,23 @@ async function getPolaroids() { return _polaroids; }
     // Auto-advance every few seconds so visitors notice there's more than
     // one photo — stops for good the moment someone interacts with this
     // stack themselves (click, swipe, or the expand button), so it never
-    // fights a visitor already browsing through it.
-    let autoTimer = photos.length > 1
-      ? setInterval(() => {
+    // fights a visitor already browsing through it. A random start delay
+    // (rather than one shared setInterval) staggers stacks so they don't
+    // all flip in unison.
+    const AUTO_INTERVAL = 3500;
+    let autoTimer = null;
+    if (photos.length > 1) {
+      const scheduleNext = () => {
+        autoTimer = setTimeout(() => {
           const cur = parseInt(stack.dataset.current) || 0;
-          showSlide((cur + 1) % photos.length);
-        }, 3500)
-      : null;
+          showSlide((cur + 1) % photos.length, true);
+          scheduleNext();
+        }, AUTO_INTERVAL);
+      };
+      autoTimer = setTimeout(scheduleNext, Math.random() * AUTO_INTERVAL);
+    }
     function stopAuto() {
-      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
     }
 
     // Click: advance stack (multi) or open lightbox (single)
@@ -1295,7 +1319,7 @@ async function getPolaroids() { return _polaroids; }
       if (e.target.closest('.stack-expand')) return;
       if (photos.length > 1) {
         const cur = parseInt(stack.dataset.current) || 0;
-        showSlide((cur + 1) % photos.length);
+        showSlide((cur + 1) % photos.length, true);
       } else {
         openLightbox(photos[0].src, photos[0].alt, photos[0].getBoundingClientRect());
       }
@@ -1324,7 +1348,7 @@ async function getPolaroids() { return _polaroids; }
       if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
       const cur = parseInt(stack.dataset.current) || 0;
       const dir = dx < 0 ? 1 : -1;
-      showSlide((cur + dir + photos.length) % photos.length);
+      showSlide((cur + dir + photos.length) % photos.length, true);
     }, { passive: true });
 
     // Expand button (desktop hover → opens lightbox)
