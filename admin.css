@@ -367,6 +367,25 @@
 }
 .admin-remove-btn:hover { opacity: 1; }
 
+.admin-household-foot {
+  border-top: 1px solid var(--color-paper-rule);
+  margin-top: .4rem;
+  padding-top: .5rem;
+  text-align: right;
+}
+.admin-reset-btn {
+  border: 1px solid var(--color-berry);
+  background: transparent;
+  color: var(--color-berry);
+  border-radius: 100px;
+  font-size: .75rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: .3rem .8rem;
+  opacity: .75;
+}
+.admin-reset-btn:hover { opacity: 1; background: rgba(var(--color-bg-rgb), .06); }
+
 /* ---------- Add-guest modal ---------- */
 
 .admin-modal {

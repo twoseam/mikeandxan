@@ -274,6 +274,9 @@
         '</div>' +
         (extras.length ? '<div class="admin-household-extra">' + extras.join('') + '</div>' : '') +
         memberRows +
+        (showRemove && h.alreadySubmitted
+          ? '<div class="admin-household-foot"><button type="button" class="admin-reset-btn" data-id="' + h.id + '">Reset RSVP</button></div>'
+          : '') +
       '</div>'
     );
   }
@@ -373,6 +376,50 @@
     }
   }
 
+  async function resetRsvp(householdIdRaw) {
+    const householdId = Number(householdIdRaw);
+    const session = getSession();
+    if (!session) { showLogin(); return; }
+    if (!confirm("Reset this household's RSVP back to No Response? They'll be able to submit fresh.")) return;
+
+    try {
+      const result = await apiPost({
+        action: 'adminResetRsvp',
+        token: session.token,
+        payload: { householdId: householdId }
+      });
+      if (!result || !result.ok) {
+        setStatus(dashboardStatus, (result && result.error) || 'Could not reset RSVP.', 'error');
+        return;
+      }
+      if (lastData) {
+        lastData.households = lastData.households.map(h => {
+          if (h.id !== householdId) return h;
+          return {
+            ...h,
+            alreadySubmitted: false,
+            alreadySubmittedFor: '',
+            existing: null,
+            members: h.members.map(m => ({
+              ...m,
+              attending: '',
+              dietary: '',
+              dietaryOther: '',
+              bringingPlusOne: m.isPlusOne ? '' : undefined,
+              actualName: m.isPlusOne ? '' : undefined
+            }))
+          };
+        });
+        renderStats(recomputeStats(lastData.households));
+        renderHouseholds(lastData.households, searchInput.value);
+        populateHouseholdPicker(lastData.households);
+      }
+      loadDashboard();
+    } catch (err) {
+      setStatus(dashboardStatus, 'Something went wrong — try again.', 'error');
+    }
+  }
+
   // Mirrors the server's buildAdminData() counting rules, for instant local
   // re-renders after an optimistic update (add/remove) without a round trip.
   function recomputeStats(households) {
@@ -438,6 +485,11 @@
     const removeBtn = e.target.closest('.admin-remove-btn');
     if (removeBtn) {
       removeGuest(removeBtn.getAttribute('data-id'), removeBtn.getAttribute('data-name'));
+      return;
+    }
+    const resetBtn = e.target.closest('.admin-reset-btn');
+    if (resetBtn) {
+      resetRsvp(resetBtn.getAttribute('data-id'));
     }
   });
 
