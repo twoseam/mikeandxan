@@ -48,6 +48,26 @@
   text-align: left;
 }
 
+/* style.css's input rule list doesn't include type="password" — match it here. */
+.rsvp-form input[type="password"] {
+  width: 100%;
+  padding: .85rem .8rem;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--color-bg);
+  background: #fff;
+  border: 2px solid var(--color-bg);
+  border-radius: 5px;
+  min-height: 44px;
+  outline: none;
+  transition: box-shadow .15s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.rsvp-form input[type="password"]:focus {
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), .55);
+}
+
 .admin-login-btn {
   width: 100%;
   margin-top: var(--space-md);
