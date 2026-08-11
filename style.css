@@ -503,8 +503,9 @@ section:not(#home) h2,
   padding: 2px 4px 4px;
 }
 .map-popup strong {
-  font-family: var(--font-display);
-  font-size: 1rem;
+  font-family: "new-kansas", serif;
+  font-weight: 600;
+  font-size: 1.05rem;
   display: block;
   margin-bottom: 2px;
 }
