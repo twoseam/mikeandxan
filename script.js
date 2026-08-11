@@ -1743,12 +1743,6 @@ function initVenueMap() {
       lat: 38.9394847, lng: -94.7966108,
       name: 'Embassy Suites by Hilton — Olathe',
       address: '10401 S Ridgeview Rd, Olathe, KS 66061'
-    },
-    {
-      key: 'courtyard',
-      lat: 38.9082744, lng: -94.7693027,
-      name: 'Courtyard by Marriott — Olathe',
-      address: '12151 S Strang Line Ct, Olathe, KS 66062'
     }
   ];
   var parking = {
