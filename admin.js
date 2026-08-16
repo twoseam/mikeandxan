@@ -275,16 +275,16 @@
         '</div>'
       ).join('');
 
-      const realGuestCount = h.members.filter(m => !m.isPlusOne).length;
+      // Every household gets the +1 toggle (originally solo-invite only,
+      // until the Hockers needed one — any family can be granted a +1).
       const plusOneMember = h.members.find(m => m.isPlusOne);
       const plusOneClaimed = !!(plusOneMember && plusOneMember.bringingPlusOne === 'yes');
-      const plusOneToggleHtml = realGuestCount === 1
-        ? '<label class="admin-plusone-toggle">' +
-            '<input type="checkbox" class="admin-edit-plusone"' +
-              (plusOneMember ? ' checked' : '') + (plusOneClaimed ? ' disabled' : '') + '>' +
-            ' Allow a +1' + (plusOneClaimed ? ' (already claimed)' : '') +
-          '</label>'
-        : '';
+      const plusOneToggleHtml =
+        '<label class="admin-plusone-toggle">' +
+          '<input type="checkbox" class="admin-edit-plusone"' +
+            (plusOneMember ? ' checked' : '') + (plusOneClaimed ? ' disabled' : '') + '>' +
+          ' Allow a +1' + (plusOneClaimed ? ' (already claimed)' : '') +
+        '</label>';
 
       return (
         '<div class="admin-household admin-household-editing" data-household-id="' + h.id + '">' +
