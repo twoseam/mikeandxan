@@ -1928,3 +1928,133 @@ function initParkingMap() {
 /* Photo break + heart pin sliders removed once values were locked in.
    Values now live in the inline `style` of .photo-break.has-heart-eyes
    in index.html. Restore from git history if re-tuning is needed. */
+
+/* ---- Branded dropdowns ----
+   The closed <select> box is styleable, but the open options menu is
+   drawn by the OS and can't be branded. So each .rsvp-form select is
+   replaced with a button + styled list that proxies the hidden native
+   select (form logic keeps reading select.value unchanged). Member
+   blocks are built dynamically, so a MutationObserver enhances new
+   selects as they appear. */
+(function () {
+  'use strict';
+
+  function closeAll(except) {
+    document.querySelectorAll('.mx-select.is-open').forEach(function (w) {
+      if (w !== except) {
+        w.classList.remove('is-open');
+        w.querySelector('.mx-select-btn').setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  function enhance(sel) {
+    sel.dataset.mxEnhanced = '1';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'mx-select';
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(sel);
+    sel.classList.add('mx-select-native');
+    sel.tabIndex = -1;
+    sel.setAttribute('aria-hidden', 'true');
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'mx-select-btn';
+    btn.setAttribute('aria-haspopup', 'listbox');
+    btn.setAttribute('aria-expanded', 'false');
+    wrap.appendChild(btn);
+
+    const menu = document.createElement('ul');
+    menu.className = 'mx-select-menu';
+    menu.setAttribute('role', 'listbox');
+    wrap.appendChild(menu);
+
+    const options = [];
+    Array.prototype.forEach.call(sel.options, function (o) {
+      const li = document.createElement('li');
+      li.className = 'mx-option';
+      li.setAttribute('role', 'option');
+      li.tabIndex = -1;
+      li.dataset.value = o.value;
+      li.textContent = o.textContent;
+      menu.appendChild(li);
+      options.push(li);
+    });
+
+    function sync() {
+      const cur = sel.options[sel.selectedIndex];
+      btn.textContent = cur ? cur.textContent : '';
+      options.forEach(function (li) {
+        li.classList.toggle('is-selected', li.dataset.value === sel.value);
+      });
+    }
+    sync();
+
+    function open() {
+      closeAll(wrap);
+      wrap.classList.add('is-open');
+      btn.setAttribute('aria-expanded', 'true');
+      const cur = options.find ? options.find(function (li) { return li.dataset.value === sel.value; }) : null;
+      (cur || options[0]).focus();
+    }
+    function close(refocus) {
+      wrap.classList.remove('is-open');
+      btn.setAttribute('aria-expanded', 'false');
+      if (refocus) btn.focus();
+    }
+    function choose(li) {
+      sel.value = li.dataset.value;
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      sync();
+      close(true);
+    }
+
+    btn.addEventListener('click', function () {
+      wrap.classList.contains('is-open') ? close(true) : open();
+    });
+    btn.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); open(); }
+    });
+
+    menu.addEventListener('click', function (e) {
+      const li = e.target.closest('.mx-option');
+      if (li) choose(li);
+    });
+    menu.addEventListener('keydown', function (e) {
+      const li = e.target.closest('.mx-option');
+      if (!li) return;
+      const i = options.indexOf(li);
+      if (e.key === 'ArrowDown') { e.preventDefault(); (options[i + 1] || options[0]).focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); (options[i - 1] || options[options.length - 1]).focus(); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(li); }
+      else if (e.key === 'Tab') { close(false); }
+    });
+
+    // Programmatic prefill (edit-RSVP flow sets select.value directly,
+    // no change event) — re-sync whenever the menu is about to matter.
+    sel.addEventListener('change', sync);
+    wrap.addEventListener('focusin', sync);
+  }
+
+  function scan() {
+    document.querySelectorAll('.rsvp-form select:not([data-mx-enhanced])').forEach(enhance);
+  }
+
+  // Escape closes an open menu before the site's admin-login Escape
+  // shortcut can see the keypress; outside clicks close too.
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && document.querySelector('.mx-select.is-open')) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      closeAll(null);
+    }
+  }, true);
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.mx-select')) closeAll(null);
+  });
+
+  new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
+  scan();
+})();
