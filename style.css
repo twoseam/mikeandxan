@@ -2585,7 +2585,9 @@ h2:has(.section-icon) { position: relative; }
   text-align: center;
 }
 .datestack .row { display: block; }
-.datestack .row > span { color: var(--color-bg-alt); transition: color 0.1s ease; }
+/* Slow-ish crossfade so the white spot fades between cells while
+   scrolling instead of snapping — hard 0.1s cuts read as flicker. */
+.datestack .row > span { color: var(--color-bg-alt); transition: color 0.3s ease; }
 .datestack .row > span.white { color: var(--color-text); }
 
 /* ── Fat-font legibility stroke ─────────────────────────────────────
