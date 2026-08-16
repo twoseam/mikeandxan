@@ -1582,6 +1582,18 @@ section:not(#home) h2,
   appearance: none;
 }
 
+/* appearance:none (above) strips the native dropdown arrow, so selects
+   read as plain text boxes — draw our own chevron in brand tomato, same
+   round-stroke style as the section icons. */
+.rsvp-form select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f15826' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 9l7 7 7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .9rem center;
+  background-size: 18px 18px;
+  padding-right: 2.7rem;
+  cursor: pointer;
+}
+
 .rsvp-form input[type="text"]:focus,
 .rsvp-form input[type="email"]:focus,
 .rsvp-form input[type="tel"]:focus,

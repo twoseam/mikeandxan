@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    // Email-link forward: /?rsvp=1 sends confirmation-email visitors to the RSVP section.
+    (function () {
+      try {
+        var params = new URLSearchParams(location.search);
+        if (params.has('rsvp')) {
+          var name = params.get('name');
+          var dest = '/site.html' + (name ? '?name=' + encodeURIComponent(name) : '') + '#rsvp';
+          location.replace(dest);
+        }
+      } catch (_) {}
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, viewport-fit=cover" />
+  <title>M & A — November 14, 2026</title>
+  <meta name="description" content="Save the Date — Michael and Alexandria, November 14, 2026 · Lenexa, Kansas." />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="M & A" />
+  <meta property="og:title" content="M & A — November 14, 2026" />
+  <meta property="og:description" content="Save the Date — Michael and Alexandria, November 14, 2026 · Lenexa, Kansas." />
+  <meta property="og:url" content="https://mikeandxan.com/" />
+  <meta property="og:image" content="https://mikeandxan.com/assets/socialsharing.webp" />
+  <meta property="og:image:alt" content="Mike and Xan" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="M & A — November 14, 2026" />
+  <meta name="twitter:description" content="Save the Date — Michael and Alexandria, November 14, 2026 · Lenexa, Kansas." />
+  <meta name="twitter:image" content="https://mikeandxan.com/assets/socialsharing.webp" />
+
+  <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
+
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="icon" href="favicon-64.png" type="image/png" sizes="64x64" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="M &amp; A" />
+  <meta name="theme-color" content="#f15826" />
+
+  <style>
+    :root {
+      --pink:  #f5a0b5;
+      --red:   #f15826;
+      --white: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { overflow-x: hidden; background: var(--red); }
+    body {
+      background: var(--red);
+      color: var(--white);
+      min-height: 100svh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .landing {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 2.5rem);
+      text-align: center;
+    }
+    .stack {
+      font-family: "fat", Georgia, serif;
+      font-weight: 400;
+      font-style: normal;
+      font-size: clamp(3.25rem, 14vw, 12rem);
+      line-height: 0.92;
+      letter-spacing: -0.005em;
+      width: 100%;
+      max-width: 1400px;
+    }
+    .stack .row { display: block; }
+    .stack .row span { display: inline-block; }
+    .stack .pink  { color: var(--pink); }
+    .stack .white { color: var(--white); }
+    .couple {
+      font-family: "new-kansas-extra-swash", Georgia, serif;
+      font-style: italic;
+      font-weight: 600;
+      font-size: clamp(1.8rem, 4.2vw, 3rem);
+      color: var(--white);
+      margin-top: clamp(2rem, 5vw, 3.5rem);
+      line-height: 1.1;
+    }
+    .place {
+      font-family: "new-kansas", Georgia, serif;
+      font-weight: 500;
+      font-style: normal;
+      font-size: clamp(1.15rem, 1.9vw, 1.5rem);
+      color: var(--white);
+      margin-top: 0.5rem;
+      letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="landing">
+    <h1 class="stack" aria-label="November 14, 2026">
+      <span class="row"><span class="white">11.</span><span class="pink">14.26</span></span>
+      <span class="row"><span class="pink">11.</span><span class="white">14.</span><span class="pink">26</span></span>
+      <span class="row"><span class="pink">11.14.</span><span class="white">26</span></span>
+    </h1>
+    <p class="couple">Michael &amp; Alexandria</p>
+    <p class="place">Lenexa, Kansas</p>
+  </main>
+
+  <script>
+    // Single Escape press anywhere → private guest-list admin login.
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        location.href = '/admin.html';
+      }
+    });
+  </script>
+
+</body>
+</html>
