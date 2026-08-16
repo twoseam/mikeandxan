@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Mailing Checklist — M &amp; A</title>
+
+  <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mailing.css?v=1" />
+</head>
+<body class="mail-body">
+
+  <div id="gate" class="mail-gate">
+    <p>Checking you're logged in&hellip;</p>
+  </div>
+
+  <div id="app" hidden>
+    <header class="mail-toolbar">
+      <a href="admin.html" class="mail-back">&larr; Back to Guest List</a>
+      <h1>Mailing Checklist</h1>
+      <p id="mail-progress" class="mail-progress"></p>
+    </header>
+
+    <div class="mail-searchbar">
+      <input type="text" id="mail-search" class="mail-search"
+             placeholder="Search the name on the envelope&hellip;" autocomplete="off" />
+    </div>
+
+    <main class="mail-main">
+      <section class="mail-section">
+        <h2 class="mail-section-head anim-in" id="todo-head">To Send</h2>
+        <div id="todo-list" class="mail-list"></div>
+      </section>
+
+      <section class="mail-section">
+        <h2 class="mail-section-head mail-section-head-done anim-in" id="done-head">Sent</h2>
+        <div id="done-list" class="mail-list mail-list-done"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="mailing.js?v=1"></script>
+</body>
+</html>
