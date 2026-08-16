@@ -261,6 +261,14 @@ section:not(#home) h2,
 /* ---------- Sections ---------- */
 
 .section { padding: var(--space-lg) var(--space-sm); }
+
+/* Nav anchors sit on each section's first content wrapper (not the
+   section box) so menu taps land at the content instead of the top of
+   ~11rem of section padding; small margin adds breathing room under
+   the fixed header (scroll-padding-top covers the header itself). */
+#registry-start, #details-start, #story-start, #faq-start {
+  scroll-margin-top: 1.5rem;
+}
 .section-inner { max-width: var(--max-width); margin: 0 auto; }
 .section-alt { background: var(--color-bg-alt); }
 .section-lede { color: var(--color-muted); margin-bottom: var(--space-md); }
@@ -2585,9 +2593,10 @@ h2:has(.section-icon) { position: relative; }
   text-align: center;
 }
 .datestack .row { display: block; }
-/* Slow-ish crossfade so the white spot fades between cells while
-   scrolling instead of snapping — hard 0.1s cuts read as flicker. */
-.datestack .row > span { color: var(--color-bg-alt); transition: color 0.3s ease; }
+/* Crossfade between cells; the swap cadence itself is capped in the
+   datestack script (one move per ~120ms), so the fade stays shorter
+   than the cadence — each move reads clearly instead of smearing. */
+.datestack .row > span { color: var(--color-bg-alt); transition: color 0.15s ease; }
 .datestack .row > span.white { color: var(--color-text); }
 
 /* ── Fat-font legibility stroke ─────────────────────────────────────
