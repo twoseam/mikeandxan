@@ -97,6 +97,13 @@
     const wasMailed = h.mailedAt;
     h.mailedAt = wasMailed ? null : new Date().toISOString(); // optimistic
     pendingIds[id] = true;
+    // Speed mode: checking one off resets the search so the next envelope's
+    // name can be typed immediately — no manual clearing between envelopes.
+    if (!wasMailed) {
+      searchInput.value = '';
+      searchInput.focus();
+      window.scrollTo(0, 0);
+    }
     render();
 
     try {
