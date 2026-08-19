@@ -2,46 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Share the Day — M &amp; A</title>
 
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="photos.css?v=2" />
+  <link rel="stylesheet" href="photos.css?v=3" />
 </head>
 <body class="ph-body">
 
-  <header class="ph-hero">
-    <h1 class="ph-title">Share the Day</h1>
-    <p class="ph-sub">Took a photo or a video? Drop it here &mdash;
-       it lands in the live feed for everyone.</p>
-  </header>
-
   <main class="ph-main">
-
-    <section class="ph-card">
-      <input type="file" id="ph-file" accept="image/*,video/*" multiple hidden />
-      <button type="button" id="ph-pick" class="ph-upload-btn">Add Photos &amp; Videos</button>
-      <p class="ph-hint">Videos up to 95&nbsp;MB each. You can pick several at once.</p>
-
-      <div id="ph-queue" class="ph-queue"></div>
-    </section>
-
-    <section class="ph-feedwrap">
-      <h2 class="ph-feed-title anim-in">The Feed</h2>
-      <p id="ph-feed-status" class="ph-feed-status">Loading&hellip;</p>
-      <div id="ph-feed" class="ph-feed"></div>
-    </section>
-
+    <div id="ph-feed" class="ph-feed"></div>
+    <p id="ph-empty" class="ph-empty" hidden>Nothing here yet &mdash; be the first!</p>
   </main>
+
+  <div id="ph-queue" class="ph-queue" hidden></div>
+
+  <input type="file" id="ph-file" accept="image/*,video/*" multiple hidden />
+  <button type="button" id="ph-pick" class="ph-fab">+ Add Photos &amp; Videos</button>
 
   <div id="ph-lightbox" class="ph-lightbox" hidden>
     <button type="button" class="ph-lb-close" aria-label="Close">&times;</button>
     <div class="ph-lb-content"></div>
   </div>
 
-  <script src="photos.js?v=3"></script>
+  <script src="photos.js?v=4"></script>
 </body>
 </html>
