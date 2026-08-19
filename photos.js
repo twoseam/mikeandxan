@@ -149,17 +149,31 @@
     if (!/^(image|video)\//.test(file.type)) { row.fail('Not a photo or video'); return; }
 
     try {
+      // Poster frame for videos: grab it locally before the upload starts
+      // so the feed tile has an image the moment the video lands.
+      const thumbPromise = file.type.startsWith('video/') ? makeVideoThumb(file) : null;
+
+      let key = null;
       if (file.size <= SINGLE_MAX) {
-        await xhrSend('POST', WORKER_URL + '/upload', file, file.type, (loaded, total) => {
+        const res = await xhrSend('POST', WORKER_URL + '/upload', file, file.type, (loaded, total) => {
           const pct = Math.round((loaded / total) * 100);
           row.state.textContent = pct + '%';
           row.bar.style.width = pct + '%';
         });
+        key = res.key || null;
       } else if (file.type.startsWith('video/') && file.size <= CHUNKED_MAX) {
-        await uploadChunked(file, row);
+        key = await uploadChunked(file, row);
       } else {
         row.fail(file.type.startsWith('video/') ? 'Too big (1 GB max)' : 'Too big (95 MB max)');
         return;
+      }
+      if (thumbPromise && key) {
+        try {
+          const thumb = await thumbPromise;
+          if (thumb) {
+            await xhrSend('POST', WORKER_URL + '/upload-thumb?' + new URLSearchParams({ key }), thumb, 'image/jpeg');
+          }
+        } catch (e) { /* no poster frame — tile falls back to the video element */ }
       }
       row.done('Shared!');
       refreshFeed();
@@ -192,6 +206,43 @@
     await xhrSend('POST', WORKER_URL + '/upload-complete',
       JSON.stringify({ key: init.key, uploadId: init.uploadId, type: file.type, parts }),
       'application/json');
+    return init.key;
+  }
+
+  // Decode ~1s into the video locally and paint a frame to a canvas.
+  // Resolves null if the browser can't decode this format.
+  function makeVideoThumb(file) {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement('video');
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'auto';
+      video.src = url;
+      const bail = setTimeout(() => { URL.revokeObjectURL(url); resolve(null); }, 15000);
+
+      video.addEventListener('loadeddata', () => {
+        try { video.currentTime = Math.min(1, (video.duration || 1) / 2); }
+        catch (e) { finish(); }
+      }, { once: true });
+      video.addEventListener('seeked', finish, { once: true });
+      video.addEventListener('error', () => { clearTimeout(bail); URL.revokeObjectURL(url); resolve(null); });
+
+      function finish() {
+        clearTimeout(bail);
+        try {
+          const w = video.videoWidth, h = video.videoHeight;
+          if (!w || !h) { URL.revokeObjectURL(url); resolve(null); return; }
+          const scale = Math.min(1, 720 / w);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(w * scale);
+          canvas.height = Math.round(h * scale);
+          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(url);
+          canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.82);
+        } catch (e) { URL.revokeObjectURL(url); resolve(null); }
+      }
+    });
   }
 
   // ── Feed tiles ──
@@ -218,12 +269,29 @@
     const src = WORKER_URL + item.mediaPath;
     const isVideo = item.contentType.startsWith('video/');
     let media;
-    if (isVideo) {
+    if (isVideo && item.thumbPath) {
+      // Poster frame captured at upload — tile is a plain image, cheap to load.
+      media = document.createElement('img');
+      media.loading = 'lazy';
+      media.alt = 'Guest video';
+      media.src = WORKER_URL + item.thumbPath;
+      if (media.complete && media.naturalWidth) focusOnFace(media);
+      else media.addEventListener('load', () => focusOnFace(media));
+      const badge = document.createElement('div');
+      badge.className = 'ph-play';
+      badge.innerHTML = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>';
+      el.appendChild(badge);
+    } else if (isVideo) {
+      // No poster (older upload / undecodable at upload time): show the
+      // video element and nudge it to paint a frame.
       media = document.createElement('video');
       media.muted = true;
       media.playsInline = true;
       media.preload = 'metadata';
       media.src = src;
+      media.addEventListener('loadedmetadata', () => {
+        try { media.currentTime = 0.1; } catch (e) { /* frame stays blank */ }
+      }, { once: true });
       const badge = document.createElement('div');
       badge.className = 'ph-play';
       badge.innerHTML = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>';
@@ -341,9 +409,11 @@
       const end = media.getBoundingClientRect();
       if (!end.width || !end.height) { lightbox.classList.remove('is-opening'); return; }
 
-      const clone = document.createElement(isVideo ? 'video' : 'img');
-      clone.src = src;
-      if (isVideo) { clone.muted = true; clone.playsInline = true; }
+      // Fly a clone of whatever the tile is already showing (thumb or frame)
+      const tileMedia = tile.querySelector('img, video');
+      const clone = tileMedia ? tileMedia.cloneNode() : document.createElement('img');
+      if (clone.tagName === 'VIDEO') { clone.muted = true; clone.playsInline = true; }
+      clone.style.objectPosition = tileMedia ? getComputedStyle(tileMedia).objectPosition : '50% 35%';
       Object.assign(clone.style, {
         position: 'fixed',
         left: end.left + 'px',
