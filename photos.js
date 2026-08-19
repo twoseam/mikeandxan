@@ -10,7 +10,6 @@
   const MAX_BYTES = 95 * 1024 * 1024;
   const POLL_MS = 20000;
 
-  const captionInput = document.getElementById('ph-caption');
   const fileInput = document.getElementById('ph-file');
   const pickBtn = document.getElementById('ph-pick');
   const queueEl = document.getElementById('ph-queue');
@@ -59,12 +58,8 @@
       return;
     }
 
-    const params = new URLSearchParams({
-      caption: captionInput.value.trim()
-    });
-
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', WORKER_URL + '/upload?' + params.toString());
+    xhr.open('POST', WORKER_URL + '/upload');
     xhr.setRequestHeader('content-type', file.type);
     xhr.upload.addEventListener('progress', (e) => {
       if (!e.lengthComputable) return;
@@ -122,36 +117,31 @@
     }
     el.appendChild(media);
 
-    const meta = document.createElement('figcaption');
-    meta.className = 'ph-item-meta';
-    if (item.senderName) {
-      const who = document.createElement('b');
-      who.textContent = item.senderName;
-      meta.appendChild(who);
-    }
-    if (item.caption) {
-      const cap = document.createElement('div');
-      cap.className = 'ph-cap';
-      cap.textContent = item.caption;
-      meta.appendChild(cap);
-    }
-    const when = document.createElement('div');
-    when.className = 'ph-when';
-    when.textContent = new Date(item.createdAt).toLocaleString([], {
-      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-    });
-    meta.appendChild(when);
-
+    // Pure media feed — no text on cards. Admins get a moderation row.
     if (isAdmin) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'ph-hide-btn';
-      btn.textContent = item.hidden ? 'Unhide' : 'Hide';
-      btn.addEventListener('click', () => setHidden(item.id, !item.hidden));
-      meta.appendChild(btn);
-    }
+      const meta = document.createElement('figcaption');
+      meta.className = 'ph-item-meta';
 
-    el.appendChild(meta);
+      const hideBtn = document.createElement('button');
+      hideBtn.type = 'button';
+      hideBtn.className = 'ph-hide-btn';
+      hideBtn.textContent = item.hidden ? 'Unhide' : 'Hide';
+      hideBtn.addEventListener('click', () => setHidden(item.id, !item.hidden));
+      meta.appendChild(hideBtn);
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'ph-del-btn';
+      delBtn.textContent = 'Delete';
+      delBtn.addEventListener('click', () => {
+        if (confirm('Permanently delete this from the feed? This can’t be undone.')) {
+          deleteItem(item.id);
+        }
+      });
+      meta.appendChild(delBtn);
+
+      el.appendChild(meta);
+    }
     return el;
   }
 
@@ -162,6 +152,16 @@
       body: JSON.stringify({ action: 'adminSetFeedHidden', token: adminToken(), payload: { id, hidden } })
     });
     renderedIds = new Set(); // force full re-render
+    refreshFeed();
+  }
+
+  async function deleteItem(id) {
+    await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'adminDeleteFeedItem', token: adminToken(), payload: { id } })
+    });
+    renderedIds = new Set();
     refreshFeed();
   }
 

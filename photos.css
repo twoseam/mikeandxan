@@ -164,17 +164,17 @@
 }
 .ph-item img { cursor: pointer; }
 
+/* Admin-only moderation row under each item */
 .ph-item-meta {
-  padding: 0.6rem 0.8rem 0.7rem;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.55rem 0.8rem;
   color: var(--color-charcoal);
   font-size: 0.88rem;
 }
-.ph-item-meta b { font-family: "new-kansas", Georgia, serif; font-weight: 700; }
-.ph-item-meta .ph-cap { margin-top: 0.15rem; }
-.ph-item-meta .ph-when { opacity: 0.55; font-size: 0.78rem; margin-top: 0.2rem; }
 
-.ph-hide-btn {
-  margin-top: 0.45rem;
+.ph-hide-btn,
+.ph-del-btn {
   font: inherit;
   font-size: 0.78rem;
   font-weight: 700;
@@ -186,6 +186,13 @@
   cursor: pointer;
 }
 .ph-hide-btn:hover { background: var(--color-berry); color: #fff; }
+
+.ph-del-btn {
+  color: #fff;
+  background: var(--color-berry);
+  border-color: var(--color-berry);
+}
+.ph-del-btn:hover { background: #7c1638; border-color: #7c1638; }
 
 /* ── Lightbox ── */
 
