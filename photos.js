@@ -149,9 +149,9 @@
     if (!/^(image|video)\//.test(file.type)) { row.fail('Not a photo or video'); return; }
 
     try {
-      // Poster frame for videos: grab it locally before the upload starts
-      // so the feed tile has an image the moment the video lands.
-      const thumbPromise = file.type.startsWith('video/') ? makeVideoThumb(file) : null;
+      // For videos, build tile assets locally while the upload runs:
+      // a poster frame + a ~2.5s muted low-res looping preview clip.
+      const assetsPromise = file.type.startsWith('video/') ? makeVideoAssets(file) : null;
 
       let key = null;
       if (file.size <= SINGLE_MAX) {
@@ -167,13 +167,16 @@
         row.fail(file.type.startsWith('video/') ? 'Too big (1 GB max)' : 'Too big (95 MB max)');
         return;
       }
-      if (thumbPromise && key) {
+      if (assetsPromise && key) {
         try {
-          const thumb = await thumbPromise;
-          if (thumb) {
-            await xhrSend('POST', WORKER_URL + '/upload-thumb?' + new URLSearchParams({ key }), thumb, 'image/jpeg');
+          const assets = await assetsPromise;
+          if (assets && assets.thumb) {
+            await xhrSend('POST', WORKER_URL + '/upload-thumb?' + new URLSearchParams({ key }), assets.thumb, 'image/jpeg');
           }
-        } catch (e) { /* no poster frame — tile falls back to the video element */ }
+          if (assets && assets.preview) {
+            await xhrSend('POST', WORKER_URL + '/upload-preview?' + new URLSearchParams({ key }), assets.preview, assets.previewType);
+          }
+        } catch (e) { /* no tile assets — falls back to the video element */ }
       }
       row.done('Shared!');
       refreshFeed();
@@ -209,9 +212,12 @@
     return init.key;
   }
 
-  // Decode ~1s into the video locally and paint a frame to a canvas.
-  // Resolves null if the browser can't decode this format.
-  function makeVideoThumb(file) {
+  // One local decode pass over an uploaded video: seek ~1s in and paint a
+  // poster frame, then play ~2.5s through a downscaled canvas recorded by
+  // MediaRecorder into a tiny muted preview clip (mp4 on Safari, webm on
+  // Chrome). Resolves {thumb, preview, previewType} — any piece may be
+  // null if this browser can't decode/record the format.
+  function makeVideoAssets(file) {
     return new Promise((resolve) => {
       const url = URL.createObjectURL(file);
       const video = document.createElement('video');
@@ -219,28 +225,66 @@
       video.playsInline = true;
       video.preload = 'auto';
       video.src = url;
-      const bail = setTimeout(() => { URL.revokeObjectURL(url); resolve(null); }, 15000);
+      let thumb = null;
+      const bail = setTimeout(() => cleanup({ thumb, preview: null }), 30000);
+      function cleanup(result) { clearTimeout(bail); URL.revokeObjectURL(url); resolve(result); }
 
+      video.addEventListener('error', () => cleanup(null), { once: true });
       video.addEventListener('loadeddata', () => {
         try { video.currentTime = Math.min(1, (video.duration || 1) / 2); }
-        catch (e) { finish(); }
+        catch (e) { cleanup(null); }
       }, { once: true });
-      video.addEventListener('seeked', finish, { once: true });
-      video.addEventListener('error', () => { clearTimeout(bail); URL.revokeObjectURL(url); resolve(null); });
 
-      function finish() {
-        clearTimeout(bail);
-        try {
-          const w = video.videoWidth, h = video.videoHeight;
-          if (!w || !h) { URL.revokeObjectURL(url); resolve(null); return; }
-          const scale = Math.min(1, 720 / w);
-          const canvas = document.createElement('canvas');
-          canvas.width = Math.round(w * scale);
-          canvas.height = Math.round(h * scale);
-          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-          URL.revokeObjectURL(url);
-          canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.82);
-        } catch (e) { URL.revokeObjectURL(url); resolve(null); }
+      video.addEventListener('seeked', () => {
+        const w = video.videoWidth, h = video.videoHeight;
+        if (!w || !h) { cleanup(null); return; }
+        const scale = Math.min(1, 720 / w);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => { thumb = blob; recordPreview(); }, 'image/jpeg', 0.82);
+      }, { once: true });
+
+      function recordPreview() {
+        let mime = '';
+        if (window.MediaRecorder) {
+          for (const m of ['video/mp4', 'video/webm;codecs=vp9', 'video/webm']) {
+            if (MediaRecorder.isTypeSupported(m)) { mime = m; break; }
+          }
+        }
+        if (!mime || !HTMLCanvasElement.prototype.captureStream) { cleanup({ thumb, preview: null }); return; }
+
+        const w = video.videoWidth, h = video.videoHeight;
+        const scale = Math.min(1, 480 / w);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
+        const ctx = canvas.getContext('2d');
+
+        let rec;
+        try { rec = new MediaRecorder(canvas.captureStream(24), { mimeType: mime, videoBitsPerSecond: 1200000 }); }
+        catch (e) { cleanup({ thumb, preview: null }); return; }
+
+        const chunks = [];
+        rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+        rec.onstop = () => {
+          const type = mime.split(';')[0];
+          const blob = new Blob(chunks, { type });
+          cleanup({ thumb, preview: blob.size > 1000 ? blob : null, previewType: type });
+        };
+
+        let raf;
+        const draw = () => { ctx.drawImage(video, 0, 0, canvas.width, canvas.height); raf = requestAnimationFrame(draw); };
+        video.play().then(() => {
+          rec.start(500);
+          draw();
+          setTimeout(() => {
+            cancelAnimationFrame(raf);
+            video.pause();
+            try { rec.stop(); } catch (e) { cleanup({ thumb, preview: null }); }
+          }, 2600);
+        }).catch(() => cleanup({ thumb, preview: null }));
       }
     });
   }
@@ -248,6 +292,15 @@
   // ── Feed tiles ──
 
   let renderedIds = new Set();
+
+  // Looping tile previews only play while on screen.
+  const previewObserver = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      const v = en.target;
+      if (en.isIntersecting) v.play().catch(() => {});
+      else v.pause();
+    });
+  }, { threshold: 0.15 });
 
   async function focusOnFace(img) {
     if (!faceDetector) return;
@@ -269,7 +322,30 @@
     const src = WORKER_URL + item.mediaPath;
     const isVideo = item.contentType.startsWith('video/');
     let media;
-    if (isVideo && item.thumbPath) {
+    if (isVideo && item.previewPath) {
+      // Tiny recorded loop — the "living" tile. Poster shows while it loads;
+      // if this browser can't play the clip's format, fall back to the poster.
+      media = document.createElement('video');
+      media.muted = true;
+      media.loop = true;
+      media.playsInline = true;
+      media.preload = 'metadata';
+      if (item.thumbPath) media.poster = WORKER_URL + item.thumbPath;
+      media.src = WORKER_URL + item.previewPath;
+      media.addEventListener('error', () => {
+        previewObserver.unobserve(media);
+        const img = document.createElement('img');
+        img.loading = 'lazy';
+        img.alt = 'Guest video';
+        if (item.thumbPath) img.src = WORKER_URL + item.thumbPath;
+        media.replaceWith(img);
+      }, { once: true });
+      previewObserver.observe(media);
+      const badge = document.createElement('div');
+      badge.className = 'ph-play';
+      badge.innerHTML = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>';
+      el.appendChild(badge);
+    } else if (isVideo && item.thumbPath) {
       // Poster frame captured at upload — tile is a plain image, cheap to load.
       media = document.createElement('img');
       media.loading = 'lazy';
