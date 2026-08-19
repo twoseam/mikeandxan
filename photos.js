@@ -6,12 +6,10 @@
   'use strict';
 
   const WORKER_URL = 'https://mikeandxan-rsvp.michael-afc.workers.dev';
-  const NAME_KEY = 'mx_photos_name';
   const SESSION_KEY = 'mx_admin_session';
   const MAX_BYTES = 95 * 1024 * 1024;
   const POLL_MS = 20000;
 
-  const nameInput = document.getElementById('ph-name');
   const captionInput = document.getElementById('ph-caption');
   const fileInput = document.getElementById('ph-file');
   const pickBtn = document.getElementById('ph-pick');
@@ -20,9 +18,6 @@
   const feedStatus = document.getElementById('ph-feed-status');
   const lightbox = document.getElementById('ph-lightbox');
   const lightboxContent = lightbox.querySelector('.ph-lb-content');
-
-  nameInput.value = localStorage.getItem(NAME_KEY) || '';
-  nameInput.addEventListener('change', () => localStorage.setItem(NAME_KEY, nameInput.value.trim()));
 
   function adminToken() {
     try {
@@ -34,15 +29,7 @@
 
   // ── Uploading ──
 
-  pickBtn.addEventListener('click', () => {
-    if (!nameInput.value.trim()) {
-      nameInput.focus();
-      nameInput.style.borderColor = '#a82a52';
-      setTimeout(() => { nameInput.style.borderColor = ''; }, 1500);
-      return;
-    }
-    fileInput.click();
-  });
+  pickBtn.addEventListener('click', () => fileInput.click());
 
   fileInput.addEventListener('change', () => {
     const files = Array.from(fileInput.files || []);
@@ -73,7 +60,6 @@
     }
 
     const params = new URLSearchParams({
-      name: nameInput.value.trim(),
       caption: captionInput.value.trim()
     });
 
@@ -138,9 +124,11 @@
 
     const meta = document.createElement('figcaption');
     meta.className = 'ph-item-meta';
-    const who = document.createElement('b');
-    who.textContent = item.senderName || 'Someone';
-    meta.appendChild(who);
+    if (item.senderName) {
+      const who = document.createElement('b');
+      who.textContent = item.senderName;
+      meta.appendChild(who);
+    }
     if (item.caption) {
       const cap = document.createElement('div');
       cap.className = 'ph-cap';
