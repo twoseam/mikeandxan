@@ -41,9 +41,54 @@
 
   // ── Uploading ──
 
-  pickBtn.addEventListener('click', () => fileInput.click());
+  // iOS converts/exports a picked video BEFORE handing it to the page —
+  // that gap looks like a freeze. Show "Preparing…" from the moment the
+  // picker closes until the file actually arrives (change) or the picker
+  // was dismissed (cancel, Safari 16.4+).
+  let prepRow = null;
+  let pickerOpen = false;
+
+  let prepTimer = null;
+  function showPreparing() {
+    if (prepRow) return;
+    // Safety: browsers without the input 'cancel' event would leave this
+    // stuck after a dismissed picker — clear it after 3 minutes regardless.
+    clearTimeout(prepTimer);
+    prepTimer = setTimeout(clearPreparing, 3 * 60 * 1000);
+    prepRow = document.createElement('div');
+    prepRow.className = 'ph-q-item ph-q-prep';
+    prepRow.innerHTML =
+      '<div class="ph-q-name"><b>Getting it from your phone&hellip;</b><span class="ph-q-state"></span></div>' +
+      '<div class="ph-q-bar ph-q-bar-wait"><i></i></div>';
+    queueEl.hidden = false;
+    queueEl.appendChild(prepRow);
+  }
+  function clearPreparing() {
+    if (prepRow) { prepRow.remove(); prepRow = null; }
+    if (!queueEl.children.length) queueEl.hidden = true;
+  }
+
+  pickBtn.addEventListener('click', () => {
+    pickerOpen = true;
+    fileInput.click();
+  });
+
+  window.addEventListener('focus', () => {
+    if (!pickerOpen) return;
+    pickerOpen = false;
+    // If the file hasn't arrived shortly after the picker closed, iOS is
+    // still exporting — reassure. Cleared by change/cancel below.
+    setTimeout(() => { if (!fileInput.files.length) showPreparing(); }, 400);
+  });
+
+  fileInput.addEventListener('cancel', () => {
+    pickerOpen = false;
+    clearPreparing();
+  });
 
   fileInput.addEventListener('change', () => {
+    pickerOpen = false;
+    clearPreparing();
     const files = Array.from(fileInput.files || []);
     fileInput.value = '';
     files.forEach(uploadFile);

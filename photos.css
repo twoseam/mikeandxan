@@ -162,6 +162,16 @@
   transition: width 0.2s ease;
 }
 
+/* indeterminate "preparing" shimmer while the phone exports the video */
+.ph-q-bar-wait i {
+  width: 35%;
+  animation: ph-wait 1.1s ease-in-out infinite alternate;
+}
+@keyframes ph-wait {
+  from { transform: translateX(0); }
+  to   { transform: translateX(186%); }
+}
+
 /* ── Lightbox ── */
 
 .ph-lightbox {
