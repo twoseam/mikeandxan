@@ -25,7 +25,7 @@
   const feedEl = document.getElementById('ph-feed');
   const emptyEl = document.getElementById('ph-empty');
   const lightbox = document.getElementById('ph-lightbox');
-  const lightboxContent = lightbox.querySelector('.ph-lb-content');
+  const pager = document.getElementById('ph-pager');
 
   const faceDetector = ('FaceDetector' in window)
     ? new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 })
@@ -292,6 +292,7 @@
   // ── Feed tiles ──
 
   let renderedIds = new Set();
+  let feedItems = []; // latest feed order, drives the swipe viewer
 
   // Looping tile previews only play while on screen.
   const previewObserver = new IntersectionObserver((entries) => {
@@ -384,7 +385,7 @@
 
     el.addEventListener('click', (e) => {
       if (e.target.closest('.ph-item-meta')) return; // admin buttons
-      openLightbox(el, src, isVideo);
+      openViewer(item.id, el);
     });
 
     if (isAdmin) {
@@ -444,6 +445,7 @@
     const items = data.items || [];
 
     emptyEl.hidden = items.length > 0;
+    feedItems = items;
 
     const knownAll = items.every(i => renderedIds.has(i.id));
     if (knownAll && renderedIds.size === items.length) return;
@@ -457,39 +459,96 @@
     });
   }
 
-  // ── Lightbox with FLIP open animation ──
+  // ── Viewer: full-screen vertical pager (swipe up/down = next/prev) ──
+  // Native scroll + snap does the gesture work, so it inherits the OS's
+  // momentum/rubber-banding — the "feels like Instagram" part.
 
-  function openLightbox(tile, src, isVideo) {
-    const rect = tile.getBoundingClientRect();
+  // Slides load their media only when within a screen of the viewport.
+  const slideLoadObserver = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (en.isIntersecting) { loadSlide(en.target); slideLoadObserver.unobserve(en.target); }
+    });
+  }, { root: null, rootMargin: '150% 0px' });
 
-    lightboxContent.textContent = '';
+  // Videos play when snapped into view, pause when swiped away.
+  const slidePlayObserver = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      const v = en.target.querySelector('video');
+      if (!v) return;
+      if (en.intersectionRatio >= 0.6) v.play().catch(() => {});
+      else { v.pause(); }
+    });
+  }, { threshold: [0, 0.6] });
+
+  function loadSlide(slide) {
+    if (slide.dataset.loaded) return;
+    slide.dataset.loaded = '1';
+    const item = feedItems.find(i => String(i.id) === slide.dataset.id);
+    if (!item) return;
+    const src = WORKER_URL + item.mediaPath;
     let media;
-    if (isVideo) {
+    if (item.contentType.startsWith('video/')) {
       media = document.createElement('video');
       media.controls = true;
       media.playsInline = true;
-      media.autoplay = true;
+      media.loop = false;
+      media.preload = 'metadata';
+      if (item.thumbPath) media.poster = WORKER_URL + item.thumbPath;
       media.src = src;
     } else {
       media = document.createElement('img');
       media.src = src;
       media.alt = 'Guest photo';
     }
-    lightboxContent.appendChild(media);
+    slide.appendChild(media);
+  }
+
+  function openViewer(startId, tile) {
+    pager.textContent = '';
+    feedItems.forEach((item) => {
+      const slide = document.createElement('div');
+      slide.className = 'ph-slide';
+      slide.dataset.id = item.id;
+      pager.appendChild(slide);
+      slideLoadObserver.observe(slide);
+      slidePlayObserver.observe(slide);
+    });
+
     lightbox.classList.add('is-opening');
     lightbox.hidden = false;
 
-    // FLIP: measure the media's final box, then fly a cover-cropped clone
-    // from the tile's rect to it.
-    requestAnimationFrame(() => {
-      const end = media.getBoundingClientRect();
-      if (!end.width || !end.height) { lightbox.classList.remove('is-opening'); return; }
+    const index = Math.max(0, feedItems.findIndex(i => i.id === startId));
+    const startSlide = pager.children[index];
+    loadSlide(startSlide); // don't wait for the observer on the tapped one
+    pager.scrollTop = index * pager.clientHeight;
 
-      // Fly a clone of whatever the tile is already showing (thumb or frame)
-      const tileMedia = tile.querySelector('img, video');
-      const clone = tileMedia ? tileMedia.cloneNode() : document.createElement('img');
-      if (clone.tagName === 'VIDEO') { clone.muted = true; clone.playsInline = true; }
-      clone.style.objectPosition = tileMedia ? getComputedStyle(tileMedia).objectPosition : '50% 35%';
+    // Zoom-open: fly the tile's current image up to the slide.
+    const tileMedia = tile && tile.querySelector('img, video');
+    requestAnimationFrame(() => {
+      lightbox.classList.remove('is-opening'); // background fades in
+      if (!tileMedia) return;
+      const rect = tileMedia.getBoundingClientRect();
+      const target = startSlide.querySelector('img, video');
+      let end = target ? target.getBoundingClientRect() : null;
+      if (!end || !end.width || !end.height) {
+        // Full-size media not loaded yet — land on where it WILL sit:
+        // the tile thumb's aspect ratio contained in the viewport.
+        const nw = tileMedia.naturalWidth || tileMedia.videoWidth || 4;
+        const nh = tileMedia.naturalHeight || tileMedia.videoHeight || 5;
+        const vw = window.innerWidth - 16;
+        const vh = window.innerHeight - 24;
+        const s = Math.min(vw / nw, vh / nh);
+        end = {
+          left: (window.innerWidth - nw * s) / 2,
+          top: (window.innerHeight - nh * s) / 2,
+          width: nw * s,
+          height: nh * s
+        };
+      }
+
+      const clone = tileMedia.cloneNode();
+      if (clone.tagName === 'VIDEO') { clone.muted = true; clone.playsInline = true; clone.autoplay = false; }
+      clone.style.objectPosition = getComputedStyle(tileMedia).objectPosition;
       Object.assign(clone.style, {
         position: 'fixed',
         left: end.left + 'px',
@@ -504,38 +563,38 @@
       });
       document.body.appendChild(clone);
 
-      media.style.opacity = '0';
+      if (target) target.style.opacity = '0';
       const dx = rect.left - end.left;
       const dy = rect.top - end.top;
       const sx = rect.width / end.width;
       const sy = rect.height / end.height;
 
-      lightbox.classList.remove('is-opening'); // background fades in
       clone.animate(
         [
-          { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})` },
-          { transform: 'translate(0, 0) scale(1, 1)' }
+          { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, opacity: 1 },
+          { transform: 'translate(0, 0) scale(1, 1)', opacity: 1 }
         ],
         { duration: 320, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' }
       ).finished.finally(() => {
-        media.style.opacity = '';
+        if (target) target.style.opacity = '';
         clone.remove();
       });
     });
   }
 
-  function closeLightbox() {
-    lightboxContent.textContent = ''; // drops any playing video
+  function closeViewer() {
+    pager.textContent = ''; // drops any playing video + observers' targets
     lightbox.hidden = true;
   }
-  lightbox.addEventListener('click', (e) => {
-    if (e.target.tagName !== 'VIDEO') closeLightbox();
+  lightbox.querySelector('.ph-lb-close').addEventListener('click', closeViewer);
+  pager.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget || e.target.classList.contains('ph-slide')) closeViewer();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !lightbox.hidden) {
       e.preventDefault();
       e.stopImmediatePropagation();
-      closeLightbox();
+      closeViewer();
     }
   }, true);
 
