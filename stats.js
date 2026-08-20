@@ -24,13 +24,59 @@
     'gluten-free': 'Gluten Free'
   };
 
+  // The topping field is free text ("Kevin Canadian bacon Jenny cheese and
+  // more cheese"), so bucket answers into canonical toppings by keyword.
+  // One answer can mention several toppings; each bucket counts once per
+  // answer. Order matters: "Canadian bacon" is stripped from the text
+  // before plain "bacon" is tested, and "pepper" must not match pepperoni.
+  const TOPPING_BUCKETS = [
+    { label: 'Pepperoni',      re: /pep+eroni/ },
+    { label: 'Cheese',         re: /cheese|margherita|\bplain\b/ },
+    { label: 'Canadian bacon', re: /canadian\s*bacon|\bham\b/ },
+    { label: 'Sausage',        re: /sausage/ },
+    { label: 'Bacon',          re: /bacon/ },
+    { label: 'Mushrooms',      re: /mushroom/ },
+    { label: 'Pineapple',      re: /pineapple|hawaiian/ },
+    { label: 'Peppers',        re: /pepper(?!oni)|jalape/ },
+    { label: 'Onions',         re: /onion/ },
+    { label: 'Olives',         re: /olive/ },
+    { label: 'Chicken',        re: /chicken|bbq/ },
+    { label: 'Meat lovers',    re: /meat\s*lover|all\s*meat/ },
+    { label: 'Veggie',         re: /veggie|vegetable/ },
+    { label: 'Supreme',        re: /supreme|the\s*works|everything/ },
+  ];
+
+  function bucketToppings(answerText) {
+    const hits = [];
+    let t = answerText.toLowerCase();
+    TOPPING_BUCKETS.forEach(b => {
+      if (b.re.test(t)) {
+        hits.push(b.label);
+        // Strip the match so a broader bucket lower in the list can't
+        // double-claim it (Canadian bacon → bacon).
+        t = t.replace(new RegExp(b.re.source, 'g'), ' ');
+      }
+    });
+    return hits;
+  }
+
+  // Short attribution for a household's free-text answers: "Jenny T."
+  function bylineOf(h) {
+    const firstReal = h.members.find(m => !m.isPlusOne);
+    return firstReal
+      ? firstReal.name.trim().split(/\s+/).map((p, i, a) => i === 0 ? p : (i === a.length - 1 ? p.charAt(0) + '.' : '')).filter(Boolean).join(' ')
+      : (h.envelopeName || '');
+  }
+
   // Every count on this page is attending guests only — a declined vegan
   // doesn't need a meal. Toppings/songs are per-household answers, counted
   // when at least one member of that household is attending.
   function aggregate(households) {
     let attending = 0, specialMeals = 0, noRestriction = 0;
     const dietary = {};   // label -> count
-    const toppings = {};  // normalized -> { label, count }
+    const toppingCounts = {}; // bucket label -> count
+    const toppingQuotes = []; // { text, by }
+    let toppingAnswers = 0, toppingOther = 0;
     const songs = [];     // { song, by }
 
     households.forEach(h => {
@@ -53,38 +99,50 @@
 
       const topping = String(h.existing.pizzaTopping || '').trim();
       if (topping) {
-        const key = topping.toLowerCase();
-        if (!toppings[key]) toppings[key] = { label: topping.charAt(0).toUpperCase() + topping.slice(1), count: 0 };
-        toppings[key].count++;
+        toppingAnswers++;
+        toppingQuotes.push({ text: topping, by: bylineOf(h) });
+        const hits = bucketToppings(topping);
+        if (hits.length) hits.forEach(label => { toppingCounts[label] = (toppingCounts[label] || 0) + 1; });
+        else toppingOther++;
       }
       const song = String(h.existing.songRequest || '').trim();
-      if (song) {
-        const firstReal = h.members.find(m => !m.isPlusOne);
-        const by = firstReal
-          ? firstReal.name.trim().split(/\s+/).map((p, i, a) => i === 0 ? p : (i === a.length - 1 ? p.charAt(0) + '.' : '')).filter(Boolean).join(' ')
-          : (h.envelopeName || '');
-        songs.push({ song, by });
-      }
+      if (song) songs.push({ song, by: bylineOf(h) });
     });
 
     const dietaryRows = Object.keys(dietary).map(label => ({ label, count: dietary[label] }));
     dietaryRows.sort((a, b) => b.count - a.count);
     if (noRestriction) dietaryRows.unshift({ label: 'No restriction', count: noRestriction });
 
-    const toppingRows = Object.keys(toppings).map(k => toppings[k]);
+    let toppingRows = Object.keys(toppingCounts).map(label => ({ label, count: toppingCounts[label] }));
     toppingRows.sort((a, b) => b.count - a.count);
-    const toppingAnswers = toppingRows.reduce((n, t) => n + t.count, 0);
+    // Keep the board readable once the list fills in: top 8 named buckets,
+    // the tail folded into one quiet row (raw answers stay listed below).
+    if (toppingRows.length > 9) {
+      const rest = toppingRows.slice(8);
+      toppingRows = toppingRows.slice(0, 8);
+      toppingRows.push({ label: 'Everything else', count: rest.reduce((n, r) => n + r.count, 0), rest: true });
+    }
+    if (toppingOther) toppingRows.push({ label: 'Unclassified', count: toppingOther, rest: true });
 
-    return { attending, specialMeals, dietaryRows, toppingRows, toppingAnswers, songs };
+    return { attending, specialMeals, dietaryRows, toppingRows, toppingAnswers, toppingQuotes, songs };
   }
 
   function barsHtml(rows) {
     const max = rows.reduce((m, r) => Math.max(m, r.count), 0) || 1;
     return rows.map(r =>
-      '<div class="stats-bar-row">' +
+      '<div class="stats-bar-row"' + (r.rest ? ' data-kind="rest"' : '') + '>' +
         '<span class="stats-bar-name" title="' + escapeHtml(r.label) + '">' + escapeHtml(r.label) + '</span>' +
         '<span class="stats-bar-track"><span class="stats-bar-fill" style="width:' + Math.round(r.count / max * 100) + '%"></span></span>' +
         '<span class="stats-bar-val">' + r.count + '</span>' +
+      '</div>'
+    ).join('');
+  }
+
+  function quotesHtml(list, textKey) {
+    return list.map(q =>
+      '<div class="stats-quote">' +
+        '<p class="stats-quote-t">' + escapeHtml(q[textKey]) + '</p>' +
+        (q.by ? '<p class="stats-quote-by">' + escapeHtml(q.by) + '</p>' : '') +
       '</div>'
     ).join('');
   }
@@ -104,21 +162,24 @@
     }
 
     el('toppings-label').textContent = 'Pizza toppings — ' + stats.toppingAnswers + ' answered';
-    if (!stats.toppingRows.length) {
+    if (!stats.toppingAnswers) {
       el('toppings-hero').textContent = '–';
       el('toppings-hero-sub').textContent = 'no answers yet';
       el('toppings-bars').innerHTML = '<p class="stats-empty">Check back once RSVPs come in.</p>';
+      el('toppings-quotes').innerHTML = '';
     } else {
-      el('toppings-hero').textContent = stats.toppingRows[0].label;
-      el('toppings-hero-sub').textContent = 'current favorite';
+      const top = stats.toppingRows.find(r => !r.rest);
+      el('toppings-hero').textContent = top ? top.label : String(stats.toppingAnswers);
+      el('toppings-hero-sub').textContent = top ? 'current favorite' : 'answers so far';
       el('toppings-bars').innerHTML = barsHtml(stats.toppingRows);
+      el('toppings-quotes').innerHTML =
+        '<p class="stats-quotes-label">In their own words</p>' +
+        '<div class="stats-quotes">' + quotesHtml(stats.toppingQuotes, 'text') + '</div>';
     }
 
     el('songs-label').textContent = 'Song requests — ' + stats.songs.length + (stats.songs.length === 1 ? ' request' : ' so far');
     el('songs-list').innerHTML = stats.songs.length
-      ? stats.songs.map(s =>
-          '<div class="stats-song"><span class="stats-song-t">' + escapeHtml(s.song) + '</span><span class="stats-song-by">' + escapeHtml(s.by) + '</span></div>'
-        ).join('')
+      ? '<div class="stats-songs-cols">' + quotesHtml(stats.songs, 'song') + '</div>'
       : '<p class="stats-empty">No requests yet — check back once RSVPs come in.</p>';
   }
 

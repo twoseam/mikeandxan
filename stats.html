@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="stats.css?v=1" />
+  <link rel="stylesheet" href="stats.css?v=2" />
 </head>
 <body class="stats-body">
 
@@ -18,10 +18,11 @@
   </div>
 
   <div id="app" hidden>
-    <header class="stats-toolbar">
-      <a href="admin.html" class="stats-back">&larr; Back to Guest List</a>
-      <h1>Food &amp; Music</h1>
+    <header class="stats-header">
+      <p class="brand stats-brand"><span class="b-m">m</span> <span class="brand-amp">&amp;</span> <span class="b-a">a</span></p>
+      <h1 class="stats-title">Food &amp; Music</h1>
       <p id="stats-updated" class="stats-updated"></p>
+      <a href="admin.html" class="stats-back">&larr; Guest List</a>
     </header>
 
     <main class="stats-grid">
@@ -35,15 +36,16 @@
         <p class="stats-label" id="toppings-label">Pizza toppings</p>
         <div class="stats-hero"><b id="toppings-hero">–</b><span id="toppings-hero-sub"></span></div>
         <div id="toppings-bars"></div>
+        <div id="toppings-quotes"></div>
       </section>
 
-      <section class="stats-card">
+      <section class="stats-card stats-card-wide">
         <p class="stats-label" id="songs-label">Song requests</p>
         <div id="songs-list"></div>
       </section>
     </main>
   </div>
 
-  <script src="stats.js?v=1"></script>
+  <script src="stats.js?v=2"></script>
 </body>
 </html>
