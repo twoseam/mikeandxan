@@ -2615,3 +2615,6 @@ h2:has(.section-icon) { position: relative; }
 .info-card-tag {
   -webkit-text-stroke: var(--fat-stroke) var(--color-paper);
 }
+
+/* Submit lock: keep the disabled state visibly inert (double-tap guard). */
+.rsvp-form .btn[disabled] { opacity: .55; cursor: default; pointer-events: none; }

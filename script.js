@@ -531,6 +531,10 @@ async function getPolaroids() { return _polaroids; }
     const submission = collectSubmission();
     if (!submission) return;
 
+    // Lock the button while the request is in flight — a double-tap must
+    // not race two submissions for the same household.
+    if (submitBtn) submitBtn.disabled = true;
+
     setStatus(submitStatus, editingMode ? 'Updating your RSVP…' : 'Submitting your RSVP…', '');
 
     try {
@@ -575,6 +579,8 @@ async function getPolaroids() { return _polaroids; }
         "Something went wrong submitting your RSVP. Please try again, or contact Mike & Xan at hello@mikeandxan.com.",
         'error'
       );
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
     }
   });
 
