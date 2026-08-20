@@ -166,21 +166,140 @@
       el('toppings-hero').textContent = '–';
       el('toppings-hero-sub').textContent = 'no answers yet';
       el('toppings-bars').innerHTML = '<p class="stats-empty">Check back once RSVPs come in.</p>';
-      el('toppings-quotes').innerHTML = '';
     } else {
       const top = stats.toppingRows.find(r => !r.rest);
       el('toppings-hero').textContent = top ? top.label : String(stats.toppingAnswers);
       el('toppings-hero-sub').textContent = top ? 'current favorite' : 'answers so far';
       el('toppings-bars').innerHTML = barsHtml(stats.toppingRows);
-      el('toppings-quotes').innerHTML =
-        '<p class="stats-quotes-label">In their own words</p>' +
-        '<div class="stats-quotes">' + quotesHtml(stats.toppingQuotes, 'text') + '</div>';
     }
 
-    el('songs-label').textContent = 'Song requests — ' + stats.songs.length + (stats.songs.length === 1 ? ' request' : ' so far');
-    el('songs-list').innerHTML = stats.songs.length
-      ? '<div class="stats-songs-cols">' + quotesHtml(stats.songs, 'song') + '</div>'
-      : '<p class="stats-empty">No requests yet — check back once RSVPs come in.</p>';
+    renderSongs(stats.songs);
+  }
+
+  // ---- Song verification (Michael, Aug 19 2026): guests type anything into
+  // the song field, so the playlist here only lists requests that match a
+  // real song in Apple's catalog (iTunes Search API — public, no key). The
+  // unmatched ones aren't lost: every raw answer stays on the household's
+  // card in the Guest List. Verdicts are cached in localStorage so the page
+  // doesn't re-query on every visit. ----
+
+  const SONG_CACHE_KEY = 'mx_song_verdicts_v2';
+  const FILLER_RE = /\bum+\b|\bidk\b|\bdunno\b|\bno idea\b|\bwhatever\b|\bsurprise us\b|\banything\b|\bliterally\b/i;
+  const STOP_WORDS = new Set(['by', 'the', 'a', 'an', 'and', 'or', 'of', 'to', 'for', 'feat', 'ft', 'featuring', 'please', 'something', 'song', 'version', 'sorry', 'mom', 'dad', 'our', 'my', 'me', 'us', 'first']);
+
+  function songTokens(s) {
+    return Array.from(new Set(
+      String(s).toLowerCase().replace(/[^a-z0-9\s]+/g, ' ').split(/\s+/)
+        .filter(t => t && !STOP_WORDS.has(t))
+    ));
+  }
+
+  // "Sweet Caroline (Single Version)" → "Sweet Caroline"
+  function cleanTitle(t) {
+    return String(t).replace(/\(.*?\)|\[.*?\]/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  function loadVerdicts() {
+    try { return JSON.parse(localStorage.getItem(SONG_CACHE_KEY) || '{}'); }
+    catch (_) { return {}; }
+  }
+
+  // One free-text answer can hold several songs ("Fall on Me by Andrea
+  // Bocelli Judas Priest the Ripper" is two). Extraction loop: search the
+  // catalog for the remaining words, accept a result only when its TITLE is
+  // essentially present in the guest's words (artist-only matches like
+  // "anything by Fleetwood Mac" are requests, not songs), subtract the
+  // matched words, and go again on what's left. Returns [{title, artist}].
+  async function verifySongs(text, verdicts) {
+    if (Object.prototype.hasOwnProperty.call(verdicts, text)) return verdicts[text];
+    const hits = [];
+    if (!FILLER_RE.test(text)) {
+      let remaining = songTokens(text);
+      for (let round = 0; round < 3 && remaining.length; round++) {
+        // A two-songs-in-one answer fails as a single query (the catalog
+        // ANDs every word), so also try the front and back halves.
+        const windows = [remaining];
+        if (remaining.length > 4) { windows.push(remaining.slice(0, 4)); windows.push(remaining.slice(4)); }
+        let match = null;
+        for (const w of windows) {
+          const res = await fetch('https://itunes.apple.com/search?media=music&entity=song&limit=8&term=' + encodeURIComponent(w.join(' ')));
+          const data = await res.json();
+          for (const r of (data.results || [])) {
+            const trackTokens = songTokens(cleanTitle(r.trackName));
+            if (!trackTokens.length) continue;
+            const trackCov = trackTokens.filter(t => remaining.indexOf(t) !== -1).length / trackTokens.length;
+            if (trackCov >= 0.8) { match = r; break; }
+          }
+          if (match) break;
+        }
+        if (!match) break;
+        hits.push({ title: cleanTitle(match.trackName), artist: match.artistName });
+        const consumed = new Set(songTokens(cleanTitle(match.trackName) + ' ' + match.artistName));
+        remaining = remaining.filter(t => !consumed.has(t));
+        if (remaining.length < 2) break;
+      }
+    }
+    verdicts[text] = hits;
+    try { localStorage.setItem(SONG_CACHE_KEY, JSON.stringify(verdicts)); } catch (_) {}
+    return hits;
+  }
+
+  async function renderSongs(songs) {
+    if (!songs.length) {
+      el('songs-label').textContent = 'Song requests';
+      el('songs-list').innerHTML = '<p class="stats-empty">No requests yet — check back once RSVPs come in.</p>';
+      return;
+    }
+    el('songs-label').textContent = 'Song requests';
+    el('songs-list').innerHTML = '<p class="stats-empty">Checking requests against the song catalog…</p>';
+
+    const verdicts = loadVerdicts();
+    let anyVerified = false, anyFailed = false;
+    const checked = [];
+    for (const s of songs) {
+      try {
+        const v = await verifySongs(s.song, verdicts);
+        if (v.length) anyVerified = true;
+        checked.push({ raw: s.song, by: s.by, v });
+      } catch (_) {
+        anyFailed = true;
+        checked.push({ raw: s.song, by: s.by, v: [] });
+      }
+    }
+
+    // If the catalog can't be reached at all, show everything raw rather
+    // than an empty board.
+    if (!anyVerified && anyFailed) {
+      el('songs-label').textContent = 'Song requests — ' + songs.length + ' so far';
+      el('songs-list').innerHTML = '<div class="stats-songs-cols">' + quotesHtml(songs, 'song') + '</div>';
+      return;
+    }
+
+    // Same song requested twice → one row, both names.
+    const byKey = {};
+    const rows = [];
+    checked.forEach(c => {
+      c.v.forEach(hit => {
+        const key = (hit.title + '|' + hit.artist).toLowerCase();
+        if (byKey[key]) { if (c.by && byKey[key].bys.indexOf(c.by) === -1) byKey[key].bys.push(c.by); return; }
+        byKey[key] = { title: hit.title, artist: hit.artist, bys: c.by ? [c.by] : [] };
+        rows.push(byKey[key]);
+      });
+    });
+
+    const skipped = checked.filter(c => !c.v.length).length;
+    el('songs-label').textContent = 'Song requests — ' + rows.length + (rows.length === 1 ? ' song' : ' songs');
+    el('songs-list').innerHTML =
+      (rows.length
+        ? '<div class="stats-songs-cols">' + rows.map(r =>
+            '<div class="stats-quote stats-track">' +
+              '<p class="stats-track-title">' + escapeHtml(r.title) + '</p>' +
+              '<p class="stats-track-artist">' + escapeHtml(r.artist) + '</p>' +
+              (r.bys.length ? '<p class="stats-quote-by">' + escapeHtml(r.bys.join(' · ')) + '</p>' : '') +
+            '</div>'
+          ).join('') + '</div>'
+        : '<p class="stats-empty">Nothing matched a real song yet.</p>') +
+      (skipped ? '<p class="stats-note">' + skipped + (skipped === 1 ? ' request' : ' requests') + ' didn’t match a song — find them on the household cards in the Guest List.</p>' : '');
   }
 
   // Test hook: lets a harness render fabricated data without a live backend.
