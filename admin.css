@@ -229,11 +229,42 @@
   background: var(--color-cream);
 }
 
-.admin-toolbar {
+/* Two-tier toolbar (mockup option C, Aug 19 2026): search + the one loud
+   action on top, quiet icon links to the other admin views underneath. */
+.admin-toolbar { margin-bottom: var(--space-sm); }
+
+.admin-toolbar-row {
   display: flex;
   gap: var(--space-sm);
   flex-wrap: wrap;
-  margin-bottom: var(--space-sm);
+}
+
+.admin-views {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: .9rem;
+}
+.admin-view-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  color: var(--color-muted);
+  font-size: .9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.admin-view-link:hover { color: var(--color-text); }
+.admin-view-link svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
 }
 
 .admin-search {
@@ -378,42 +409,75 @@
   color: #8a7f72;
 }
 
-.bx-details {
-  margin-top: .6rem;
-  border-top: 1px dashed var(--color-paper-rule);
-  padding-top: .6rem;
-  font-size: .8rem;
-  color: #6b5f52;
-  columns: 2;
-  column-gap: 1.5rem;
-}
-.bx-details div { break-inside: avoid; margin: .1rem 0; }
-.bx-details b { font-weight: 600; color: var(--color-charcoal); }
+/* Ledger card (mockup option A, Aug 19 2026): eyebrow on top, label/value
+   rows for the RSVP data, actions as small tomato caps in the footer. */
 
-.bx-meta {
-  margin-top: .65rem;
-  padding-top: .5rem;
-  border-top: 1px solid var(--color-paper-rule);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-xs);
+.bx-eyebrow {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #a2937f;
+  margin: 0 0 .45rem;
 }
-.bx-meta-text { font-size: .72rem; color: #b3a696; min-width: 0; }
-.bx-links { display: flex; gap: .8rem; flex-shrink: 0; }
-.bx-link {
+
+.bx-ledger {
+  margin: .1rem 0 0;
+  border-top: 1px solid var(--color-paper-rule);
+}
+.bx-lrow {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 1rem;
+  padding: .42rem 0;
+  border-bottom: 1px solid var(--color-paper-rule);
+  font-size: .88rem;
+}
+.bx-lrow:last-child { border-bottom: 0; }
+.bx-lrow dt {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #a2937f;
+  padding-top: .22em;
+}
+.bx-lrow dd {
+  margin: 0;
+  color: #6b5f52;
+  overflow-wrap: anywhere;
+}
+.bx-lrow dd a {
+  color: var(--color-bg);
+  text-decoration: none;
+  font-weight: 600;
+}
+.bx-lrow dd a:hover { text-decoration: underline; }
+
+.bx-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.4rem;
+  border-top: 1px solid var(--color-paper-rule);
+  margin-top: .5rem;
+  padding-top: .65rem;
+}
+.bx-act {
   border: 0;
   background: transparent;
   padding: 0;
   font-family: inherit;
   font-size: .74rem;
-  font-weight: 600;
-  color: #b3a696;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-bg);
   text-decoration: none;
   cursor: pointer;
 }
-.bx-link:hover { color: var(--color-bg); }
-.bx-link-danger:hover { color: var(--color-berry); }
+.bx-act:hover { text-decoration: underline; }
+.bx-act-danger { color: var(--color-berry); opacity: .75; }
+.bx-act-danger:hover { opacity: 1; }
 
 @media (max-width: 560px) {
   .bx-grid { grid-template-columns: 1fr; }

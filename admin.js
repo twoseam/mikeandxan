@@ -352,22 +352,30 @@
       );
     }).join('');
 
+    // Ledger rows (Michael picked mockup option A, Aug 19 2026): tiny caps
+    // label column + value, one row per fact — replaces the old two-column
+    // "Label: value" blob that had no scan order.
     let detailsHtml = '';
     if (h.existing) {
-      const d = [];
-      if (h.existing.songRequest) d.push('<div><b>Song:</b> ' + escapeHtml(h.existing.songRequest) + '</div>');
-      if (h.existing.pizzaTopping) d.push('<div><b>Pizza:</b> ' + escapeHtml(h.existing.pizzaTopping) + '</div>');
-      if (h.existing.notes) d.push('<div><b>Notes:</b> ' + escapeHtml(h.existing.notes) + '</div>');
-      const contactBits = [h.existing.email, h.existing.phone, h.existing.contactMethod ? 'prefers ' + h.existing.contactMethod.toLowerCase() : '']
+      const rows = [];
+      if (h.existing.email) rows.push(['Email', '<a href="mailto:' + escapeHtml(h.existing.email) + '">' + escapeHtml(h.existing.email) + '</a>']);
+      const phoneBits = [h.existing.phone, h.existing.contactMethod ? 'prefers ' + h.existing.contactMethod.toLowerCase() : '']
         .filter(Boolean).map(escapeHtml).join(' · ');
-      if (contactBits) d.push('<div><b>Contact:</b> ' + contactBits + '</div>');
-      if (d.length) detailsHtml = '<div class="bx-details">' + d.join('') + '</div>';
+      if (phoneBits) rows.push(['Phone', phoneBits]);
+      if (h.existing.songRequest) rows.push(['Song', escapeHtml(h.existing.songRequest)]);
+      if (h.existing.pizzaTopping) rows.push(['Pizza', escapeHtml(h.existing.pizzaTopping)]);
+      if (h.existing.notes) rows.push(['Notes', escapeHtml(h.existing.notes)]);
+      if (rows.length) {
+        detailsHtml = '<dl class="bx-ledger">' +
+          rows.map(r => '<div class="bx-lrow"><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>').join('') +
+        '</dl>';
+      }
     }
 
     const links = [];
-    if (showRemove) links.push('<button type="button" class="bx-link admin-edit-btn" data-id="' + h.id + '">Edit</button>');
-    if (h.envelopeName && h.address) links.push('<a class="bx-link" href="envelopes.html?household=' + h.id + '" target="_blank" rel="noopener">Envelope</a>');
-    if (showRemove && h.alreadySubmitted) links.push('<button type="button" class="bx-link bx-link-danger admin-reset-btn" data-id="' + h.id + '">Reset</button>');
+    if (showRemove) links.push('<button type="button" class="bx-act admin-edit-btn" data-id="' + h.id + '">Edit</button>');
+    if (h.envelopeName && h.address) links.push('<a class="bx-act" href="envelopes.html?household=' + h.id + '" target="_blank" rel="noopener">Envelope</a>');
+    if (showRemove && h.alreadySubmitted) links.push('<button type="button" class="bx-act bx-act-danger admin-reset-btn" data-id="' + h.id + '">Reset</button>');
 
     // Every card's member grid sits inside an animated reveal
     // (grid-template-rows 0fr→1fr) so expand/collapse slides smoothly
@@ -389,6 +397,7 @@
 
     return (
       '<div class="admin-household bx-card" data-household-id="' + h.id + '">' +
+        '<p class="bx-eyebrow">' + (h.group ? escapeHtml(h.group) + ' · ' : '') + escapeHtml(cityStateOf(h.address)) + '</p>' +
         '<div class="bx-head">' +
           '<span class="bx-title">' + escapeHtml(title) + '</span>' +
           plusOneChip +
@@ -397,10 +406,7 @@
         '</div>' +
         gridHtml +
         detailsHtml +
-        '<div class="bx-meta">' +
-          '<span class="bx-meta-text">' + (h.group ? escapeHtml(h.group) + ' · ' : '') + escapeHtml(cityStateOf(h.address)) + '</span>' +
-          '<span class="bx-links">' + links.join('') + '</span>' +
-        '</div>' +
+        '<div class="bx-foot">' + links.join('') + '</div>' +
       '</div>'
     );
   }

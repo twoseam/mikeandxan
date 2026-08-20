@@ -14,7 +14,7 @@
   <link rel="icon" href="favicon-64.png" type="image/png" sizes="64x64" />
   <link rel="stylesheet" href="style.css" />
   <!-- ?v= busts browser caches - bump alongside admin.js's when either changes -->
-  <link rel="stylesheet" href="admin.css?v=8" />
+  <link rel="stylesheet" href="admin.css?v=9" />
 </head>
 <body class="admin-body">
 
@@ -48,11 +48,15 @@
       <section class="admin-stats" id="admin-stats" aria-label="RSVP stats"></section>
 
       <section class="admin-toolbar">
-        <input type="text" id="search-input" class="admin-search" placeholder="Search guests…" />
-        <a href="stats.html" class="btn btn-secondary">Stats</a>
-        <a href="mailing.html" class="btn btn-secondary">Mailing</a>
-        <a href="envelopes.html" class="btn btn-secondary" target="_blank" rel="noopener">Print Envelopes</a>
-        <button type="button" id="add-guest-open" class="btn btn-primary">+ Add Guest</button>
+        <div class="admin-toolbar-row">
+          <input type="text" id="search-input" class="admin-search" placeholder="Search guests…" />
+          <button type="button" id="add-guest-open" class="btn btn-primary">+ Add Guest</button>
+        </div>
+        <nav class="admin-views" aria-label="Admin pages">
+          <a href="stats.html" class="admin-view-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Stats</a>
+          <a href="mailing.html" class="admin-view-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6 12 13 2 6"/></svg>Mailing</a>
+          <a href="envelopes.html" class="admin-view-link" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print Envelopes</a>
+        </nav>
       </section>
 
       <p id="dashboard-status" class="admin-status" role="status" aria-live="polite"></p>
@@ -88,6 +92,6 @@
     </div>
   </div>
 
-  <script src="admin.js?v=11"></script>
+  <script src="admin.js?v=12"></script>
 </body>
 </html>
