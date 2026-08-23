@@ -437,6 +437,8 @@ async function getPolaroids() { return _polaroids; }
           "We couldn't find that name. Try your full name as it appears on your invitation, or include a partner's name.",
           'error'
         );
+        // Offer the escape hatch so nobody silently gives up.
+        helpBtn.hidden = false;
         return;
       }
 
@@ -455,6 +457,53 @@ async function getPolaroids() { return _polaroids; }
         "Something went wrong looking up your invitation. Please try again, or contact Mike & Xan at hello@mikeandxan.com.",
         'error'
       );
+    }
+  });
+
+  // ---- "Can't find your name?" escape hatch ----
+  // Shown after a failed search. Captures name + contact and emails us,
+  // so a guest who strikes out doesn't just give up.
+  const helpBtn = document.getElementById('lookup-help-btn');
+  const helpPanel = document.getElementById('lookup-help');
+  const helpName = document.getElementById('help-name');
+  const helpContact = document.getElementById('help-contact');
+  const helpSendBtn = document.getElementById('help-send-btn');
+  const helpStatus = document.getElementById('help-status');
+
+  helpBtn.addEventListener('click', () => {
+    helpBtn.hidden = true;
+    helpPanel.hidden = false;
+    const first = (lookupFirstInput.value || '').trim();
+    const last = (lookupLastInput.value || '').trim();
+    if (!helpName.value && (first || last)) helpName.value = (first + ' ' + last).trim();
+    helpContact.focus();
+  });
+
+  helpSendBtn.addEventListener('click', async () => {
+    const name = (helpName.value || '').trim();
+    const contact = (helpContact.value || '').trim();
+    if (name.length < 2 || contact.length < 5) {
+      setStatus(helpStatus, 'Please add your name and a phone number or email.', 'error');
+      return;
+    }
+    helpSendBtn.disabled = true;
+    setStatus(helpStatus, 'Sending…', '');
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'lookupHelp', payload: { name, contact } })
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || ('Send failed: ' + res.status));
+      helpName.disabled = true;
+      helpContact.disabled = true;
+      helpSendBtn.hidden = true;
+      setStatus(helpStatus, "Got it! We'll reach out shortly and get your RSVP squared away.", 'ok');
+    } catch (err) {
+      console.error(err);
+      helpSendBtn.disabled = false;
+      setStatus(helpStatus, 'Something went wrong. You can also email us at hello@mikeandxan.com.', 'error');
     }
   });
 
@@ -480,7 +529,11 @@ async function getPolaroids() { return _polaroids; }
   const phoneEl = document.getElementById('phone');
   if (phoneEl) {
     phoneEl.addEventListener('input', () => {
-      const digits = phoneEl.value.replace(/\D/g, '').slice(0, 10);
+      // Drop a leading country-code 1 ("1-660-853-8185") — otherwise the
+      // 10-digit cap eats the LAST digit and saves a garbled number.
+      let digits = phoneEl.value.replace(/\D/g, '');
+      if (digits.length > 10 && digits[0] === '1') digits = digits.slice(1);
+      digits = digits.slice(0, 10);
       let formatted;
       if (digits.length === 0)      formatted = '';
       else if (digits.length <= 3)  formatted = '(' + digits;

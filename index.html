@@ -32,7 +32,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="M &amp; A" />
   <meta name="theme-color" content="#eb5519" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
 
@@ -154,6 +154,23 @@
             </div>
             <button type="button" id="lookup-btn" class="btn btn-primary">Find my invitation</button>
             <p id="lookup-status" class="form-status" role="status" aria-live="polite"></p>
+
+            <button type="button" id="lookup-help-btn" class="btn btn-secondary lookup-help-btn" hidden>Can't find your name?</button>
+            <div id="lookup-help" class="lookup-help" hidden>
+              <p class="lookup-help-lede">No problem — leave your info and we'll get you sorted right away.</p>
+              <div class="lookup-name-fields">
+                <div>
+                  <label for="help-name" class="lookup-sub-label">Your name(s)</label>
+                  <input type="text" id="help-name" autocomplete="name" />
+                </div>
+                <div>
+                  <label for="help-contact" class="lookup-sub-label">Phone or email</label>
+                  <input type="text" id="help-contact" autocomplete="tel" />
+                </div>
+              </div>
+              <button type="button" id="help-send-btn" class="btn btn-primary">Send to Mike &amp; Xan</button>
+              <p id="help-status" class="form-status" role="status" aria-live="polite"></p>
+            </div>
           </div>
 
           <div class="form-step" data-step="picker" hidden aria-label="Choose your household">
@@ -666,7 +683,7 @@
     <p>Michael &amp; Alexandria &middot; November 14, 2026 &middot; Lenexa, KS</p>
   </footer>
 
-  <script src="script.js?v=2"></script>
+  <script src="script.js?v=3"></script>
   <script>
     // Single Escape press anywhere → private guest-list admin login.
     // Skipped while the photo lightbox is open (it uses Escape to close itself).

@@ -1830,6 +1830,20 @@ textarea::placeholder {
   margin: 0 0 .4rem;
 }
 
+.lookup-help-btn {
+  margin-top: var(--space-sm);
+}
+
+.lookup-help {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid rgba(0, 0, 0, .12);
+}
+
+.lookup-help-lede {
+  margin: 0 0 var(--space-sm);
+}
+
 
 #household-picker {
   display: flex;
