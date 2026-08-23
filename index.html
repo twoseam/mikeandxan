@@ -32,7 +32,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="M &amp; A" />
   <meta name="theme-color" content="#eb5519" />
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
 
@@ -76,7 +76,7 @@
       <img class="scr" src="assets/Scribbles/scribble-star1.svg" aria-hidden="true" style="top:22%;left:4%;width:55px;--sd:2.2s;--dd:0.5s;--sco:0.45">
       <img class="scr scr-red" src="assets/Scribbles/scribble-hearts3.svg" aria-hidden="true" style="bottom:35%;left:6%;width:65px;--sd:2s;--dd:0.6s;--sco:0.55">
       <div class="hero-inner">
-        <h1 class="hero-title">
+        <h1 class="hero-title" aria-label="Mike and Xan — November 14, 2026">
           <span class="hero-amp" aria-hidden="true">&amp;</span>
         </h1>
         <img class="scr scr-hero-hearts" src="assets/Scribbles/scribble-hearts1.svg" aria-hidden="true" data-fixed="1" style="width:280px;--sd:2s;--sco:0.45">
@@ -180,6 +180,7 @@
 
           <div class="form-step" data-step="2" hidden aria-label="Confirm attendance">
             <div id="household-members"></div>
+            <button type="button" id="not-you-btn" class="lookup-help-link">Not your household? Search again</button>
 
             <fieldset class="form-extras">
               <div class="form-row-2col">
@@ -413,20 +414,20 @@
       <div class="section-inner" id="story-start">
         <h2 class="anim-in"><svg class="section-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M32 52 C13 39 9 25 19 19 C26 15 30 19 32 25 C34 19 38 15 45 19 C55 25 51 39 32 52 Z"/></svg>Our Story</h2>
         <p>After matching on a dating app back in 2017, we decided right then and there that we’d hang out forever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever &amp; ever...</p>
-        <p>Our wedding day will be our 3,507th day together. THAT’S ALMOST A DECADE! We’ve moved several times, traveled the world, completed multiple degrees, left jobs and started businesses, survived a pandemic, bought a house, taken so many pictures of Zuzu, watched the Kansas City Chiefs in 5 Super Bowls, and having the best time through it all.</p>
+        <p>Our wedding day will be our 3,507th day together. THAT’S ALMOST A DECADE! We’ve moved several times, traveled the world, completed multiple degrees, left jobs and started businesses, survived a pandemic, bought a house, taken so many pictures of Zuzu, watched the Kansas City Chiefs in 5 Super Bowls, and had the best time through it all.</p>
         <ol class="timeline">
           <li class="timeline-event">
             <div class="timeline-content">
               <p class="timeline-date">April 8, 2017</p>
               <h3>Our first date</h3>
-              <p>We matched on Bumble and texted each other nonstop for two weeks. When we finally met, we had a drink at Brewery Emperial and dinner at Komatsu for a bowl of ramen. Michael snapped the "Hot Soup" photo and saved Alexandria's contact info as HOT SOUP. To this day Ms. Hot Soup is Michael's Emergency Contact</p>
+              <p>We matched on Bumble and texted each other nonstop for two weeks. When we finally met, we had a drink at Brewery Emperial and dinner at Komatsu for a bowl of ramen. Michael snapped the "Hot Soup" photo and saved Alexandria's contact info as HOT SOUP. To this day Ms. Hot Soup is Michael's Emergency Contact.</p>
             </div>
             <div class="timeline-photo">
               <div class="photo-stack">
                 
                 
                 
-              <img src="assets/Polaroid-15.webp" alt="[Photo TBD]" class="stack-photo"><img src="assets/Polaroid-16.webp" alt="[Photo TBD]" class="stack-photo"></div>
+              <img src="assets/Polaroid-15.webp" alt="" class="stack-photo"><img src="assets/Polaroid-16.webp" alt="" class="stack-photo"></div>
             </div>
           </li>
           <li class="timeline-event">
@@ -440,21 +441,21 @@
                 
                 
                 
-              <img src="assets/Polaroid-27.webp" alt="[Photo TBD]" class="stack-photo"><img src="assets/Polaroid-28.webp" alt="[Photo TBD]" class="stack-photo"><img src="assets/Polaroid-26.webp" alt="[Photo TBD]" class="stack-photo"></div>
+              <img src="assets/Polaroid-27.webp" alt="" class="stack-photo"><img src="assets/Polaroid-28.webp" alt="" class="stack-photo"><img src="assets/Polaroid-26.webp" alt="" class="stack-photo"></div>
             </div>
           </li>
           <li class="timeline-event">
             <div class="timeline-content">
               <p class="timeline-date">July 01, 2021</p>
               <h3>Bought a home together</h3>
-              <p>We had each lived solo for years before meeting. Having a home together was something we had always wanted but never knew if it would be possible. Supporting one another in our careers and starting two businesses gave us the opportunity to have that dream. We both feel so lucky to call this house, "home".</p>
+              <p>We had each lived solo for years before meeting. Having a home together was something we had always wanted but never knew if it would be possible. Supporting one another in our careers and starting two businesses gave us the opportunity to have that dream. We both feel so lucky to call this house "home".</p>
             </div>
             <div class="timeline-photo">
               <div class="photo-stack">
                 
                 
                 
-              <img src="assets/Polaroid-9.webp" alt="[Photo TBD]" class="stack-photo"><img src="assets/Polaroid-22.webp" alt="[Photo TBD]" class="stack-photo"><img src="assets/Polaroid-23.webp" alt="[Photo TBD]" class="stack-photo"></div>
+              <img src="assets/Polaroid-9.webp" alt="" class="stack-photo"><img src="assets/Polaroid-22.webp" alt="" class="stack-photo"><img src="assets/Polaroid-23.webp" alt="" class="stack-photo"></div>
             </div>
           </li>
           <li class="timeline-event">
@@ -468,7 +469,7 @@
                 
                 
                 
-              <img src="assets/Polaroid-29.webp" alt="[Photo TBD]" class="stack-photo"><img src="assets/Polaroid-30.webp" alt="[Photo TBD]" class="stack-photo"><img src="assets/Polaroid-31.webp" alt="[Photo TBD]" class="stack-photo"></div>
+              <img src="assets/Polaroid-29.webp" alt="" class="stack-photo"><img src="assets/Polaroid-30.webp" alt="" class="stack-photo"><img src="assets/Polaroid-31.webp" alt="" class="stack-photo"></div>
             </div>
           </li>
         </ol>
@@ -683,7 +684,7 @@
     <p>Michael &amp; Alexandria &middot; November 14, 2026 &middot; Lenexa, KS</p>
   </footer>
 
-  <script src="script.js?v=4"></script>
+  <script src="script.js?v=5"></script>
   <script>
     // Single Escape press anywhere → private guest-list admin login.
     // Skipped while the photo lightbox is open (it uses Escape to close itself).

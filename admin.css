@@ -475,7 +475,9 @@
   text-decoration: none;
   cursor: pointer;
 }
-.bx-act:hover { text-decoration: underline; }
+/* Keep the color on hover: the <a> variant (Envelope) otherwise takes the
+   global a:hover white and vanishes on the white card. */
+.bx-act:hover { text-decoration: underline; color: var(--color-bg); }
 .bx-act-danger { color: var(--color-berry); opacity: .75; }
 .bx-act-danger:hover { opacity: 1; }
 

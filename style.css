@@ -715,11 +715,13 @@ section:not(#home) h2,
 .info-card a {
   color: var(--color-bg);
 }
+/* On white card surfaces the global white a:hover would vanish, and the
+   pink accent is barely legible — use the deep berry accent instead. */
 .faq-body a:hover,
 .rsvp-form a:hover,
 .contact-card a:hover,
 .info-card a:hover {
-  color: var(--color-accent);
+  color: var(--color-berry);
 }
 /* ==WAVE-END== */
 
@@ -871,7 +873,9 @@ section:not(#home) h2,
   box-shadow: none;
 }
 .btn-primary:hover {
-  background: var(--color-accent-hover);
+  /* Not --color-accent-hover: that's white, and this button keeps white
+     text — hover would be white-on-white (bit the admin Add Guest btn). */
+  background: var(--color-berry);
   color: #fff;
   box-shadow: none;
 }
@@ -1843,7 +1847,8 @@ textarea::placeholder {
   cursor: pointer;
 }
 .lookup-help-link:hover {
-  color: var(--color-text);
+  /* Sits on the white form card — white --color-text would vanish. */
+  color: var(--color-berry);
 }
 
 .lookup-help {
@@ -1886,7 +1891,8 @@ textarea::placeholder {
 .picker-contact-link {
   margin-top: var(--space-sm);
   font-style: italic;
-  color: var(--color-muted);
+  /* Not --color-muted: pale peach is near-invisible on the white cards. */
+  color: var(--color-bg);
   text-decoration: none;
 }
 .picker-contact-link { display: block; }
@@ -1913,7 +1919,9 @@ textarea::placeholder {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   font: inherit;
-  color: inherit;
+  /* Not inherit: the popover is appended to <body>, which is white text —
+     invisible on this white surface. */
+  color: var(--color-charcoal);
   text-decoration: none;
   cursor: pointer;
 }
@@ -2147,7 +2155,19 @@ textarea::placeholder {
   color: #fff;
 }
 
-.household-member .attending-toggle input[type="radio"] { display: none; }
+/* Hidden but still focusable — display:none would remove the radios from
+   keyboard tab order and screen readers entirely. */
+.household-member .attending-toggle input[type="radio"] {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap; border: 0;
+}
+.household-member .attending-toggle label:has(input:focus-visible) {
+  outline: 2px solid var(--color-bg);
+  outline-offset: 2px;
+}
 
 .household-member .dietary-row { margin-top: var(--space-sm); }
 .household-member .dietary-other {
@@ -2189,6 +2209,12 @@ textarea::placeholder {
   opacity: 1;
   margin-top: var(--space-sm);
   padding-top: var(--space-sm);
+}
+/* Once fully open, stop clipping — the +1's dietary dropdown menu is
+   position:absolute and gets cut off by overflow:hidden otherwise.
+   script.js adds .is-settled after the expand transition ends. */
+.plusone-details.is-open.is-settled {
+  overflow: visible;
 }
 .plusone-details .plusone-name {
   display: block;
@@ -2262,7 +2288,18 @@ textarea::placeholder {
   color: #fff;
 }
 
-.contact-method input[type="radio"] { display: none; }
+/* Hidden but still focusable (see attending-toggle note). */
+.contact-method input[type="radio"] {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap; border: 0;
+}
+.contact-method label:has(input:focus-visible) {
+  outline: 2px solid var(--color-bg);
+  outline-offset: 2px;
+}
 
 /* ---------- Details / FAQ ---------- */
 

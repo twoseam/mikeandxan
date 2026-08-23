@@ -470,6 +470,18 @@ async function getPolaroids() { return _polaroids; }
   const helpSendBtn = document.getElementById('help-send-btn');
   const helpStatus = document.getElementById('help-status');
 
+  // Enter / mobile "Go" in the help fields must send the request — the
+  // implicit form submit would otherwise fire the RSVP handler, which
+  // bails silently while the confirm step is hidden.
+  [helpName, helpContact].forEach(input => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        helpSendBtn.click();
+      }
+    });
+  });
+
   helpBtn.addEventListener('click', () => {
     helpBtn.hidden = true;
     helpPanel.hidden = false;
@@ -587,6 +599,7 @@ async function getPolaroids() { return _polaroids; }
     // Lock the button while the request is in flight — a double-tap must
     // not race two submissions for the same household.
     if (submitBtn) submitBtn.disabled = true;
+    let answersSaved = false;
 
     setStatus(submitStatus, editingMode ? 'Updating your RSVP…' : 'Submitting your RSVP…', '');
 
@@ -597,13 +610,25 @@ async function getPolaroids() { return _polaroids; }
         const who = result.alreadySubmittedFor || 'someone in your household';
         setStatus(
           submitStatus,
-          `It looks like an RSVP for ${who} has already been submitted. If you need to change your response, please email us at hello@mikeandxan.com and we'll take care of it.`,
+          `It looks like an RSVP for ${who} has already been submitted. To change your response, search your name again and choose "Edit our RSVP" — or email us at hello@mikeandxan.com.`,
           'error'
         );
         return;
       }
 
       if (!result || !result.ok) {
+        // The safety net saved their answers server-side — from the guest's
+        // perspective that's a success, not a failure. Don't say "failed"
+        // and don't re-enable the button (a retry would hit "duplicate").
+        if (result && result.error && result.error.indexOf('your answers were saved') !== -1) {
+          setStatus(
+            submitStatus,
+            "We hit a snag on our end, but your answers were saved and we've been notified — no need to resubmit. We'll be in touch if anything needs your attention.",
+            'ok'
+          );
+          answersSaved = true; // keep the button locked — a retry would double-submit
+          return;
+        }
         setStatus(
           submitStatus,
           (result && result.error)
@@ -633,7 +658,7 @@ async function getPolaroids() { return _polaroids; }
         'error'
       );
     } finally {
-      if (submitBtn) submitBtn.disabled = false;
+      if (submitBtn && !answersSaved) submitBtn.disabled = false;
     }
   });
 
@@ -710,11 +735,21 @@ async function getPolaroids() { return _polaroids; }
 
   function backToLookup() {
     stepPicker.hidden = true;
+    stepConfirm.hidden = true;
+    stepAlready.hidden = true;
     stepFind.hidden = false;
+    editingMode = false;
+    pendingEditHousehold = null;
+    if (submitBtn) submitBtn.textContent = 'Submit RSVP';
     setStatus(lookupStatus, '', '');
     lookupFirstInput.focus();
     lookupFirstInput.select();
   }
+
+  // Escape from the form step — fuzzy matching can land the wrong
+  // household straight in the form with no other way back but a reload.
+  const notYouBtn = document.getElementById('not-you-btn');
+  if (notYouBtn) notYouBtn.addEventListener('click', backToLookup);
 
   function renderHousehold(household, existing) {
     householdContainer.innerHTML = '';
@@ -760,12 +795,26 @@ async function getPolaroids() { return _polaroids; }
         householdContainer.appendChild(wrap);
 
         const details = wrap.querySelector('.plusone-details');
+        // After the expand animation, mark the panel settled so CSS can lift
+        // overflow:hidden — otherwise the +1's dietary dropdown menu
+        // (position:absolute) opens invisibly inside the clipped panel.
+        details.addEventListener('transitionend', (e) => {
+          if (e.propertyName === 'max-height' && details.classList.contains('is-open')) {
+            details.classList.add('is-settled');
+          }
+        });
         const bringingRadios = wrap.querySelectorAll(`input[name="bringing-${memberId}"]`);
         bringingRadios.forEach(r => {
           r.addEventListener('change', () => {
             const yes = wrap.querySelector(`input[name="bringing-${memberId}"]:checked`);
             const isYes = !!(yes && yes.value === 'yes');
             details.classList.toggle('is-open', isYes);
+            if (!isYes) details.classList.remove('is-settled');
+            // Fallback for when the transition never fires (e.g. prefill
+            // while the step is still hidden — transitionend won't come).
+            if (isYes) setTimeout(() => {
+              if (details.classList.contains('is-open')) details.classList.add('is-settled');
+            }, 420);
             wrap.classList.toggle('is-bringing', isYes);
           });
         });
@@ -2023,6 +2072,18 @@ function initParkingMap() {
     btn.className = 'mx-select-btn';
     btn.setAttribute('aria-haspopup', 'listbox');
     btn.setAttribute('aria-expanded', 'false');
+    // Give the replacement button the field name the hidden select's
+    // <label> carried, so screen readers announce more than the value.
+    const srcLabel = sel.id && document.querySelector('label[for="' + sel.id + '"]');
+    if (srcLabel) {
+      btn.setAttribute('aria-label', srcLabel.textContent.trim());
+      // The label points at the now-hidden native select, so clicking it
+      // does nothing — send the click to the replacement button instead.
+      srcLabel.addEventListener('click', (e) => {
+        e.preventDefault();
+        btn.focus();
+      });
+    }
     wrap.appendChild(btn);
 
     const menu = document.createElement('ul');
