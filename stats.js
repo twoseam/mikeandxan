@@ -77,6 +77,7 @@
     const toppingCounts = {}; // bucket label -> count
     const toppingQuotes = []; // { text, by }
     let toppingAnswers = 0, toppingOther = 0;
+    const toppingUnclassified = []; // { text, by } — answers no bucket claimed
     const songs = [];     // { song, by }
 
     households.forEach(h => {
@@ -103,7 +104,7 @@
         toppingQuotes.push({ text: topping, by: bylineOf(h) });
         const hits = bucketToppings(topping);
         if (hits.length) hits.forEach(label => { toppingCounts[label] = (toppingCounts[label] || 0) + 1; });
-        else toppingOther++;
+        else { toppingOther++; toppingUnclassified.push({ text: topping, by: bylineOf(h) }); }
       }
       const song = String(h.existing.songRequest || '').trim();
       if (song) songs.push({ song, by: bylineOf(h) });
@@ -122,21 +123,91 @@
       toppingRows = toppingRows.slice(0, 8);
       toppingRows.push({ label: 'Everything else', count: rest.reduce((n, r) => n + r.count, 0), rest: true });
     }
-    if (toppingOther) toppingRows.push({ label: 'Unclassified', count: toppingOther, rest: true });
+    if (toppingOther) toppingRows.push({ label: 'Unclassified', count: toppingOther, rest: true, click: 'unclassified' });
 
-    return { attending, specialMeals, dietaryRows, toppingRows, toppingAnswers, toppingQuotes, songs };
+    return { attending, specialMeals, dietaryRows, toppingRows, toppingAnswers, toppingQuotes, toppingUnclassified, songs };
   }
 
   function barsHtml(rows) {
     const max = rows.reduce((m, r) => Math.max(m, r.count), 0) || 1;
-    return rows.map(r =>
-      '<div class="stats-bar-row"' + (r.rest ? ' data-kind="rest"' : '') + '>' +
-        '<span class="stats-bar-name" title="' + escapeHtml(r.label) + '">' + escapeHtml(r.label) + '</span>' +
+    return rows.map(r => {
+      // A row with `click` opens a popup listing its raw answers.
+      const clickAttrs = r.click
+        ? ' data-modal="' + r.click + '" role="button" tabindex="0" title="Tap to see the answers"'
+        : '';
+      return '<div class="stats-bar-row"' + (r.rest ? ' data-kind="rest"' : '') + clickAttrs + '>' +
+        '<span class="stats-bar-name"' + (r.click ? '' : ' title="' + escapeHtml(r.label) + '"') + '>' + escapeHtml(r.label) + '</span>' +
         '<span class="stats-bar-track"><span class="stats-bar-fill" style="width:' + Math.round(r.count / max * 100) + '%"></span></span>' +
         '<span class="stats-bar-val">' + r.count + '</span>' +
-      '</div>'
-    ).join('');
+      '</div>';
+    }).join('');
   }
+
+  // ---- Popup + YouTube links (Michael, Aug 24 2026) ----
+
+  function ytSearchUrl(q) {
+    return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+  }
+
+  const modal = el('stats-modal');
+  function openModal(title, html) {
+    el('stats-modal-title').textContent = title;
+    el('stats-modal-body').innerHTML = html;
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    el('stats-modal-x').focus();
+  }
+  function closeModal() {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+  }
+  modal.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.hidden) closeModal(); });
+
+  let lastStats = null;          // set by render(); modal content reads from here
+  let lastUnmatchedSongs = [];   // set by renderSongs(); { raw, by }
+
+  function showUnclassifiedToppings() {
+    if (!lastStats || !lastStats.toppingUnclassified.length) return;
+    const n = lastStats.toppingUnclassified.length;
+    openModal(
+      'Unclassified toppings — ' + n + (n === 1 ? ' answer' : ' answers'),
+      quotesHtml(lastStats.toppingUnclassified, 'text')
+    );
+  }
+
+  // Unmatched song requests get the same treatment: each raw answer links
+  // to a YouTube search so it's one tap to hear what the guest meant.
+  function showUnmatchedSongs() {
+    if (!lastUnmatchedSongs.length) return;
+    const n = lastUnmatchedSongs.length;
+    openModal(
+      'Unmatched requests — ' + n + (n === 1 ? ' answer' : ' answers'),
+      lastUnmatchedSongs.map(c =>
+        '<a class="stats-quote stats-track-link" href="' + ytSearchUrl(c.raw) + '" target="_blank" rel="noopener">' +
+          '<span class="stats-track-main">' +
+            '<p class="stats-quote-t">' + escapeHtml(c.raw) + '</p>' +
+            (c.by ? '<p class="stats-quote-by">' + escapeHtml(c.by) + '</p>' : '') +
+          '</span>' +
+          '<span class="stats-track-play" aria-hidden="true">&#9654;</span>' +
+        '</a>'
+      ).join('')
+    );
+  }
+
+  // Containers persist across re-renders, so delegate once here.
+  el('toppings-bars').addEventListener('click', e => {
+    if (e.target.closest('[data-modal="unclassified"]')) showUnclassifiedToppings();
+  });
+  el('toppings-bars').addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-modal="unclassified"]')) {
+      e.preventDefault();
+      showUnclassifiedToppings();
+    }
+  });
+  el('songs-list').addEventListener('click', e => {
+    if (e.target.closest('[data-modal="unmatched"]')) showUnmatchedSongs();
+  });
 
   function quotesHtml(list, textKey) {
     return list.map(q =>
@@ -148,6 +219,7 @@
   }
 
   function render(stats) {
+    lastStats = stats;
     el('stats-updated').textContent = stats.attending + ' attending so far';
 
     el('dietary-label').textContent = 'Dietary — ' + stats.attending + ' attending';
@@ -287,19 +359,23 @@
       });
     });
 
-    const skipped = checked.filter(c => !c.v.length).length;
+    lastUnmatchedSongs = checked.filter(c => !c.v.length).map(c => ({ raw: c.raw, by: c.by }));
+    const skipped = lastUnmatchedSongs.length;
     el('songs-label').textContent = 'Song requests — ' + rows.length + (rows.length === 1 ? ' song' : ' songs');
     el('songs-list').innerHTML =
       (rows.length
         ? '<div class="stats-songs-cols">' + rows.map(r =>
-            '<div class="stats-quote stats-track">' +
-              '<p class="stats-track-title">' + escapeHtml(r.title) + '</p>' +
-              '<p class="stats-track-artist">' + escapeHtml(r.artist) + '</p>' +
-              (r.bys.length ? '<p class="stats-quote-by">' + escapeHtml(r.bys.join(' · ')) + '</p>' : '') +
-            '</div>'
+            '<a class="stats-quote stats-track stats-track-link" href="' + ytSearchUrl(r.title + ' ' + r.artist) + '" target="_blank" rel="noopener">' +
+              '<span class="stats-track-main">' +
+                '<p class="stats-track-title">' + escapeHtml(r.title) + '</p>' +
+                '<p class="stats-track-artist">' + escapeHtml(r.artist) + '</p>' +
+                (r.bys.length ? '<p class="stats-quote-by">' + escapeHtml(r.bys.join(' · ')) + '</p>' : '') +
+              '</span>' +
+              '<span class="stats-track-play" aria-hidden="true">&#9654;</span>' +
+            '</a>'
           ).join('') + '</div>'
         : '<p class="stats-empty">Nothing matched a real song yet.</p>') +
-      (skipped ? '<p class="stats-note">' + skipped + (skipped === 1 ? ' request' : ' requests') + ' didn’t match a song — find them on the household cards in the Guest List.</p>' : '');
+      (skipped ? '<p class="stats-note">' + skipped + (skipped === 1 ? ' request' : ' requests') + ' didn’t match a song — <button type="button" class="stats-note-link" data-modal="unmatched">see the list</button>.</p>' : '');
   }
 
   // Test hook: lets a harness render fabricated data without a live backend.

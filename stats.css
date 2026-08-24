@@ -178,3 +178,125 @@
 }
 
 .stats-empty { color: #b3a696; font-size: .85rem; margin: .4rem 0 0; }
+
+/* ============================================================
+   Aug 24 2026 — clickable rows, YouTube song links, and the
+   answers popup. The "Unclassified" bar and the "didn't match"
+   note open a popup listing the raw answers; every song row
+   links out to a YouTube search for that track.
+   ============================================================ */
+
+/* ---------- Clickable bar row (Unclassified) ---------- */
+
+.stats-bar-row[data-modal] { cursor: pointer; }
+.stats-bar-row[data-modal] .stats-bar-name {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+.stats-bar-row[data-modal]:hover .stats-bar-name,
+.stats-bar-row[data-modal]:focus-visible .stats-bar-name { color: var(--color-bg); }
+.stats-bar-row[data-modal]:focus-visible {
+  outline: 2px solid var(--color-bg);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------- Song rows as YouTube links ---------- */
+
+.stats-track-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .8rem;
+  text-decoration: none;
+  color: inherit;
+}
+.stats-track-main { min-width: 0; }
+.stats-track-play {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  font-size: .55rem;
+  padding-left: .15em; /* optically center the triangle */
+  color: #b3a696;
+  border: 1.5px solid #e8ddcd;
+  border-radius: 100px;
+}
+.stats-track-link:hover .stats-track-title,
+.stats-track-link:focus-visible .stats-track-title { color: var(--color-bg); }
+.stats-track-link:hover .stats-track-play,
+.stats-track-link:focus-visible .stats-track-play {
+  color: #fff;
+  background: var(--color-bg);
+  border-color: var(--color-bg);
+}
+
+/* ---------- "See the list" note link ---------- */
+
+.stats-note-link {
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+.stats-note-link:hover,
+.stats-note-link:focus-visible { color: var(--color-bg); }
+
+/* ---------- Popup ---------- */
+
+.stats-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.stats-modal[hidden] { display: none; }
+.stats-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(43, 30, 24, .55);
+}
+.stats-modal-card {
+  position: relative;
+  background: var(--color-paper);
+  color: var(--color-charcoal);
+  border-radius: var(--radius);
+  width: min(480px, 100%);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.1rem 1.25rem 1.2rem;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .3);
+}
+.stats-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.stats-modal-head .stats-label { margin: 0; }
+.stats-modal-x {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #b3a696;
+  cursor: pointer;
+  padding: .2rem .45rem;
+  margin: -.2rem -.45rem 0 0;
+}
+.stats-modal-x:hover,
+.stats-modal-x:focus-visible { color: var(--color-charcoal); }
+.stats-modal-body { overflow-y: auto; margin-top: .5rem; }
+.stats-modal-body .stats-quote:first-child { border-top: 0; }

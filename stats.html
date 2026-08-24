@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="stats.css?v=4" />
+  <link rel="stylesheet" href="stats.css?v=5" />
 </head>
 <body class="stats-body">
 
@@ -45,6 +45,17 @@
     </main>
   </div>
 
-  <script src="stats.js?v=4"></script>
+  <div id="stats-modal" class="stats-modal" hidden>
+    <div class="stats-modal-backdrop" data-close></div>
+    <div class="stats-modal-card" role="dialog" aria-modal="true" aria-labelledby="stats-modal-title">
+      <div class="stats-modal-head">
+        <p class="stats-label" id="stats-modal-title"></p>
+        <button type="button" id="stats-modal-x" class="stats-modal-x" data-close aria-label="Close">&times;</button>
+      </div>
+      <div id="stats-modal-body" class="stats-modal-body"></div>
+    </div>
+  </div>
+
+  <script src="stats.js?v=5"></script>
 </body>
 </html>
