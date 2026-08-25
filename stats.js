@@ -84,6 +84,7 @@
   function aggregate(households) {
     let attending = 0, specialMeals = 0, noRestriction = 0;
     const dietary = {};   // label -> count
+    const dietaryPeople = {}; // label -> [{name, house, email, phone}] for the contact popup
     const toppingCounts = {}; // bucket label -> count
     const toppingQuotes = []; // { text, by }
     let toppingAnswers = 0, toppingOther = 0;
@@ -102,6 +103,12 @@
             ? (String(m.dietaryOther || '').trim() || 'Other')
             : (DIETARY_LABELS[m.dietary] || m.dietary);
           dietary[label] = (dietary[label] || 0) + 1;
+          (dietaryPeople[label] = dietaryPeople[label] || []).push({
+            name: m.name,
+            house: h.envelopeName || '',
+            email: (h.existing && h.existing.email) || '',
+            phone: (h.existing && h.existing.phone) || ''
+          });
         } else {
           noRestriction++;
         }
@@ -120,7 +127,7 @@
       if (song) songs.push({ song, by: bylineOf(h) });
     });
 
-    const dietaryRows = Object.keys(dietary).map(label => ({ label, count: dietary[label] }));
+    const dietaryRows = Object.keys(dietary).map(label => ({ label, count: dietary[label], people: dietaryPeople[label] }));
     dietaryRows.sort((a, b) => b.count - a.count);
     if (noRestriction) dietaryRows.unshift({ label: 'No restriction', count: noRestriction });
 
@@ -142,13 +149,14 @@
 
   function barsHtml(rows) {
     const max = rows.reduce((m, r) => Math.max(m, r.count), 0) || 1;
-    return rows.map(r => {
-      // A row with `click` opens a popup listing its raw answers.
-      const clickAttrs = r.click
-        ? ' data-modal="' + r.click + '" role="button" tabindex="0" title="Tap to see the answers"'
+    return rows.map((r, i) => {
+      // A row with `click` (or a people list) opens a popup with its detail.
+      const modalKey = r.click || (r.people && r.people.length ? 'diet' : null);
+      const clickAttrs = modalKey
+        ? ' data-modal="' + modalKey + '" data-idx="' + i + '" role="button" tabindex="0" title="Tap for details"'
         : '';
       return '<div class="stats-bar-row"' + (r.rest ? ' data-kind="rest"' : '') + clickAttrs + '>' +
-        '<span class="stats-bar-name"' + (r.click ? '' : ' title="' + escapeHtml(r.label) + '"') + '>' + escapeHtml(r.label) + '</span>' +
+        '<span class="stats-bar-name"' + (modalKey ? '' : ' title="' + escapeHtml(r.label) + '"') + '>' + escapeHtml(r.label) + '</span>' +
         '<span class="stats-bar-track"><span class="stats-bar-fill" style="width:' + Math.round(r.count / max * 100) + '%"></span></span>' +
         '<span class="stats-bar-val">' + r.count + '</span>' +
       '</div>';
@@ -223,6 +231,29 @@
     );
   }
 
+  // Dietary rows: who wrote this restriction, with the contact info from
+  // their household's RSVP.
+  function showDietaryPeople(idx) {
+    const row = lastStats && lastStats.dietaryRows[idx];
+    if (!row || !row.people || !row.people.length) return;
+    openModal(
+      row.label + ' — ' + row.count + (row.count === 1 ? ' guest' : ' guests'),
+      row.people.map(p =>
+        '<div class="stats-quote">' +
+          '<p class="stats-quote-t">' + escapeHtml(p.name) + '</p>' +
+          (p.house ? '<p class="stats-quote-by">' + escapeHtml(p.house) + '</p>' : '') +
+          ((p.email || p.phone)
+            ? '<p class="stats-person-contact">' +
+                (p.email ? '<a href="mailto:' + escapeHtml(p.email) + '">' + escapeHtml(p.email) + '</a>' : '') +
+                (p.email && p.phone ? ' &middot; ' : '') +
+                (p.phone ? '<a href="tel:' + escapeHtml(String(p.phone).replace(/[^+\d]/g, '')) + '">' + escapeHtml(p.phone) + '</a>' : '') +
+              '</p>'
+            : '') +
+        '</div>'
+      ).join('')
+    );
+  }
+
   function openToppingModal(target) {
     const hit = target.closest('[data-modal]');
     if (!hit) return false;
@@ -254,6 +285,16 @@
   el('toppings-bars').addEventListener('click', e => { openToppingModal(e.target); });
   el('toppings-bars').addEventListener('keydown', e => {
     if ((e.key === 'Enter' || e.key === ' ') && openToppingModal(e.target)) e.preventDefault();
+  });
+  function openDietaryModal(target) {
+    const hit = target.closest('[data-modal="diet"]');
+    if (!hit) return false;
+    showDietaryPeople(Number(hit.dataset.idx));
+    return true;
+  }
+  el('dietary-bars').addEventListener('click', e => { openDietaryModal(e.target); });
+  el('dietary-bars').addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && openDietaryModal(e.target)) e.preventDefault();
   });
   el('songs-list').addEventListener('click', e => {
     if (e.target.closest('[data-modal="unmatched"]')) showUnmatchedSongs();

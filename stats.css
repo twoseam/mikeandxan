@@ -300,3 +300,16 @@
 .stats-modal-x:focus-visible { color: var(--color-charcoal); }
 .stats-modal-body { overflow-y: auto; margin-top: .5rem; }
 .stats-modal-body .stats-quote:first-child { border-top: 0; }
+
+/* Contact lines in the dietary popup */
+.stats-person-contact {
+  font-size: .78rem;
+  margin: .25rem 0 0;
+}
+.stats-person-contact a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.stats-person-contact a:hover,
+.stats-person-contact a:focus-visible { color: var(--color-bg); }
