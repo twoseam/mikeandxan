@@ -29,21 +29,31 @@
   // One answer can mention several toppings; each bucket counts once per
   // answer. Order matters: "Canadian bacon" is stripped from the text
   // before plain "bacon" is tested, and "pepper" must not match pepperoni.
+  // Aug 24 audit against the real answers added: Cream cheese BEFORE Cheese
+  // (was silently swallowed into plain Cheese), "Pep" shorthand, the
+  // "jalapño" typo (match on /jalap/), and buckets for garlic, taco,
+  // tomato, eggplant, white pizza, and "All of them".
   const TOPPING_BUCKETS = [
-    { label: 'Pepperoni',      re: /pep+eroni/ },
-    { label: 'Cheese',         re: /cheese|margherita|\bplain\b/ },
+    { label: 'Pepperoni',      re: /pep+eroni|\bpepp?\b/ },
+    { label: 'Cream cheese',   re: /cream\s*cheese/ },
+    { label: 'White pizza',    re: /white\s*pizza/ },
+    { label: 'Cheese',         re: /cheese|margherita|ricotta|mozzarella|\bplain\b/ },
     { label: 'Canadian bacon', re: /canadian\s*bacon|\bham\b/ },
     { label: 'Sausage',        re: /sausage/ },
     { label: 'Bacon',          re: /bacon/ },
     { label: 'Mushrooms',      re: /mushroom/ },
     { label: 'Pineapple',      re: /pineapple|hawaiian/ },
-    { label: 'Peppers',        re: /pepper(?!oni)|jalape/ },
+    { label: 'Peppers',        re: /pepper(?!oni)|jalap/ },
+    { label: 'Garlic',         re: /garlic/ },
     { label: 'Onions',         re: /onion/ },
     { label: 'Olives',         re: /olive/ },
+    { label: 'Tomatoes',       re: /tomato/ },
+    { label: 'Eggplant',       re: /eggplant/ },
+    { label: 'Taco',           re: /taco/ },
     { label: 'Chicken',        re: /chicken|bbq/ },
     { label: 'Meat lovers',    re: /meat\s*lover|all\s*meat/ },
     { label: 'Veggie',         re: /veggie|vegetable/ },
-    { label: 'Supreme',        re: /supreme|the\s*works|everything/ },
+    { label: 'Supreme',        re: /supreme|the\s*works|everything|all\s*of\s*them/ },
   ];
 
   function bucketToppings(answerText) {
@@ -117,15 +127,17 @@
     let toppingRows = Object.keys(toppingCounts).map(label => ({ label, count: toppingCounts[label] }));
     toppingRows.sort((a, b) => b.count - a.count);
     // Keep the board readable once the list fills in: top 8 named buckets,
-    // the tail folded into one quiet row (raw answers stay listed below).
+    // the tail folded into one quiet row — tappable, so nothing is ever
+    // invisible (that's how cream cheese went missing).
+    let toppingFolded = [];
     if (toppingRows.length > 9) {
-      const rest = toppingRows.slice(8);
+      toppingFolded = toppingRows.slice(8);
       toppingRows = toppingRows.slice(0, 8);
-      toppingRows.push({ label: 'Everything else', count: rest.reduce((n, r) => n + r.count, 0), rest: true });
+      toppingRows.push({ label: 'Everything else', count: toppingFolded.reduce((n, r) => n + r.count, 0), rest: true, click: 'folded' });
     }
     if (toppingOther) toppingRows.push({ label: 'Unclassified', count: toppingOther, rest: true, click: 'unclassified' });
 
-    return { attending, specialMeals, dietaryRows, toppingRows, toppingAnswers, toppingQuotes, toppingUnclassified, songs };
+    return { attending, specialMeals, dietaryRows, toppingRows, toppingAnswers, toppingQuotes, toppingUnclassified, toppingFolded, songs };
   }
 
   function barsHtml(rows) {
@@ -147,6 +159,31 @@
 
   function ytSearchUrl(q) {
     return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+  }
+
+  // Direct video links (Michael, Aug 24): the Worker's ytVideo action
+  // resolves a song to the top YouTube result so a tap opens the music
+  // video itself. Cached in localStorage; falls back to a search link.
+  const YT_CACHE_KEY = 'mx_yt_videos_v1';
+  function loadYtCache() {
+    try { return JSON.parse(localStorage.getItem(YT_CACHE_KEY) || '{}'); }
+    catch (_) { return {}; }
+  }
+  async function ytHref(q) {
+    const key = q.toLowerCase();
+    const cache = loadYtCache();
+    if (cache[key]) return 'https://www.youtube.com/watch?v=' + cache[key];
+    try {
+      const session = getSession();
+      const res = await fetch(WORKER_URL + '?action=ytVideo&token=' + encodeURIComponent(session && session.token || '') + '&q=' + encodeURIComponent(q));
+      const data = await res.json();
+      if (data && data.videoId) {
+        cache[key] = data.videoId;
+        try { localStorage.setItem(YT_CACHE_KEY, JSON.stringify(cache)); } catch (_) {}
+        return 'https://www.youtube.com/watch?v=' + data.videoId;
+      }
+    } catch (_) {}
+    return ytSearchUrl(q);
   }
 
   const modal = el('stats-modal');
@@ -176,6 +213,24 @@
     );
   }
 
+  // The folded "Everything else" tail, shown as the same bars.
+  function showFoldedToppings() {
+    if (!lastStats || !lastStats.toppingFolded.length) return;
+    const n = lastStats.toppingFolded.length;
+    openModal(
+      'Everything else — ' + n + (n === 1 ? ' topping' : ' toppings'),
+      barsHtml(lastStats.toppingFolded)
+    );
+  }
+
+  function openToppingModal(target) {
+    const hit = target.closest('[data-modal]');
+    if (!hit) return false;
+    if (hit.dataset.modal === 'unclassified') showUnclassifiedToppings();
+    if (hit.dataset.modal === 'folded') showFoldedToppings();
+    return true;
+  }
+
   // Unmatched song requests get the same treatment: each raw answer links
   // to a YouTube search so it's one tap to hear what the guest meant.
   function showUnmatchedSongs() {
@@ -184,7 +239,7 @@
     openModal(
       'Unmatched requests — ' + n + (n === 1 ? ' answer' : ' answers'),
       lastUnmatchedSongs.map(c =>
-        '<a class="stats-quote stats-track-link" href="' + ytSearchUrl(c.raw) + '" target="_blank" rel="noopener">' +
+        '<a class="stats-quote stats-track-link" href="' + (c.href || ytSearchUrl(c.raw)) + '" target="_blank" rel="noopener">' +
           '<span class="stats-track-main">' +
             '<p class="stats-quote-t">' + escapeHtml(c.raw) + '</p>' +
             (c.by ? '<p class="stats-quote-by">' + escapeHtml(c.by) + '</p>' : '') +
@@ -196,14 +251,9 @@
   }
 
   // Containers persist across re-renders, so delegate once here.
-  el('toppings-bars').addEventListener('click', e => {
-    if (e.target.closest('[data-modal="unclassified"]')) showUnclassifiedToppings();
-  });
+  el('toppings-bars').addEventListener('click', e => { openToppingModal(e.target); });
   el('toppings-bars').addEventListener('keydown', e => {
-    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-modal="unclassified"]')) {
-      e.preventDefault();
-      showUnclassifiedToppings();
-    }
+    if ((e.key === 'Enter' || e.key === ' ') && openToppingModal(e.target)) e.preventDefault();
   });
   el('songs-list').addEventListener('click', e => {
     if (e.target.closest('[data-modal="unmatched"]')) showUnmatchedSongs();
@@ -255,7 +305,7 @@
   // card in the Guest List. Verdicts are cached in localStorage so the page
   // doesn't re-query on every visit. ----
 
-  const SONG_CACHE_KEY = 'mx_song_verdicts_v2';
+  const SONG_CACHE_KEY = 'mx_song_verdicts_v3';
   const FILLER_RE = /\bum+\b|\bidk\b|\bdunno\b|\bno idea\b|\bwhatever\b|\bsurprise us\b|\banything\b|\bliterally\b/i;
   const STOP_WORDS = new Set(['by', 'the', 'a', 'an', 'and', 'or', 'of', 'to', 'for', 'feat', 'ft', 'featuring', 'please', 'something', 'song', 'version', 'sorry', 'mom', 'dad', 'our', 'my', 'me', 'us', 'first']);
 
@@ -269,6 +319,41 @@
   // "Sweet Caroline (Single Version)" → "Sweet Caroline"
   function cleanTitle(t) {
     return String(t).replace(/\(.*?\)|\[.*?\]/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  // Fuzzy token match (Michael, Aug 24): guests misremember titles —
+  // "Billy Jean" for Billie Jean, "happy boy" for Happy Boys — so a
+  // catalog word counts as present if it's an exact match, a plural/
+  // singular pair, one typo off (4+ letters), or two typos off when the
+  // words are 5+ letters and share their first two (billy→billie, but
+  // NOT higher→fighter).
+  function editDist(a, b) {
+    if (Math.abs(a.length - b.length) > 2) return 3;
+    let prev = [];
+    for (let j = 0; j <= b.length; j++) prev[j] = j;
+    for (let i = 1; i <= a.length; i++) {
+      const cur = [i];
+      for (let j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(
+          prev[j] + 1,
+          cur[j - 1] + 1,
+          prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+        );
+      }
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  function normTok(t) { return t.length > 3 && t.endsWith('s') ? t.slice(0, -1) : t; }
+  function tokensAlike(a, b) {
+    if (a === b) return true;
+    a = normTok(a); b = normTok(b);
+    if (a === b) return true;
+    const min = Math.min(a.length, b.length);
+    if (min < 4) return false;
+    const d = editDist(a, b);
+    if (d <= 1) return true;
+    return d <= 2 && min >= 5 && a.slice(0, 2) === b.slice(0, 2);
   }
 
   function loadVerdicts() {
@@ -289,9 +374,14 @@
       let remaining = songTokens(text);
       for (let round = 0; round < 3 && remaining.length; round++) {
         // A two-songs-in-one answer fails as a single query (the catalog
-        // ANDs every word), so also try the front and back halves.
+        // ANDs every word), so also try the front and back halves — and,
+        // for short queries, each drop-one-word variant, in case a
+        // misremembered word is what's sinking the search.
         const windows = [remaining];
         if (remaining.length > 4) { windows.push(remaining.slice(0, 4)); windows.push(remaining.slice(4)); }
+        if (remaining.length >= 3 && remaining.length <= 5) {
+          remaining.forEach((_, i) => windows.push(remaining.filter((__, j) => j !== i)));
+        }
         let match = null;
         for (const w of windows) {
           const res = await fetch('https://itunes.apple.com/search?media=music&entity=song&limit=8&term=' + encodeURIComponent(w.join(' ')));
@@ -299,15 +389,17 @@
           for (const r of (data.results || [])) {
             const trackTokens = songTokens(cleanTitle(r.trackName));
             if (!trackTokens.length) continue;
-            const trackCov = trackTokens.filter(t => remaining.indexOf(t) !== -1).length / trackTokens.length;
+            // Fuzzy coverage: a title word counts when the guest wrote
+            // something close enough to it (see tokensAlike).
+            const trackCov = trackTokens.filter(t => remaining.some(g => tokensAlike(t, g))).length / trackTokens.length;
             if (trackCov >= 0.8) { match = r; break; }
           }
           if (match) break;
         }
         if (!match) break;
         hits.push({ title: cleanTitle(match.trackName), artist: match.artistName });
-        const consumed = new Set(songTokens(cleanTitle(match.trackName) + ' ' + match.artistName));
-        remaining = remaining.filter(t => !consumed.has(t));
+        const consumed = songTokens(cleanTitle(match.trackName) + ' ' + match.artistName);
+        remaining = remaining.filter(g => !consumed.some(c => tokensAlike(c, g)));
         if (remaining.length < 2) break;
       }
     }
@@ -361,11 +453,17 @@
 
     lastUnmatchedSongs = checked.filter(c => !c.v.length).map(c => ({ raw: c.raw, by: c.by }));
     const skipped = lastUnmatchedSongs.length;
+
+    // Resolve every request (matched and unmatched) to its direct video
+    // before painting the list.
+    await Promise.all(rows.map(async r => { r.href = await ytHref(r.title + ' ' + r.artist); }));
+    await Promise.all(lastUnmatchedSongs.map(async c => { c.href = await ytHref(c.raw); }));
+
     el('songs-label').textContent = 'Song requests — ' + rows.length + (rows.length === 1 ? ' song' : ' songs');
     el('songs-list').innerHTML =
       (rows.length
         ? '<div class="stats-songs-cols">' + rows.map(r =>
-            '<a class="stats-quote stats-track stats-track-link" href="' + ytSearchUrl(r.title + ' ' + r.artist) + '" target="_blank" rel="noopener">' +
+            '<a class="stats-quote stats-track stats-track-link" href="' + r.href + '" target="_blank" rel="noopener">' +
               '<span class="stats-track-main">' +
                 '<p class="stats-track-title">' + escapeHtml(r.title) + '</p>' +
                 '<p class="stats-track-artist">' + escapeHtml(r.artist) + '</p>' +
