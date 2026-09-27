@@ -12,6 +12,7 @@
   const WORKER_URL = 'https://mikeandxan-rsvp.michael-afc.workers.dev';
   const SESSION_KEY = 'mx_admin_session';
   const MESSAGE_KEY = 'mx_reminder_message';
+  const MATCHES_KEY = 'mx_contact_matches';
   const DEFAULT_MESSAGE =
     'Hi {names}! It’s Mike & Xan. Quick reminder to RSVP for our wedding by ' +
     'October 1 — it only takes a minute: https://mikeandxan.com/#rsvp ' +
@@ -26,6 +27,7 @@
   const IS_APPLE = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
 
   let households = [];   // only the ones with no RSVP on file
+  let matches = {};      // household id -> [{ name, candidates: [...] }] from his phone book
   let pendingIds = {};   // household id -> true while a save is in flight
 
   function el(id) { return document.getElementById(id); }
@@ -52,6 +54,7 @@
     if (firsts.length === 1) return firsts[0];
     return firsts.slice(0, -1).join(', ') + ' & ' + firsts[firsts.length - 1];
   }
+  function firstNameOf(n) { return String(n).trim().split(/\s+/)[0]; }
   function haystack(h) {
     return [h.envelopeName, h.label, h.group, h.phone, realMembers(h).join(' ')].join(' ').toLowerCase();
   }
@@ -66,6 +69,33 @@
     return 'sms:' + to + (IS_APPLE ? '&' : '?') + 'body=' + encodeURIComponent(messageFor(h));
   }
 
+  // Phone-book matches come from a file made on Michael's Mac and loaded
+  // by hand — they never touch the server. Nothing is saved until he
+  // taps a suggestion, and he picks whose number the household gets.
+  function suggestHtml(h) {
+    const members = (matches[h.id] || []).filter(m => m.candidates && m.candidates.length);
+    if (!members.length) return '';
+    return '<div class="rem-suggest">' + members.map(function (m) {
+      return '<div class="rem-suggest-member">' +
+        '<span class="rem-suggest-who">' + escapeHtml(m.name) + '</span>' +
+        m.candidates.map(function (c) {
+          const chosen = h.phone && c.phone === h.phone && (h.phoneOwner || '') === m.name;
+          return '<button type="button" class="rem-pick' + (chosen ? ' is-chosen' : '') +
+            (c.strength === 'possible' ? ' is-maybe' : '') + '"' +
+            ' data-id="' + h.id + '" data-phone="' + escapeHtml(c.phone) + '" data-owner="' + escapeHtml(m.name) + '">' +
+            '<span class="rem-pick-num">' + escapeHtml(c.phone) + '</span>' +
+            '<span class="rem-pick-src">' +
+              (c.strength === 'possible' ? 'maybe &middot; ' : '') +
+              'saved as &ldquo;' + escapeHtml(c.contact) + '&rdquo;' +
+              (c.label ? ' &middot; ' + escapeHtml(c.label) : '') +
+            '</span>' +
+            '<span class="rem-pick-act">' + (chosen ? '&#10003; Using' : 'Use') + '</span>' +
+          '</button>';
+        }).join('') +
+      '</div>';
+    }).join('') + '</div>';
+  }
+
   function rowHtml(h) {
     return (
       '<div class="rem-row' + (h.remindedAt ? ' is-done' : '') + '">' +
@@ -73,12 +103,14 @@
           '<span class="mail-check" aria-hidden="true">' + (h.remindedAt ? '&#10003;' : '') + '</span>' +
           '<span class="mail-row-text">' +
             '<span class="mail-name">' + escapeHtml(displayName(h)) + '</span>' +
-            (h.group ? '<span class="mail-sub">' + escapeHtml(h.group) + '</span>' : '') +
+            '<span class="mail-sub">' + escapeHtml(
+              [h.group, h.phoneOwner ? firstNameOf(h.phoneOwner) + '’s cell' : ''].filter(Boolean).join(' · ')) + '</span>' +
           '</span>' +
         '</button>' +
         '<input type="tel" class="rem-phone" data-id="' + h.id + '" value="' + escapeHtml(h.phone || '') + '"' +
           ' placeholder="Cell number" autocomplete="off" aria-label="Cell number for ' + escapeHtml(displayName(h)) + '" />' +
         '<a class="rem-send" data-id="' + h.id + '" href="' + escapeHtml(smsHref(h)) + '">Text</a>' +
+        suggestHtml(h) +
       '</div>'
     );
   }
@@ -147,12 +179,13 @@
   // Saves when he leaves the box (or hits Enter). Deliberately no full
   // re-render here — that would yank focus out of the next box he's
   // already tabbed into; only this row's box + Text link are touched.
-  async function savePhone(input) {
+  async function savePhone(input, pick) {
     const id = Number(input.getAttribute('data-id'));
     const h = households.find(x => x.id === id);
     if (!h) return;
-    const typed = input.value.trim();
-    if (typed === (h.phone || '')) return;
+    const typed = pick ? pick.phone : input.value.trim();
+    const owner = pick ? pick.owner : '';
+    if (!pick && typed === (h.phone || '')) return;
 
     const session = getSession();
     if (!session || !session.token) { window.location.href = 'admin.html'; return; }
@@ -165,12 +198,14 @@
         body: JSON.stringify({
           action: 'adminSetHouseholdPhone',
           token: session.token,
-          payload: { householdId: id, phone: typed }
+          payload: { householdId: id, phone: typed, owner: owner }
         })
       });
       const data = await res.json();
       if (!data || !data.ok) throw new Error(data && (data.message || data.error) || 'save failed');
       h.phone = data.phone || '';
+      h.phoneOwner = data.phoneOwner || '';
+      if (pick) { render(); return; }
       if (document.activeElement !== input) input.value = h.phone;
       input.classList.add('is-saved');
       const link = document.querySelector('.rem-send[data-id="' + id + '"]');
@@ -190,6 +225,44 @@
       e.preventDefault();
       e.target.blur();
     }
+  });
+
+  // Tapping a suggestion records it; tapping the chosen one again clears it.
+  document.addEventListener('click', function (e) {
+    const pick = e.target.closest('.rem-pick');
+    if (!pick) return;
+    const id = pick.getAttribute('data-id');
+    const input = document.querySelector('.rem-phone[data-id="' + id + '"]');
+    if (!input) return;
+    const undo = pick.classList.contains('is-chosen');
+    savePhone(input, { phone: undo ? '' : pick.getAttribute('data-phone'), owner: undo ? '' : pick.getAttribute('data-owner') });
+  });
+
+  function setMatches(data) {
+    matches = {};
+    ((data && data.households) || []).forEach(function (e) { matches[e.id] = e.members || []; });
+    const n = households.filter(h => (matches[h.id] || []).some(m => m.candidates && m.candidates.length)).length;
+    el('rem-matches-status').textContent = n ? 'Matches found for ' + n + ' households.' : '';
+  }
+  function loadMatches() {
+    try { setMatches(JSON.parse(localStorage.getItem(MATCHES_KEY) || 'null')); } catch (_) {}
+  }
+  el('rem-matches-file').addEventListener('change', function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+      try {
+        const data = JSON.parse(reader.result);
+        if (!data || !Array.isArray(data.households)) throw new Error('wrong file');
+        try { localStorage.setItem(MATCHES_KEY, reader.result); } catch (_) {}
+        setMatches(data);
+        render();
+      } catch (err) {
+        el('rem-matches-status').textContent = 'That isn’t the matches file — pick contact-matches.json.';
+      }
+    };
+    reader.readAsText(file);
   });
 
   document.addEventListener('click', function (e) {
@@ -216,8 +289,8 @@
   });
 
   // Test hook: lets a harness render fabricated data without a live backend.
-  window.__renderReminders = function (hh) {
-    households = hh; loadMessage(); render(); gate.hidden = true; app.hidden = false;
+  window.__renderReminders = function (hh, mm) {
+    households = hh; loadMessage(); setMatches(mm); render(); gate.hidden = true; app.hidden = false;
   };
 
   async function load() {
@@ -242,6 +315,7 @@
                displayName(a).localeCompare(displayName(b));
       });
     loadMessage();
+    loadMatches();
     gate.hidden = true;
     app.hidden = false;
     render();

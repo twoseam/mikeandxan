@@ -117,3 +117,64 @@
   .rem-toggle { flex: 1 0 100%; }
   .rem-phone { flex: 1; width: auto; font-size: 1rem; }
 }
+
+/* ---- Phone book matches ---- */
+.rem-matches {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: .9rem var(--space-sm) .1rem;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  flex-wrap: wrap;
+}
+.rem-matches-btn {
+  padding: .5rem 1rem;
+  border-radius: 100px;
+  background: var(--color-paper);
+  color: var(--color-charcoal);
+  font-weight: 800;
+  font-size: .85rem;
+  cursor: pointer;
+}
+.rem-matches-status { color: var(--color-muted); font-size: .85rem; }
+
+.rem-row { flex-wrap: wrap; }
+.rem-suggest {
+  flex: 1 0 100%;
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+  padding: .6rem 0 .3rem;
+  border-top: 1px solid rgba(0, 0, 0, .08);
+}
+.rem-suggest-member { display: flex; flex-direction: column; gap: .3rem; }
+.rem-suggest-who {
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: #8a7f72;
+}
+.rem-pick {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  width: 100%;
+  padding: .5rem .8rem;
+  border: 2px solid var(--color-bg-alt);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-charcoal);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.rem-pick:hover { border-color: var(--color-bg); }
+.rem-pick.is-maybe { border-style: dashed; }
+.rem-pick.is-chosen { border-color: #4f9d69; border-style: solid; background: #eef7f0; }
+.rem-pick-num { flex: 0 0 auto; font-weight: 700; font-size: .92rem; }
+.rem-pick-src { flex: 1; min-width: 0; font-size: .8rem; color: #8a7f72; overflow-wrap: anywhere; }
+.rem-pick-act { flex: 0 0 auto; font-weight: 800; font-size: .8rem; color: var(--color-bg); }
+.rem-pick.is-chosen .rem-pick-act { color: #2f7a48; }

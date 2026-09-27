@@ -10,7 +10,7 @@
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="mailing.css?v=1" />
-  <link rel="stylesheet" href="reminders.css?v=1" />
+  <link rel="stylesheet" href="reminders.css?v=2" />
 </head>
 <body class="mail-body">
 
@@ -32,6 +32,13 @@
         <button type="button" id="rem-reset" class="rem-reset">Reset wording</button></p>
     </div>
 
+    <div class="rem-matches">
+      <label class="rem-matches-btn">Load phone book matches
+        <input type="file" id="rem-matches-file" accept=".json,application/json" hidden />
+      </label>
+      <span id="rem-matches-status" class="rem-matches-status"></span>
+    </div>
+
     <div class="mail-searchbar">
       <input type="text" id="rem-search" class="mail-search"
              placeholder="Search a name&hellip;" autocomplete="off" />
@@ -50,6 +57,6 @@
     </main>
   </div>
 
-  <script src="reminders.js?v=1"></script>
+  <script src="reminders.js?v=2"></script>
 </body>
 </html>
