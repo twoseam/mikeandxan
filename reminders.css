@@ -1,0 +1,119 @@
+/* ============================================================
+   RSVP reminders — text-reminder checklist. Rides on mailing.css
+   (same rows, same ground); this file only adds the message box
+   and the per-row Text button.
+   ============================================================ */
+
+.rem-message {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: .5rem var(--space-sm) .25rem;
+  box-sizing: border-box;
+}
+.rem-message-label {
+  display: block;
+  color: var(--color-text);
+  font-size: .8rem;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  margin: 0 0 .4rem;
+}
+.rem-text {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: .8rem 1rem;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-size: .95rem;
+  line-height: 1.45;
+  background: var(--color-paper);
+  color: var(--color-charcoal);
+  resize: vertical;
+}
+.rem-text:focus { outline: 3px solid rgba(255, 255, 255, 0.55); }
+.rem-message-hint {
+  color: var(--color-muted);
+  font-size: .8rem;
+  margin: .4rem 0 0;
+}
+.rem-reset {
+  border: 0;
+  background: none;
+  padding: 0;
+  margin-left: .5rem;
+  font: inherit;
+  color: var(--color-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Row = check button + text + Text pill, so the row itself is a div
+   (a link can't live inside a button). */
+.rem-row {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .55rem .7rem .55rem 1rem;
+  border-radius: 10px;
+  background: var(--color-paper);
+  color: var(--color-charcoal);
+}
+.rem-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .25rem 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.rem-row.is-done .mail-check { background: var(--color-bg); }
+
+.rem-send {
+  flex: 0 0 auto;
+  padding: .55rem 1.1rem;
+  border-radius: 100px;
+  background: var(--color-bg);
+  color: #fff;
+  font-weight: 800;
+  font-size: .85rem;
+  letter-spacing: .03em;
+  text-decoration: none;
+  transition: transform .12s ease, opacity .15s ease;
+}
+.rem-send:hover { transform: translateY(-1px); }
+.rem-send:active { transform: translateY(0); }
+
+.mail-list-done .rem-row { opacity: .62; }
+.mail-list-done .rem-row:hover { opacity: .85; }
+
+.rem-phone {
+  flex: 0 0 auto;
+  width: 9.5rem;
+  box-sizing: border-box;
+  padding: .5rem .75rem;
+  border: 2px solid var(--color-bg-alt);
+  border-radius: 100px;
+  font: inherit;
+  font-size: .9rem;
+  background: #fff;
+  color: var(--color-charcoal);
+}
+.rem-phone:focus { outline: 0; border-color: var(--color-bg); }
+.rem-phone.is-saved { border-color: #4f9d69; }
+.rem-phone.is-error { border-color: #b3261e; background: #fdecea; }
+
+/* Phone: name on its own line, number box + Text button under it. */
+@media (max-width: 560px) {
+  .rem-row { flex-wrap: wrap; gap: .5rem .6rem; padding: .6rem .8rem .75rem; }
+  .rem-toggle { flex: 1 0 100%; }
+  .rem-phone { flex: 1; width: auto; font-size: 1rem; }
+}

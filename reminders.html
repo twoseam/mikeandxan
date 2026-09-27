@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>RSVP Reminders — M &amp; A</title>
+
+  <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mailing.css?v=1" />
+  <link rel="stylesheet" href="reminders.css?v=1" />
+</head>
+<body class="mail-body">
+
+  <div id="gate" class="mail-gate">
+    <p>Checking you're logged in&hellip;</p>
+  </div>
+
+  <div id="app" hidden>
+    <header class="mail-toolbar">
+      <a href="admin.html" class="mail-back">&larr; Back to Guest List</a>
+      <h1>RSVP Reminders</h1>
+      <p id="rem-progress" class="mail-progress"></p>
+    </header>
+
+    <div class="rem-message">
+      <label for="rem-text" class="rem-message-label">The text</label>
+      <textarea id="rem-text" class="rem-text" rows="4"></textarea>
+      <p class="rem-message-hint"><strong>{names}</strong> becomes each household's first names.
+        <button type="button" id="rem-reset" class="rem-reset">Reset wording</button></p>
+    </div>
+
+    <div class="mail-searchbar">
+      <input type="text" id="rem-search" class="mail-search"
+             placeholder="Search a name&hellip;" autocomplete="off" />
+    </div>
+
+    <main class="mail-main">
+      <section class="mail-section">
+        <h2 class="mail-section-head anim-in" id="todo-head">To Text</h2>
+        <div id="todo-list" class="mail-list"></div>
+      </section>
+
+      <section class="mail-section">
+        <h2 class="mail-section-head mail-section-head-done anim-in" id="done-head">Texted</h2>
+        <div id="done-list" class="mail-list mail-list-done"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="reminders.js?v=1"></script>
+</body>
+</html>
