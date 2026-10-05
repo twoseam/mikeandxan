@@ -50,32 +50,111 @@
   cursor: pointer;
 }
 
-/* Row = check button + text + Text pill, so the row itself is a div
-   (a link can't live inside a button). */
-.rem-row {
+/* One card per household: who's in it, the number + Open text, the
+   "I just…" log buttons, then the history of every reach-out. */
+.rem-card {
   display: flex;
-  align-items: center;
-  gap: .85rem;
-  padding: .55rem .7rem .55rem 1rem;
-  border-radius: 10px;
+  flex-direction: column;
+  gap: .7rem;
+  padding: .9rem 1rem 1rem;
+  border-radius: 12px;
   background: var(--color-paper);
   color: var(--color-charcoal);
 }
-.rem-toggle {
-  flex: 1;
-  min-width: 0;
+.rem-card-head { display: flex; align-items: flex-start; gap: .8rem; }
+.rem-card-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .15rem; }
+.rem-house { font-weight: 800; font-size: 1.05rem; }
+.rem-members { font-size: .9rem; }
+.rem-group { font-size: .75rem; color: #8a7f72; }
+.rem-last {
+  flex: 0 0 auto;
+  padding: .3rem .7rem;
+  border-radius: 100px;
+  background: #eef7f0;
+  color: #2f7a48;
+  font-size: .78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.rem-last.is-never { background: var(--color-orange-lt); color: var(--color-berry); }
+
+.rem-contact { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.rem-owner { font-size: .8rem; color: #8a7f72; }
+.rem-contact .rem-send { margin-left: auto; }
+
+.rem-log {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: .85rem;
-  padding: .25rem 0;
-  border: 0;
-  background: none;
-  color: inherit;
+  gap: .5rem .6rem;
+  padding-top: .7rem;
+  border-top: 1px solid rgba(0, 0, 0, .08);
+}
+.rem-log-label {
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: #8a7f72;
+}
+.rem-log-btns { display: flex; flex-wrap: wrap; gap: .4rem; }
+.rem-log-btn {
+  padding: .45rem .9rem;
+  border: 2px solid var(--color-bg);
+  border-radius: 100px;
+  background: #fff;
+  color: var(--color-bg);
   font: inherit;
-  text-align: left;
+  font-weight: 800;
+  font-size: .82rem;
   cursor: pointer;
 }
-.rem-row.is-done .mail-check { background: var(--color-bg); }
+.rem-log-btn:hover { background: var(--color-bg); color: #fff; }
+.rem-log-btn:disabled { opacity: .5; cursor: wait; }
+.rem-note {
+  flex: 1 0 100%;
+  box-sizing: border-box;
+  padding: .5rem .8rem;
+  border: 2px solid var(--color-bg-alt);
+  border-radius: 10px;
+  font: inherit;
+  font-size: .88rem;
+  color: var(--color-charcoal);
+}
+.rem-note:focus { outline: 0; border-color: var(--color-bg); }
+
+.rem-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+.rem-history li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .2rem .6rem;
+  padding: .4rem .6rem;
+  border-radius: 8px;
+  background: var(--color-cream);
+  font-size: .85rem;
+}
+.rem-hist-what { font-weight: 800; }
+.rem-hist-when { color: #8a7f72; }
+.rem-hist-note { flex: 1 0 100%; font-style: italic; }
+.rem-hist-del {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: .78rem;
+  color: #8a7f72;
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 .rem-send {
   flex: 0 0 auto;
@@ -92,8 +171,6 @@
 .rem-send:hover { transform: translateY(-1px); }
 .rem-send:active { transform: translateY(0); }
 
-.mail-list-done .rem-row { opacity: .62; }
-.mail-list-done .rem-row:hover { opacity: .85; }
 
 .rem-phone {
   flex: 0 0 auto;
@@ -111,11 +188,11 @@
 .rem-phone.is-saved { border-color: #4f9d69; }
 .rem-phone.is-error { border-color: #b3261e; background: #fdecea; }
 
-/* Phone: name on its own line, number box + Text button under it. */
+/* Phone: status pill under the names, number box fills the row. */
 @media (max-width: 560px) {
-  .rem-row { flex-wrap: wrap; gap: .5rem .6rem; padding: .6rem .8rem .75rem; }
-  .rem-toggle { flex: 1 0 100%; }
+  .rem-card-head { flex-direction: column; gap: .4rem; }
   .rem-phone { flex: 1; width: auto; font-size: 1rem; }
+  .rem-note { font-size: 1rem; }
 }
 
 /* ---- Phone book matches ---- */
@@ -140,9 +217,7 @@
 }
 .rem-matches-status { color: var(--color-muted); font-size: .85rem; }
 
-.rem-row { flex-wrap: wrap; }
 .rem-suggest {
-  flex: 1 0 100%;
   display: flex;
   flex-direction: column;
   gap: .55rem;
@@ -178,3 +253,6 @@
 .rem-pick-src { flex: 1; min-width: 0; font-size: .8rem; color: #8a7f72; overflow-wrap: anywhere; }
 .rem-pick-act { flex: 0 0 auto; font-weight: 800; font-size: .8rem; color: var(--color-bg); }
 .rem-pick.is-chosen .rem-pick-act { color: #2f7a48; }
+
+/* Cards need more air between them than the mailing rows. */
+#todo-list, #done-list { gap: .8rem; }
