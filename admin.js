@@ -195,8 +195,12 @@
       h.members.forEach(m => {
         const entry = { name: memberDisplayName(m), householdId: h.id };
         cats.invited.push(entry);
+        if (m.isPlusOne && m.bringingPlusOne === 'no') {
+          cats.responded.push(entry); cats.declined.push(entry); // turned-down +1 = an answer
+          return;
+        }
         if (m.isPlusOne && m.bringingPlusOne !== 'yes') {
-          cats.notResponded.push(entry); // matches server stats: unclaimed +1 slots count as not-responded
+          cats.notResponded.push(entry); // matches server stats: unanswered +1 slots count as not-responded
           return;
         }
         if (m.attending === 'yes') { cats.responded.push(entry); cats.attending.push(entry); }
@@ -737,6 +741,7 @@
     households.forEach(h => {
       h.members.forEach(m => {
         invited++;
+        if (m.isPlusOne && m.bringingPlusOne === 'no') { responded++; declined++; return; }
         if (m.isPlusOne && m.bringingPlusOne !== 'yes') return;
         if (m.attending === 'yes') { responded++; attending++; }
         else if (m.attending === 'no') { responded++; declined++; }
