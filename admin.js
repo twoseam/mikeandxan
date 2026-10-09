@@ -47,6 +47,10 @@
   // user has flipped a card away from its default, surviving re-renders
   // (search, refresh-after-save) within the session.
   const expandOverrides = new Map();
+  // Hand-entered answer in progress (Michael heard back by text/in person):
+  // { householdId, picks: { guestId: 'yes'|'no' }, plusOneName }. One card
+  // at a time; lives outside the card so re-renders keep the picks.
+  let answerDraft = null;
 
   function getSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
@@ -263,9 +267,140 @@
     return { yes, no };
   }
 
+  // ---- Enter an answer by hand ----
+  // Coming / Not coming per person, nothing else. "Not coming" for
+  // everyone is one tap via "Nobody's coming".
+
+  function answerCardHtml(h) {
+    const picks = answerDraft.picks;
+    const seg = (m, val, label) =>
+      '<button type="button" class="ans-pick' + (picks[m.id] === val ? ' is-on' : '') + '" data-pick="' + val + '"' +
+        ' data-guest-id="' + m.id + '" data-kind="' + val + '">' + label + '</button>';
+
+    const rows = h.members.map(m => {
+      const who = m.isPlusOne ? 'Their +1' : escapeHtml(m.name);
+      const nameBox = m.isPlusOne && picks[m.id] === 'yes'
+        ? '<input type="text" class="admin-edit-input ans-plusone-name" placeholder="+1’s name (optional)" value="' + escapeHtml(answerDraft.plusOneName || '') + '">'
+        : '';
+      return (
+        '<div class="ans-row">' +
+          '<span class="ans-who">' + who + '</span>' +
+          '<span class="ans-seg">' + seg(m, 'yes', 'Coming') + seg(m, 'no', 'Not coming') + '</span>' +
+          nameBox +
+        '</div>'
+      );
+    }).join('');
+
+    const ready = h.members.every(m => picks[m.id]);
+    return (
+      '<div class="admin-household bx-card admin-household-editing" data-household-id="' + h.id + '">' +
+        '<p class="bx-eyebrow">Enter their answer</p>' +
+        '<div class="bx-head"><span class="bx-title">' + escapeHtml(h.envelopeName || h.label || '') + '</span></div>' +
+        '<div class="ans-quick">' +
+          '<button type="button" class="ans-all" data-pick="yes">Everyone’s coming</button>' +
+          '<button type="button" class="ans-all" data-pick="no">Nobody’s coming</button>' +
+        '</div>' +
+        rows +
+        '<div class="admin-household-foot admin-edit-foot">' +
+          '<button type="button" class="admin-cancel-edit-btn ans-cancel">Cancel</button>' +
+          '<button type="button" class="admin-save-edit-btn ans-save"' + (ready ? '' : ' disabled') + '>Save answer</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function findHousehold(id) {
+    return lastData && lastData.households.find(h => h.id === id);
+  }
+
+  // Swap just this one card in place — works the same on the main list and
+  // inside the No Response list's expanded rows.
+  function rerenderCard(card, h) {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = householdCardHtml(h, { showRemove: !card.closest('#stat-list-content') });
+    card.replaceWith(wrap.firstElementChild);
+  }
+
+  async function saveAnswer(card, h) {
+    const session = getSession();
+    if (!session) { showLogin(); return; }
+    const answers = h.members.map(m => ({
+      guestId: m.id,
+      attending: answerDraft.picks[m.id],
+      name: m.isPlusOne ? (answerDraft.plusOneName || '').trim() : undefined
+    }));
+    const saveBtn = card.querySelector('.ans-save');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
+    try {
+      const result = await apiPost({ action: 'adminRecordRsvp', token: session.token, payload: { householdId: h.id, answers } });
+      if (!result || !result.ok) {
+        alert((result && (result.message || result.error)) || 'Could not save the answer.');
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save answer'; }
+        return;
+      }
+      answerDraft = null;
+      loadDashboard();
+    } catch (err) {
+      alert('That didn’t save — check your connection and try again.');
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save answer'; }
+    }
+  }
+
+  // Returns true if the click belonged to the answer flow.
+  function handleAnswerClick(e) {
+    const card = e.target.closest('.admin-household');
+    if (!card) return false;
+    const h = findHousehold(Number(card.getAttribute('data-household-id')));
+    if (!h) return false;
+
+    if (e.target.closest('.admin-answer-btn')) {
+      answerDraft = { householdId: h.id, picks: {}, plusOneName: '' };
+      if (card.closest('#households-list')) {
+        renderHouseholds(lastData.households, searchInput.value); // closes any other open answer card
+      } else {
+        rerenderCard(card, h);
+      }
+      return true;
+    }
+    if (!answerDraft || answerDraft.householdId !== h.id) return false;
+
+    const pick = e.target.closest('.ans-pick');
+    if (pick) {
+      answerDraft.picks[Number(pick.getAttribute('data-guest-id'))] = pick.getAttribute('data-pick');
+      rerenderCard(card, h);
+      return true;
+    }
+    const all = e.target.closest('.ans-all');
+    if (all) {
+      h.members.forEach(m => { answerDraft.picks[m.id] = all.getAttribute('data-pick'); });
+      rerenderCard(card, h);
+      return true;
+    }
+    if (e.target.closest('.ans-cancel')) {
+      answerDraft = null;
+      rerenderCard(card, h);
+      return true;
+    }
+    if (e.target.closest('.ans-save')) {
+      saveAnswer(card, h);
+      return true;
+    }
+    return false;
+  }
+
+  document.addEventListener('input', function (e) {
+    if (answerDraft && e.target.classList && e.target.classList.contains('ans-plusone-name')) {
+      answerDraft.plusOneName = e.target.value;
+    }
+  });
+
   function householdCardHtml(h, opts) {
     const showRemove = !opts || opts.showRemove !== false;
     const editing = !!(opts && opts.editing);
+
+    if (answerDraft && answerDraft.householdId === h.id && !h.alreadySubmitted) {
+      return answerCardHtml(h);
+    }
 
     if (editing) {
       const memberRows = h.members.map(m =>
@@ -359,9 +494,11 @@
     if (h.existing) {
       const rows = [];
       if (h.existing.email) rows.push(['Email', '<a href="mailto:' + escapeHtml(h.existing.email) + '">' + escapeHtml(h.existing.email) + '</a>']);
-      const phoneBits = [h.existing.phone, h.existing.contactMethod ? 'prefers ' + h.existing.contactMethod.toLowerCase() : '']
+      const byHand = h.existing.contactMethod === 'admin';
+      const phoneBits = [h.existing.phone, h.existing.contactMethod && !byHand ? 'prefers ' + h.existing.contactMethod.toLowerCase() : '']
         .filter(Boolean).map(escapeHtml).join(' · ');
       if (phoneBits) rows.push(['Phone', phoneBits]);
+      if (byHand) rows.push(['Answer', 'Entered by hand']);
       if (h.existing.songRequest) rows.push(['Song', escapeHtml(h.existing.songRequest)]);
       if (h.existing.pizzaTopping) rows.push(['Pizza', escapeHtml(h.existing.pizzaTopping)]);
       if (h.existing.notes) rows.push(['Notes', escapeHtml(h.existing.notes)]);
@@ -373,6 +510,7 @@
     }
 
     const links = [];
+    if (!h.alreadySubmitted) links.push('<button type="button" class="bx-act admin-answer-btn" data-id="' + h.id + '">Enter answer</button>');
     if (showRemove) links.push('<button type="button" class="bx-act admin-edit-btn" data-id="' + h.id + '">Edit</button>');
     if (h.envelopeName && h.address) links.push('<a class="bx-act" href="envelopes.html?household=' + h.id + '" target="_blank" rel="noopener">Envelope</a>');
     if (showRemove && h.alreadySubmitted) links.push('<button type="button" class="bx-act bx-act-danger admin-reset-btn" data-id="' + h.id + '">Reset</button>');
@@ -638,6 +776,7 @@
   newGuestHousehold.addEventListener('change', toggleNewHouseholdFields);
 
   householdsEl.addEventListener('click', function (e) {
+    if (handleAnswerClick(e)) return;
     const expandBtn = e.target.closest('.bx-expand-toggle');
     if (expandBtn) {
       // Toggle the DOM directly (not a re-render) so the CSS transition
@@ -681,6 +820,7 @@
   });
 
   statListContent.addEventListener('click', function (e) {
+    if (handleAnswerClick(e)) return;
     const nameBtn = e.target.closest('.stat-list-name');
     if (!nameBtn) return;
     const li = nameBtn.closest('.stat-list-item');
