@@ -1,0 +1,164 @@
+/* ============================================================
+   Seating planner — floor plan on a paper card (left), guest list
+   (right). Same admin family as mailing/reminders: tomato ground,
+   white paper, charcoal lines. Stacks on a phone, plan on top.
+   ============================================================ */
+
+[hidden] { display: none !important; }
+
+.seat-body {
+  background: var(--color-bg);
+  min-height: 100vh;
+  margin: 0;
+}
+.seat-body.is-dragging { cursor: grabbing; user-select: none; }
+
+.seat-gate { padding: 3rem; text-align: center; color: var(--color-muted); }
+
+.seat-app {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: var(--space-sm);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-sm);
+  box-sizing: border-box;
+}
+
+/* ---------- Floor plan ---------- */
+
+.seat-plan-wrap {
+  position: sticky;
+  top: var(--space-sm);
+  height: calc(100vh - 2 * var(--space-sm));
+  background: var(--color-paper);
+  border-radius: 10px;
+  padding: .75rem;
+  box-sizing: border-box;
+}
+.seat-plan { display: block; width: 100%; height: 100%; }
+
+.seat-plan .room { fill: #fff; stroke: var(--color-charcoal); stroke-width: 2.5; }
+.seat-plan .bench { fill: #edc48e; stroke: var(--color-charcoal); stroke-width: 2; }
+.seat-plan .buffet { fill: var(--color-cream); stroke: var(--color-charcoal); stroke-width: 2; }
+.seat-plan .outside-dark { fill: #444; stroke: var(--color-charcoal); stroke-width: 2; }
+.seat-plan .outside-grey { fill: #b0b0b0; stroke: var(--color-charcoal); stroke-width: 2; }
+.seat-plan .plan-label {
+  font-family: var(--font-body); font-size: 30px; fill: var(--color-charcoal); text-anchor: middle;
+}
+.seat-plan .scale path { stroke: var(--color-charcoal); stroke-width: 3; fill: none; }
+.seat-plan .scale text {
+  font-family: var(--font-body); font-size: 26px; fill: var(--color-charcoal); text-anchor: middle;
+}
+
+.seat-plan .tbl { cursor: pointer; }
+.seat-plan .top { fill: #fff; stroke: var(--color-charcoal); stroke-width: 2.5; transition: fill .15s; }
+.seat-plan .chair { fill: #fff; stroke: var(--color-charcoal); stroke-width: 2; transition: fill .15s; }
+.seat-plan .chair.taken { fill: var(--color-bg); }
+.seat-plan .chair.gone { fill: #c9c4c0; }
+.seat-plan .tbl-no {
+  font-family: var(--font-display); font-size: 58px; fill: var(--color-charcoal);
+  text-anchor: middle; pointer-events: none;
+}
+.seat-plan .tbl-sub {
+  font-family: var(--font-body); font-size: 26px; fill: var(--color-charcoal);
+  text-anchor: middle; pointer-events: none;
+}
+.seat-plan .tbl:hover .top,
+.seat-plan .tbl.is-target .top { fill: var(--color-orange-lt); }
+.seat-plan .tbl.is-target .top { stroke: var(--color-bg); stroke-width: 6; }
+.seat-plan .tbl.is-open .top { stroke: var(--color-berry); stroke-width: 6; }
+.seat-plan .tbl.is-full .tbl-sub { font-weight: 700; }
+.seat-plan .tbl.is-over .top { fill: #fbd3d3; }
+.seat-plan .tbl.is-over .tbl-sub { fill: #c0162b; font-weight: 700; }
+
+/* ---------- Side ---------- */
+
+.seat-side { min-width: 0; padding-bottom: var(--space-md); }
+
+.seat-head { display: flex; align-items: baseline; gap: var(--space-sm); flex-wrap: wrap; }
+.seat-back { color: var(--color-muted); text-decoration: none; font-size: .85rem; flex-basis: 100%; }
+.seat-back:hover { text-decoration: underline; }
+.seat-head h1 { color: var(--color-text); font-size: 1.6rem; margin: .25rem 0 0; flex: 1; }
+.seat-progress { color: var(--color-muted); font-size: .9rem; font-weight: 700; margin: 0; }
+
+.seat-hint { color: var(--color-text); font-size: .9rem; margin: .5rem 0 0; }
+.seat-status { color: var(--color-paper); font-weight: 700; font-size: .9rem; margin: .25rem 0 0; min-height: 1.2em; }
+
+.seat-search {
+  display: block; width: 100%; box-sizing: border-box;
+  margin: .75rem 0;
+  padding: .7rem 1.1rem;
+  border: 0; border-radius: 100px;
+  font: inherit; font-size: 1rem;
+  background: var(--color-paper); color: var(--color-charcoal);
+}
+
+.seat-section-head { font-family: var(--font-body); color: var(--color-text); font-size: 1.1rem; margin: .5rem 0; }
+.seat-group {
+  font-family: var(--font-body); font-weight: 700;
+  color: var(--color-muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em;
+  margin: 1rem 0 .4rem;
+}
+
+.seat-hh {
+  background: var(--color-paper);
+  border-radius: 8px;
+  padding: .5rem .6rem;
+  margin-bottom: .45rem;
+  display: flex; flex-wrap: wrap; gap: .35rem; align-items: center;
+}
+.seat-hh-head {
+  font: inherit; font-size: .72rem; color: var(--color-charcoal); opacity: .7;
+  background: none; border: 1px dashed rgba(53, 50, 48, .4); border-radius: 100px;
+  padding: .2rem .55rem; cursor: grab; user-select: none; touch-action: pan-y;
+}
+.seat-hh-head:hover { opacity: 1; border-color: var(--color-charcoal); }
+
+.seat-chip {
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: var(--color-orange-lt); color: var(--color-charcoal);
+  border-radius: 100px; padding: .3rem .7rem;
+  font-size: .9rem; cursor: grab; user-select: none; touch-action: pan-y;
+  border: 2px solid transparent;
+}
+.seat-chip:hover { border-color: var(--color-bg); }
+.seat-chip.is-selected { background: var(--color-bg); color: #fff; }
+.seat-chip.is-gone { background: #e6e2df; }
+.seat-chip em { font-size: .72rem; color: #c0162b; font-style: normal; font-weight: 700; }
+.seat-x {
+  font: inherit; font-size: 1.1rem; line-height: 1; border: 0; background: none;
+  color: inherit; opacity: .6; cursor: pointer; padding: 0 0 0 .15rem;
+}
+.seat-x:hover { opacity: 1; }
+
+.seat-empty { color: var(--color-muted); font-size: .9rem; margin: .5rem 0; }
+
+.seat-panel {
+  background: var(--color-paper); color: var(--color-charcoal);
+  border-radius: 10px; padding: .75rem .9rem; margin-top: .75rem;
+  border: 3px solid var(--color-berry);
+}
+.seat-panel-top { display: flex; align-items: center; justify-content: space-between; }
+.seat-panel h2 { font-family: var(--font-body); font-size: 1.15rem; margin: 0; color: var(--color-charcoal); }
+.seat-panel h2 span { font-size: .9rem; opacity: .7; margin-left: .3rem; }
+.seat-panel h2 span.over { color: #c0162b; opacity: 1; font-weight: 700; }
+.seat-panel-close {
+  font-size: 1.5rem; line-height: 1; background: none; border: 0; cursor: pointer; color: var(--color-charcoal);
+}
+.seat-panel-list { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
+.seat-panel .seat-empty { color: var(--color-charcoal); opacity: .6; }
+
+.seat-ghost {
+  position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none;
+  background: var(--color-charcoal); color: #fff; border-radius: 100px;
+  padding: .35rem .8rem; font-size: .9rem; box-shadow: 0 6px 18px rgba(0,0,0,.25);
+}
+
+/* ---------- Phone: plan pinned on top, list scrolls under it ---------- */
+@media (max-width: 820px) {
+  .seat-app { grid-template-columns: 1fr; padding: .5rem 16px; }
+  .seat-plan-wrap { top: 0; height: 48vh; z-index: 10; border-radius: 0 0 10px 10px; padding: .4rem; }
+  .seat-side { order: 2; }
+  .seat-plan-wrap { order: 1; }
+}
