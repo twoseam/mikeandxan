@@ -1,9 +1,10 @@
 /* Seating planner — the barn floor plan (to scale, 60' x 38') with the
    head table + 18 round tables of 8. Attending guests (incl. +1s who are
    coming) start in "Not seated yet"; drag a name / household onto a
-   table, or tap names then tap a table. Tap a table to see who's there
-   and take people off. Saved per guest in D1 (seating table), so it
-   follows Michael + Xan across devices. */
+   table, or tap names then tap a table. Names show inside each table;
+   drag a name to another table to move that person. Drag a table itself
+   to move it (saved in seat_tables). Tap a table for its list + remove.
+   Saved in D1, so it follows Michael + Xan across devices. */
 (function () {
   'use strict';
 
@@ -12,15 +13,19 @@
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
   // Floor plan, in the diagram's own pixels (~30px per foot).
-  const HEAD = { no: 0, x: 400, y: 140, w: 183, h: 70, seats: 2 };
+  // Abstract: tables drawn bigger than life so names fit inside.
+  const HEAD = { w: 300, h: 84, seats: 2 };
   const ROUND_SEATS = 8;
-  const TABLE_R = 79;
+  const TABLE_R = 120;
+  const ROOM = { x: 50, y: 52, w: 1157, h: 1754 };
+  const DEFAULT_POS = { 0: { x: 491, y: 165 } };
   const TABLES = [
     [253, 362], [250, 646], [253, 915], [253, 1210], [253, 1480],
     [503, 537], [491, 813], [511, 1098], [503, 1353],
     [735, 362], [743, 656], [743, 939], [743, 1234], [758, 1496],
     [985, 537], [972, 830], [972, 1098], [972, 1361]
   ].map((p, i) => ({ no: i + 1, x: p[0], y: p[1] }));
+  TABLES.forEach(t => { DEFAULT_POS[t.no] = { x: t.x, y: t.y }; });
   const BENCHES = [370, 542, 773, 946, 1179, 1352].map(y => [56, y])
     .concat([379, 551, 783, 955, 1188, 1360].map(y => [1115, y]));
   const PX_PER_FOOT = 1157 / 38;
@@ -36,6 +41,21 @@
   let seating = {};       // guest id -> table no
   let selected = new Set();
   let openTable = null;   // table no shown in the panel
+  let layout = {};        // table no -> { x, y } where Michael moved it
+
+  function pos(no) { return layout[no] || DEFAULT_POS[no]; }
+  function clampPos(no, x, y) {
+    const hw = no === 0 ? HEAD.w / 2 : TABLE_R, hh = no === 0 ? HEAD.h / 2 : TABLE_R;
+    return {
+      x: Math.min(Math.max(x, ROOM.x + hw), ROOM.x + ROOM.w - hw),
+      y: Math.min(Math.max(y, ROOM.y + hh), ROOM.y + ROOM.h - hh)
+    };
+  }
+  function shortName(g) {
+    if (/^Guest of /.test(g.name)) return g.name;
+    const parts = g.name.trim().split(/\s+/);
+    return parts.length > 1 ? parts[0] + ' ' + parts[parts.length - 1][0] + '.' : parts[0];
+  }
 
   function el(id) { return document.getElementById(id); }
   function escapeHtml(s) {
@@ -90,12 +110,6 @@
 
   // ---------- Floor plan ----------
 
-  function chairPath(cx, cy, angleDeg, dist) {
-    const g = svg('g', { transform: 'rotate(' + angleDeg + ' ' + cx + ' ' + cy + ') translate(' + cx + ' ' + (cy - dist) + ')' });
-    svg('path', { d: 'M-23 17 V-6 a11 11 0 0 1 11 -11 h24 a11 11 0 0 1 11 11 V17 Z', class: 'chair' }, g);
-    return g;
-  }
-
   function drawPlan() {
     plan.innerHTML = '';
     // Outside the room (bottom) — left as plain blocks, as on the diagram.
@@ -118,39 +132,62 @@
     const st = svg('text', { x: 100 + len / 2, y: 1730 }, sb);
     st.textContent = '10 ft';
 
-    // Head table
-    const hg = svg('g', { class: 'tbl tbl-head', 'data-table': 0 }, plan);
-    const headSeated = guestsAt(0);
-    [468, 527].forEach((x, i) => {
-      const c = svg('path', { d: 'M' + (x - 23) + ' 133 V108 a11 11 0 0 1 11 -11 h24 a11 11 0 0 1 11 11 V133 Z', class: 'chair' + (headSeated[i] ? ' taken' : '') }, hg);
-      if (headSeated[i]) svg('title', {}, c).textContent = headSeated[i].name;
-    });
-    svg('rect', { x: HEAD.x, y: HEAD.y, width: HEAD.w, height: HEAD.h, class: 'top' }, hg);
-    const ht = svg('text', { x: HEAD.x + HEAD.w / 2, y: HEAD.y + 45, class: 'tbl-sub' }, hg);
-    ht.textContent = 'Mike & Xan';
-    if (openTable === 0) hg.classList.add('is-open');
+    drawHead();
+    TABLES.forEach(t => drawRound(t.no));
+  }
 
-    // Round tables
-    TABLES.forEach(t => {
-      const seated = guestsAt(t.no);
-      const g = svg('g', { class: 'tbl', 'data-table': t.no }, plan);
-      for (let k = 0; k < ROUND_SEATS; k++) {
-        const c = chairPath(t.x, t.y, k * 45, TABLE_R + 24);
-        const who = seated[k];
-        c.firstChild.setAttribute('class', 'chair' + (who ? (who.coming ? ' taken' : ' taken gone') : ''));
-        if (who) svg('title', {}, c).textContent = who.name;
-        g.appendChild(c);
-      }
-      svg('circle', { cx: t.x, cy: t.y, r: TABLE_R, class: 'top' }, g);
-      const num = svg('text', { x: t.x, y: t.y + 8, class: 'tbl-no' }, g);
-      num.textContent = t.no;
-      const cnt = svg('text', { x: t.x, y: t.y + 46, class: 'tbl-sub' }, g);
-      cnt.textContent = seated.length + '/' + ROUND_SEATS;
-      if (seated.length > ROUND_SEATS) g.classList.add('is-over');
-      else if (seated.length === ROUND_SEATS) g.classList.add('is-full');
-      if (openTable === t.no) g.classList.add('is-open');
-      svg('title', {}, g).textContent = tableName(t.no) + (seated.length ? ': ' + seated.map(s => s.name).join(', ') : '');
+  function drawHead() {
+    const p = pos(0);
+    const seated = guestsAt(0);
+    const g = svg('g', { class: 'tbl tbl-head', 'data-table': 0 }, plan);
+    svg('rect', { x: p.x - HEAD.w / 2, y: p.y - HEAD.h / 2, width: HEAD.w, height: HEAD.h, rx: 14, class: 'top' }, g);
+    if (seated.length) {
+      seated.slice(0, 2).forEach((who, i) => {
+        const t = svg('text', { x: p.x, y: p.y - 6 + i * 28 - (seated.length === 1 ? -14 : 0), class: 'tbl-name' + (who.coming ? '' : ' gone'), 'data-guest': who.id }, g);
+        t.textContent = shortName(who);
+      });
+    } else {
+      const t = svg('text', { x: p.x, y: p.y + 8, class: 'tbl-empty' }, g);
+      t.textContent = 'Mike & Xan';
+    }
+    if (seated.length > HEAD.seats) g.classList.add('is-over');
+    if (openTable === 0) g.classList.add('is-open');
+  }
+
+  function drawRound(no) {
+    const p = pos(no);
+    const seated = guestsAt(no);
+    const g = svg('g', { class: 'tbl', 'data-table': no }, plan);
+    svg('circle', { cx: p.x, cy: p.y, r: TABLE_R, class: 'top' }, g);
+
+    // Number + count pill on the table's top edge
+    svg('rect', { x: p.x - 62, y: p.y - TABLE_R - 22, width: 124, height: 44, rx: 22, class: 'pill' }, g);
+    const num = svg('text', { x: p.x - 26, y: p.y - TABLE_R + 10, class: 'pill-no' }, g);
+    num.textContent = no;
+    const cnt = svg('text', { x: p.x + 26, y: p.y - TABLE_R + 8, class: 'pill-count' }, g);
+    cnt.textContent = seated.length + '/' + ROUND_SEATS;
+
+    const shown = seated.length > ROUND_SEATS ? seated.slice(0, ROUND_SEATS - 1) : seated;
+    const lines = shown.length + (seated.length > shown.length ? 1 : 0);
+    const lineH = 22;
+    const top = p.y - (lines - 1) * lineH / 2 + 12;
+    shown.forEach((who, i) => {
+      const t = svg('text', { x: p.x, y: top + i * lineH, class: 'tbl-name' + (who.coming ? '' : ' gone'), 'data-guest': who.id }, g);
+      t.textContent = shortName(who);
+      svg('title', {}, t).textContent = who.name + (who.coming ? '' : ' (not coming)');
     });
+    if (seated.length > shown.length) {
+      const t = svg('text', { x: p.x, y: top + shown.length * lineH, class: 'tbl-more' }, g);
+      t.textContent = '+' + (seated.length - shown.length) + ' more';
+    }
+    if (!seated.length) {
+      const t = svg('text', { x: p.x, y: p.y + 8, class: 'tbl-empty' }, g);
+      t.textContent = 'empty';
+    }
+
+    if (seated.length > ROUND_SEATS) g.classList.add('is-over');
+    else if (seated.length === ROUND_SEATS) g.classList.add('is-full');
+    if (openTable === no) g.classList.add('is-open');
   }
 
   // ---------- Side list ----------
@@ -252,7 +289,33 @@
   }
   window.__seat = seat; // test hook
 
+  async function saveTableSpot(no, before) {
+    const p = pos(no);
+    try {
+      await post('adminMoveTable', { table: no, x: p.x, y: p.y });
+    } catch (err) {
+      if (before) layout[no] = before; else delete layout[no];
+      status('Didn’t save the move — ' + err.message + '. Try again.');
+      drawPlan();
+    }
+  }
+
+  async function resetTables() {
+    if (!window.confirm('Put every table back where the diagram has it?')) return;
+    const before = layout;
+    layout = {};
+    render();
+    try { await post('adminMoveTable', { reset: true }); }
+    catch (err) { layout = before; status('Didn’t save — ' + err.message + '. Try again.'); render(); }
+  }
+
   // ---------- Tap + drag ----------
+
+  function toSvg(x, y) {
+    const pt = plan.createSVGPoint();
+    pt.x = x; pt.y = y;
+    return pt.matrixTransform(plan.getScreenCTM().inverse());
+  }
 
   function idsFor(target) {
     const chip = target.closest('[data-guest]');
@@ -282,14 +345,47 @@
   document.addEventListener('pointerdown', e => {
     if (e.button !== 0 || e.target.closest('button.seat-x')) return;
     const ids = idsFor(e.target);
-    if (!ids || !ids.length) return;
-    drag = { ids, x: e.clientX, y: e.clientY, on: false, pointerId: e.pointerId };
+    if (ids && ids.length) {
+      drag = { ids, x: e.clientX, y: e.clientY, on: false, pointerId: e.pointerId };
+      return;
+    }
+    const t = e.target.closest('#plan [data-table]');
+    if (t) {
+      const no = Number(t.getAttribute('data-table'));
+      const start = toSvg(e.clientX, e.clientY);
+      drag = { table: no, x: e.clientX, y: e.clientY, on: false, pointerId: e.pointerId,
+               start, orig: pos(no), saved: layout[no] };
+    }
   });
+
+  // Keep the page scrolling while a drag sits near the top/bottom edge.
+  let lastPointer = null;
+  setInterval(() => {
+    if (!drag || !drag.on || !lastPointer) return;
+    const edge = 70;
+    if (lastPointer.y < edge) window.scrollBy(0, -18);
+    else if (lastPointer.y > window.innerHeight - edge) window.scrollBy(0, 18);
+  }, 30);
+
+  function moveTable(e) {
+    const now = toSvg(e.clientX, e.clientY);
+    layout[drag.table] = clampPos(drag.table,
+      drag.orig.x + (now.x - drag.start.x), drag.orig.y + (now.y - drag.start.y));
+    drawPlan();
+    const n = plan.querySelector('[data-table="' + drag.table + '"]');
+    if (n) n.classList.add('is-moving');
+  }
   document.addEventListener('pointermove', e => {
     if (!drag || e.pointerId !== drag.pointerId) return;
+    lastPointer = { x: e.clientX, y: e.clientY };
     if (!drag.on) {
       if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
       drag.on = true;
+      if (drag.table !== undefined) { document.body.classList.add('is-moving-table'); }
+    }
+    if (drag.table !== undefined) { e.preventDefault(); moveTable(e); return; }
+    if (!drag.ghostOn) {
+      drag.ghostOn = true;
       const first = guests.find(g => g.id === drag.ids[0]);
       ghost.textContent = drag.ids.length === 1 ? (first ? first.name : '1 guest') : drag.ids.length + ' guests';
       document.body.classList.add('is-dragging');
@@ -309,16 +405,27 @@
     if (!drag) return;
     const d = drag;
     drag = null;
-    document.body.classList.remove('is-dragging');
+    document.body.classList.remove('is-dragging', 'is-moving-table');
     document.querySelectorAll('.is-target').forEach(n => n.classList.remove('is-target'));
     ghost.hidden = true;
-    if (!d.on || e.type === 'pointercancel') return;
-    d.dragged = true;
-    suppressClick = true;
+    if (!d.on) return;
+    if (d.table !== undefined) {
+      suppressNextClick();
+      if (e.type === 'pointercancel') { if (d.saved) layout[d.table] = d.saved; else delete layout[d.table]; drawPlan(); return; }
+      drawPlan();
+      saveTableSpot(d.table, d.saved);
+      return;
+    }
+    if (e.type === 'pointercancel') return;
+    suppressNextClick();
     const t = dropTargetAt(e.clientX, e.clientY);
     if (t) seat(d.ids, t.table);
   }
+  // A drag ends with a click on whatever is under the pointer — swallow
+  // just that one. Cleared on the next tick, since a drag that redrew the
+  // plan often produces no click at all (and the next real tap must work).
   let suppressClick = false;
+  function suppressNextClick() { suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); }
   document.addEventListener('pointerup', endDrag);
   document.addEventListener('pointercancel', endDrag);
 
@@ -327,6 +434,7 @@
     const x = e.target.closest('[data-unseat]');
     if (x) { seat([Number(x.getAttribute('data-unseat'))], null); return; }
     if (e.target.closest('#panel-close')) { openTable = null; render(); return; }
+    if (e.target.closest('#reset-tables')) { resetTables(); return; }
 
     const t = e.target.closest('#plan [data-table]');
     if (t) {
@@ -358,8 +466,8 @@
   // ---------- Load ----------
 
   // Test hook: render fabricated data without a live backend.
-  window.__renderSeating = function (households, seats) {
-    guests = buildGuests(households); seating = seats || {};
+  window.__renderSeating = function (households, seats, lay) {
+    guests = buildGuests(households); seating = seats || {}; layout = lay || {};
     gate.hidden = true; app.hidden = false; render();
   };
 
@@ -381,6 +489,7 @@
     guests = buildGuests(data.households || []);
     seating = {};
     Object.keys(data.seating || {}).forEach(k => { seating[Number(k)] = data.seating[k]; });
+    layout = data.tableLayout || {};
     gate.hidden = true;
     app.hidden = false;
     render();
