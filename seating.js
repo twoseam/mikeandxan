@@ -1,5 +1,5 @@
 /* Seating planner — the barn floor plan (to scale, 60' x 38') with the
-   head table + 18 round tables of 8. Attending guests (incl. +1s who are
+   head table + 19 round tables of 8. Attending guests (incl. +1s who are
    coming) start in "Not seated yet"; drag a name / household onto a
    table, or tap names then tap a table. Names show inside each table;
    drag a name to another table to move that person. Drag a whole table
@@ -24,7 +24,8 @@
     [253, 362], [250, 646], [253, 915], [253, 1210], [253, 1480],
     [503, 537], [491, 813], [511, 1098], [503, 1353],
     [735, 362], [743, 656], [743, 939], [743, 1234], [758, 1496],
-    [985, 537], [972, 830], [972, 1098], [972, 1361]
+    [985, 537], [972, 830], [972, 1098], [972, 1361],
+    [985, 245]  // 19: added Oct 28, above table 15 (kept as 19 so seats don't renumber)
   ].map((p, i) => ({ no: i + 1, x: p[0], y: p[1] }));
   TABLES.forEach(t => { DEFAULT_POS[t.no] = { x: t.x, y: t.y }; });
   const BENCHES = [370, 542, 773, 946, 1179, 1352].map(y => [56, y])
