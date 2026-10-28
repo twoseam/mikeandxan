@@ -135,9 +135,11 @@
     const g = svg('g', { class: 'tbl tbl-head', 'data-table': 0 }, plan);
     svg('rect', { x: p.x - HEAD.w / 2, y: p.y - HEAD.h / 2, width: HEAD.w, height: HEAD.h, rx: 14, class: 'top' }, g);
     if (seated.length) {
-      seated.slice(0, 2).forEach((who, i) => {
-        const t = svg('text', { x: p.x, y: p.y - 6 + i * 28 - (seated.length === 1 ? -14 : 0), class: 'tbl-name' + (who.coming ? '' : ' gone'), 'data-guest': who.id }, g);
-        t.textContent = shortName(who);
+      const lines = tableLines(seated).slice(0, 2);
+      lines.forEach((line, i) => {
+        const t = svg('text', { x: p.x, y: p.y + 8 + (i - (lines.length - 1) / 2) * 28, class: 'tbl-name' + (line.gone ? ' gone' : ''), 'data-guests': line.ids.join(',') }, g);
+        t.textContent = line.text;
+        svg('title', {}, t).textContent = line.title;
       });
     } else {
       const t = svg('text', { x: p.x, y: p.y + 8, class: 'tbl-empty' }, g);
@@ -145,6 +147,44 @@
     }
     if (seated.length > HEAD.seats) g.classList.add('is-over');
     if (openTable === 0) g.classList.add('is-open');
+  }
+
+  // One line per person, except a couple from the same household sitting
+  // at the same table shares one: "Brooke & Will" (or "Brooke + guest"
+  // for an unnamed +1). Anyone who has since declined stays on their own
+  // line, struck through.
+  function firstName(g) {
+    if (/^Guest of /.test(g.name)) return 'guest';
+    return g.name.trim().split(/\s+/)[0];
+  }
+  function tableLines(seated) {
+    const lines = [];
+    const byHh = new Map();
+    seated.forEach(g => {
+      if (!g.coming) { lines.push({ ids: [g.id], text: shortName(g), title: g.name + ' (not coming)', gone: true }); return; }
+      if (!byHh.has(g.householdId)) {
+        const line = { ids: [], people: [] };
+        byHh.set(g.householdId, line);
+        lines.push(line);
+      }
+      const line = byHh.get(g.householdId);
+      line.ids.push(g.id);
+      line.people.push(g);
+    });
+    const out = [];
+    lines.forEach(line => {
+      if (line.gone) { out.push(line); return; }
+      const ppl = line.people;
+      if (ppl.length === 2) {
+        const guestFirst = ppl.findIndex(g => /^Guest of /.test(g.name)) === 0;
+        const pair = guestFirst ? [ppl[1], ppl[0]] : ppl;
+        const joiner = /^Guest of /.test(pair[1].name) ? ' + ' : ' & ';
+        out.push({ ids: line.ids, text: firstName(pair[0]) + joiner + firstName(pair[1]), title: ppl.map(g => g.name).join(' & ') });
+      } else {
+        ppl.forEach(g => out.push({ ids: [g.id], text: shortName(g), title: g.name }));
+      }
+    });
+    return out;
   }
 
   function drawRound(no) {
@@ -160,18 +200,20 @@
     const cnt = svg('text', { x: p.x + 26, y: p.y - TABLE_R + 8, class: 'pill-count' }, g);
     cnt.textContent = seated.length + '/' + ROUND_SEATS;
 
-    const shown = seated.length > ROUND_SEATS ? seated.slice(0, ROUND_SEATS - 1) : seated;
-    const lines = shown.length + (seated.length > shown.length ? 1 : 0);
+    const all = tableLines(seated);
+    const shown = all.length > ROUND_SEATS ? all.slice(0, ROUND_SEATS - 1) : all;
+    const hiddenPeople = all.slice(shown.length).reduce((n, l) => n + l.ids.length, 0);
+    const lines = shown.length + (hiddenPeople ? 1 : 0);
     const lineH = 22;
     const top = p.y - (lines - 1) * lineH / 2 + 12;
-    shown.forEach((who, i) => {
-      const t = svg('text', { x: p.x, y: top + i * lineH, class: 'tbl-name' + (who.coming ? '' : ' gone'), 'data-guest': who.id }, g);
-      t.textContent = shortName(who);
-      svg('title', {}, t).textContent = who.name + (who.coming ? '' : ' (not coming)');
+    shown.forEach((line, i) => {
+      const t = svg('text', { x: p.x, y: top + i * lineH, class: 'tbl-name' + (line.gone ? ' gone' : ''), 'data-guests': line.ids.join(',') }, g);
+      t.textContent = line.text;
+      svg('title', {}, t).textContent = line.title;
     });
-    if (seated.length > shown.length) {
+    if (hiddenPeople) {
       const t = svg('text', { x: p.x, y: top + shown.length * lineH, class: 'tbl-more' }, g);
-      t.textContent = '+' + (seated.length - shown.length) + ' more';
+      t.textContent = '+' + hiddenPeople + ' more';
     }
     if (!seated.length) {
       const t = svg('text', { x: p.x, y: p.y + 8, class: 'tbl-empty' }, g);
@@ -307,6 +349,8 @@
   // ---------- Tap + drag ----------
 
   function idsFor(target) {
+    const pair = target.closest('[data-guests]');
+    if (pair) return pair.getAttribute('data-guests').split(',').map(Number);
     const chip = target.closest('[data-guest]');
     if (chip) {
       const id = Number(chip.getAttribute('data-guest'));
