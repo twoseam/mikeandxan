@@ -2,8 +2,9 @@
    head table + 18 round tables of 8. Attending guests (incl. +1s who are
    coming) start in "Not seated yet"; drag a name / household onto a
    table, or tap names then tap a table. Names show inside each table;
-   drag a name to another table to move that person. Drag a table itself
-   to move it (saved in seat_tables). Tap a table for its list + remove.
+   drag a name to another table to move that person. Drag a whole table
+   onto another to move its group there (swaps if that one is taken).
+   Tables stay where the diagram has them. Tap a table for its list.
    Saved in D1, so it follows Michael + Xan across devices. */
 (function () {
   'use strict';
@@ -41,16 +42,8 @@
   let seating = {};       // guest id -> table no
   let selected = new Set();
   let openTable = null;   // table no shown in the panel
-  let layout = {};        // table no -> { x, y } where Michael moved it
 
-  function pos(no) { return layout[no] || DEFAULT_POS[no]; }
-  function clampPos(no, x, y) {
-    const hw = no === 0 ? HEAD.w / 2 : TABLE_R, hh = no === 0 ? HEAD.h / 2 : TABLE_R;
-    return {
-      x: Math.min(Math.max(x, ROOM.x + hw), ROOM.x + ROOM.w - hw),
-      y: Math.min(Math.max(y, ROOM.y + hh), ROOM.y + ROOM.h - hh)
-    };
-  }
+  function pos(no) { return DEFAULT_POS[no]; }
   function shortName(g) {
     if (/^Guest of /.test(g.name)) return g.name;
     const parts = g.name.trim().split(/\s+/);
@@ -289,33 +282,29 @@
   }
   window.__seat = seat; // test hook
 
-  async function saveTableSpot(no, before) {
-    const p = pos(no);
+  // Move everyone at table `from` to table `to`; if `to` already has
+  // people, they go to `from` (a swap).
+  async function moveGroup(from, to) {
+    const a = guestsAt(from).map(g => g.id);
+    const b = guestsAt(to).map(g => g.id);
+    if (!a.length || from === to) return;
+    if (!b.length) { openTable = to; return seat(a, to); }
+    a.forEach(id => { seating[id] = to; });
+    b.forEach(id => { seating[id] = from; });
+    selected.clear();
+    openTable = to;
+    status(tableName(from) + ' and ' + tableName(to).toLowerCase() + ' swapped.');
+    render();
     try {
-      await post('adminMoveTable', { table: no, x: p.x, y: p.y });
+      await post('adminSetSeats', { guestIds: a, table: to });
+      await post('adminSetSeats', { guestIds: b, table: from });
     } catch (err) {
-      if (before) layout[no] = before; else delete layout[no];
-      status('Didn’t save the move — ' + err.message + '. Try again.');
-      drawPlan();
+      status('Didn’t save — ' + err.message + '. Reloading…');
+      load();
     }
   }
 
-  async function resetTables() {
-    if (!window.confirm('Put every table back where the diagram has it?')) return;
-    const before = layout;
-    layout = {};
-    render();
-    try { await post('adminMoveTable', { reset: true }); }
-    catch (err) { layout = before; status('Didn’t save — ' + err.message + '. Try again.'); render(); }
-  }
-
   // ---------- Tap + drag ----------
-
-  function toSvg(x, y) {
-    const pt = plan.createSVGPoint();
-    pt.x = x; pt.y = y;
-    return pt.matrixTransform(plan.getScreenCTM().inverse());
-  }
 
   function idsFor(target) {
     const chip = target.closest('[data-guest]');
@@ -352,9 +341,9 @@
     const t = e.target.closest('#plan [data-table]');
     if (t) {
       const no = Number(t.getAttribute('data-table'));
-      const start = toSvg(e.clientX, e.clientY);
-      drag = { table: no, x: e.clientX, y: e.clientY, on: false, pointerId: e.pointerId,
-               start, orig: pos(no), saved: layout[no] };
+      const groupIds = guestsAt(no).map(g => g.id);
+      if (!groupIds.length) return;
+      drag = { ids: groupIds, fromTable: no, x: e.clientX, y: e.clientY, on: false, pointerId: e.pointerId };
     }
   });
 
@@ -367,27 +356,19 @@
     else if (lastPointer.y > window.innerHeight - edge) window.scrollBy(0, 18);
   }, 30);
 
-  function moveTable(e) {
-    const now = toSvg(e.clientX, e.clientY);
-    layout[drag.table] = clampPos(drag.table,
-      drag.orig.x + (now.x - drag.start.x), drag.orig.y + (now.y - drag.start.y));
-    drawPlan();
-    const n = plan.querySelector('[data-table="' + drag.table + '"]');
-    if (n) n.classList.add('is-moving');
-  }
   document.addEventListener('pointermove', e => {
     if (!drag || e.pointerId !== drag.pointerId) return;
     lastPointer = { x: e.clientX, y: e.clientY };
     if (!drag.on) {
       if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
       drag.on = true;
-      if (drag.table !== undefined) { document.body.classList.add('is-moving-table'); }
     }
-    if (drag.table !== undefined) { e.preventDefault(); moveTable(e); return; }
     if (!drag.ghostOn) {
       drag.ghostOn = true;
       const first = guests.find(g => g.id === drag.ids[0]);
-      ghost.textContent = drag.ids.length === 1 ? (first ? first.name : '1 guest') : drag.ids.length + ' guests';
+      ghost.textContent = drag.fromTable !== undefined
+        ? 'Everyone at ' + tableName(drag.fromTable).toLowerCase() + ' (' + drag.ids.length + ')'
+        : drag.ids.length === 1 ? (first ? first.name : '1 guest') : drag.ids.length + ' guests';
       document.body.classList.add('is-dragging');
     }
     e.preventDefault();
@@ -405,21 +386,16 @@
     if (!drag) return;
     const d = drag;
     drag = null;
-    document.body.classList.remove('is-dragging', 'is-moving-table');
+    document.body.classList.remove('is-dragging');
     document.querySelectorAll('.is-target').forEach(n => n.classList.remove('is-target'));
     ghost.hidden = true;
     if (!d.on) return;
-    if (d.table !== undefined) {
-      suppressNextClick();
-      if (e.type === 'pointercancel') { if (d.saved) layout[d.table] = d.saved; else delete layout[d.table]; drawPlan(); return; }
-      drawPlan();
-      saveTableSpot(d.table, d.saved);
-      return;
-    }
     if (e.type === 'pointercancel') return;
     suppressNextClick();
     const t = dropTargetAt(e.clientX, e.clientY);
-    if (t) seat(d.ids, t.table);
+    if (!t) return;
+    if (d.fromTable !== undefined && t.table !== null) moveGroup(d.fromTable, t.table);
+    else seat(d.ids, t.table);
   }
   // A drag ends with a click on whatever is under the pointer — swallow
   // just that one. Cleared on the next tick, since a drag that redrew the
@@ -434,7 +410,6 @@
     const x = e.target.closest('[data-unseat]');
     if (x) { seat([Number(x.getAttribute('data-unseat'))], null); return; }
     if (e.target.closest('#panel-close')) { openTable = null; render(); return; }
-    if (e.target.closest('#reset-tables')) { resetTables(); return; }
 
     const t = e.target.closest('#plan [data-table]');
     if (t) {
@@ -466,8 +441,8 @@
   // ---------- Load ----------
 
   // Test hook: render fabricated data without a live backend.
-  window.__renderSeating = function (households, seats, lay) {
-    guests = buildGuests(households); seating = seats || {}; layout = lay || {};
+  window.__renderSeating = function (households, seats) {
+    guests = buildGuests(households); seating = seats || {};
     gate.hidden = true; app.hidden = false; render();
   };
 
@@ -489,7 +464,6 @@
     guests = buildGuests(data.households || []);
     seating = {};
     Object.keys(data.seating || {}).forEach(k => { seating[Number(k)] = data.seating[k]; });
-    layout = data.tableLayout || {};
     gate.hidden = true;
     app.hidden = false;
     render();
