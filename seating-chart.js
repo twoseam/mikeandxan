@@ -162,7 +162,9 @@
   }
 
   function render() {
-    const seatedComing = guests.filter(g => g.coming && seating[g.id] !== undefined);
+    // The head table (Mike & Xan) stays off the chart — guests don't need
+    // to look the two of them up.
+    const seatedComing = guests.filter(g => g.coming && seating[g.id] !== undefined && seating[g.id] !== 0);
     const entries = foldGuests(seatedComing.map(entryFor)).sort(byName);
     const tableCount = new Set(entries.map(e => e.table)).size;
     const people = headCount(entries);
