@@ -50,6 +50,9 @@
         } else {
           coming = m.attending === 'yes';
           name = m.name;
+          // Someone added by hand as a regular guest named "Plus 1" is
+          // still an unnamed +1, not a person called "1".
+          if (PLACEHOLDER.test(String(name || '').trim())) { anon = true; name = ''; }
         }
         out.push({ id: m.id, name, householdId: h.id, order, anon, coming });
       });
