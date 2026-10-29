@@ -39,18 +39,20 @@
     const out = [];
     households.forEach(h => {
       const realNames = h.members.filter(m => !m.isPlusOne).map(m => m.name);
+      const hostMember = h.members.find(m => !m.isPlusOne);
       h.members.forEach(m => {
-        let coming, name, host = null;
+        let coming, name, host = null, hostId = null;
         if (m.isPlusOne) {
           coming = m.bringingPlusOne === 'yes';
           host = realNames[0] || '';
+          hostId = hostMember ? hostMember.id : null;
           const hostFirst = host.split(/\s+/)[0];
           name = (m.actualName || '').trim() || ('Guest of ' + hostFirst);
         } else {
           coming = m.attending === 'yes';
           name = m.name;
         }
-        out.push({ id: m.id, name, householdId: h.id, host, coming });
+        out.push({ id: m.id, name, householdId: h.id, host, hostId, coming });
       });
     });
     return out;
@@ -78,22 +80,42 @@
   function entryFor(g) {
     if (g.host !== null && /^Guest of /.test(g.name)) {
       const hostParts = splitName(g.host);
-      return { first: g.name, last: hostParts.last || hostParts.first, suffix: '', guestOf: true, table: seating[g.id] };
+      return { id: g.id, hostId: g.hostId, first: g.name, last: hostParts.last || hostParts.first, suffix: '', guestOf: true, andGuest: false, table: seating[g.id] };
     }
     const p = splitName(g.name);
-    return { first: p.first, last: p.last, suffix: p.suffix, guestOf: false, table: seating[g.id] };
+    return { id: g.id, hostId: null, first: p.first, last: p.last, suffix: p.suffix, guestOf: false, andGuest: false, table: seating[g.id] };
+  }
+  // An unnamed +1 rides on the line of the person who brought them:
+  // "Henderson, Brooke & Guest". Only when the host is on the chart at the
+  // same table; otherwise the +1 keeps their own "Guest of Brooke" line.
+  function foldGuests(entries) {
+    const byId = new Map(entries.map(e => [e.id, e]));
+    return entries.filter(e => {
+      if (!e.guestOf) return true;
+      const host = byId.get(e.hostId);
+      if (!host || host.table !== e.table) return true;
+      host.andGuest = true;
+      return false;
+    });
   }
   function byName(a, b) {
     return a.last.localeCompare(b.last, 'en', { sensitivity: 'base' }) ||
       a.first.localeCompare(b.first, 'en', { sensitivity: 'base' });
   }
-  // "First Last Jr." for the by-table list; an unnamed +1 stays "Guest of Brooke".
+  // "First Last Jr. & Guest" for the by-table list; a +1 whose host isn't
+  // on the chart stays "Guest of Brooke".
   function displayName(e) {
     if (e.guestOf) return e.first;
-    return [e.first, e.last, e.suffix].filter(Boolean).join(' ');
+    return [e.first, e.last, e.suffix].filter(Boolean).join(' ') + (e.andGuest ? ' & Guest' : '');
   }
-  // "Last, First Jr." for the A-to-Z list.
-  function listedFirst(e) { return [e.first, e.suffix].filter(Boolean).join(' '); }
+  // A-to-Z list: sorted by last name but shown "First Last Jr. & Guest",
+  // with the last name in bold so the eye can scan the sort key.
+  function azName(e) {
+    if (e.guestOf) return escapeHtml(e.first);
+    return (e.first ? escapeHtml(e.first) + ' ' : '') + '<b>' + escapeHtml(e.last) + '</b>' +
+      (e.suffix ? ' ' + escapeHtml(e.suffix) : '') + (e.andGuest ? ' &amp; Guest' : '');
+  }
+  function headCount(list) { return list.reduce((n, e) => n + (e.andGuest ? 2 : 1), 0); }
   // Letter heading: strip accents so "Ødegaard" and "Émile" file under O and E.
   const LETTER_MAP = { 'Ø': 'O', 'Œ': 'O', 'Æ': 'A', 'Ł': 'L', 'Đ': 'D', 'Ð': 'D', 'Þ': 'T', 'ß': 'S' };
   function letterOf(last) {
@@ -115,9 +137,8 @@
     entries.forEach(e => {
       const L = letterOf(e.last);
       if (L !== letter) { letter = L; html += '<div class="az-letter">' + escapeHtml(L) + '</div>'; }
-      const rest = listedFirst(e);
       html += '<div class="az-row">' +
-        '<span class="name"><b>' + escapeHtml(e.last) + '</b>' + (rest ? ', ' + escapeHtml(rest) : '') + '</span>' +
+        '<span class="name">' + azName(e) + '</span>' +
         '<span class="lead"></span>' +
         '<span class="tbl">' + escapeHtml(tableShort(e.table)) + '</span>' +
         '</div>';
@@ -134,7 +155,7 @@
     const nos = Array.from(byTable.keys()).sort((a, b) => a - b);
     const cards = nos.map(no => {
       const list = byTable.get(no).slice().sort(byName);
-      return '<div class="table-card"><h3>' + escapeHtml(tableName(no)) + '<span>' + list.length + '</span></h3><ul>' +
+      return '<div class="table-card"><h3>' + escapeHtml(tableName(no)) + '<span>' + headCount(list) + '</span></h3><ul>' +
         list.map(e => '<li>' + escapeHtml(displayName(e)) + '</li>').join('') + '</ul></div>';
     });
     return '<section class="sheet">' + sheetHead('By Table') + '<div class="tables">' + cards.join('') + '</div></section>';
@@ -142,15 +163,16 @@
 
   function render() {
     const seatedComing = guests.filter(g => g.coming && seating[g.id] !== undefined);
-    const entries = seatedComing.map(entryFor).sort(byName);
+    const entries = foldGuests(seatedComing.map(entryFor)).sort(byName);
     const tableCount = new Set(entries.map(e => e.table)).size;
+    const people = headCount(entries);
 
     let html = '';
     if (optAz.checked) html += azSheet(entries);
     if (optTables.checked) html += tablesSheet(entries);
     sheetsEl.innerHTML = html || '<p class="chart-gate">Tick at least one list above.</p>';
 
-    summaryEl.textContent = entries.length + (entries.length === 1 ? ' person' : ' people') +
+    summaryEl.textContent = people + (people === 1 ? ' person' : ' people') +
       ' across ' + tableCount + (tableCount === 1 ? ' table' : ' tables');
 
     // Screen-only heads-up about anyone the printed chart skips.
