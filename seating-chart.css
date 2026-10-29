@@ -1,0 +1,187 @@
+/* ============================================================
+   Seating chart — printable A-to-Z list of who sits where, plus a
+   by-table list. US Letter, one sheet per section. New Kansas
+   throughout (same Typekit kit as the admin pages).
+   ============================================================ */
+
+:root {
+  --ink: #353230;
+  --ink-soft: #7a736e;
+  --rule: #d9d2cb;
+  --tomato: #f15826;
+  --berry: #a82a52;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: #f3f0ea;
+  color: var(--ink);
+  font-family: "new-kansas", Georgia, "Times New Roman", serif;
+}
+
+.chart-gate { padding: 3rem; text-align: center; color: var(--ink-soft); }
+
+/* ---------- Toolbar (screen only) ---------- */
+
+.chart-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.1rem 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid var(--rule);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.chart-back { color: var(--ink-soft); text-decoration: none; font-size: .85rem; flex-basis: 100%; }
+.chart-back:hover { text-decoration: underline; }
+.chart-toolbar h1 { font-size: 1.15rem; margin: 0; }
+.chart-summary { font-size: .85rem; color: var(--ink-soft); margin: 0; flex: 1; }
+.chart-options { display: flex; gap: 1rem; font-size: .85rem; }
+.chart-options label { display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; }
+.chart-options input { accent-color: var(--tomato); width: 1rem; height: 1rem; }
+.chart-toolbar .btn {
+  border: 0;
+  border-radius: 100px;
+  padding: .55rem 1.4rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--tomato);
+  color: #fff;
+}
+.chart-toolbar .btn:hover { opacity: .9; }
+.chart-hint { flex-basis: 100%; margin: 0; font-size: .78rem; color: var(--ink-soft); }
+
+.chart-warnings {
+  margin: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
+  background: #fbf0da;
+  border: 1px solid #e9cf8f;
+  border-radius: 8px;
+  font-size: .85rem;
+}
+.chart-warnings h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 .5rem; }
+.chart-warnings ul { margin: 0; padding-left: 1.2rem; }
+.chart-warnings li { margin: .2rem 0; }
+
+/* ---------- Sheets ---------- */
+
+#chart-sheets {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.sheet {
+  width: 8.5in;
+  min-height: 11in;
+  padding: .6in .65in .7in;
+  background: #fff;
+  border: 1px solid var(--rule);
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  flex-shrink: 0;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: .12in;
+  margin-bottom: .22in;
+}
+.sheet-title {
+  font-size: 22pt;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -.01em;
+}
+.sheet-sub {
+  margin: 0;
+  font-size: 10pt;
+  color: var(--ink-soft);
+  text-align: right;
+}
+
+/* A to Z — three columns, letter headings, dotted leaders */
+.az {
+  columns: 3;
+  column-gap: .32in;
+  font-size: 10pt;
+  line-height: 1.55;
+}
+.az-letter {
+  font-size: 12pt;
+  font-weight: 700;
+  color: var(--tomato);
+  margin: .1in 0 .02in;
+  break-after: avoid;
+  break-inside: avoid;
+}
+.az-letter:first-child { margin-top: 0; }
+.az-row {
+  display: flex;
+  align-items: baseline;
+  gap: .3em;
+  break-inside: avoid;
+}
+.az-row .name { min-width: 0; }
+.az-row .name b { font-weight: 700; }
+.az-row .lead {
+  flex: 1;
+  min-width: .6em;
+  border-bottom: 1px dotted var(--ink-soft);
+  transform: translateY(-.28em);
+}
+.az-row .tbl { font-weight: 700; white-space: nowrap; }
+
+/* By table — cards in a grid */
+.tables {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .14in .2in;
+  font-size: 9.5pt;
+  line-height: 1.45;
+}
+.table-card { break-inside: avoid; }
+.table-card h3 {
+  font-size: 11pt;
+  margin: 0 0 .04in;
+  padding-bottom: .03in;
+  border-bottom: 1.5px solid var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.table-card h3 span { font-weight: 400; font-size: 8.5pt; color: var(--ink-soft); }
+.table-card ul { list-style: none; margin: 0; padding: 0; }
+.table-card li { padding: .01in 0; }
+
+/* ---------- Print ---------- */
+
+@media print {
+  body { background: #fff; }
+  .chart-toolbar, .chart-warnings { display: none; }
+  #chart-sheets { padding: 0; gap: 0; display: block; }
+  .sheet {
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    page-break-after: always;
+    break-after: page;
+  }
+  .sheet:last-child { page-break-after: auto; break-after: auto; }
+  .az-letter { color: var(--tomato); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { size: letter portrait; margin: .6in .65in .7in; }
+}

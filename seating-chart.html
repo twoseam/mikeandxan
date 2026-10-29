@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Seating Chart — M &amp; A</title>
+
+  <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
+  <!-- ?v= busts browser caches - bump in BOTH tags whenever either file changes. -->
+  <link rel="stylesheet" href="seating-chart.css?v=1" />
+</head>
+<body>
+
+  <div id="gate" class="chart-gate">
+    <p>Checking you're logged in&hellip;</p>
+  </div>
+
+  <div id="app" hidden>
+    <header class="chart-toolbar">
+      <a href="seating.html" class="chart-back">&larr; Back to Seating</a>
+      <h1>Seating Chart</h1>
+      <p id="chart-summary" class="chart-summary"></p>
+      <div class="chart-options">
+        <label><input type="checkbox" id="opt-az" checked /> A to Z</label>
+        <label><input type="checkbox" id="opt-tables" checked /> By table</label>
+      </div>
+      <button type="button" id="print-btn" class="btn btn-primary">Save as PDF</button>
+      <p class="chart-hint">In the print window, pick <strong>Save as PDF</strong>.</p>
+    </header>
+
+    <section id="chart-warnings" class="chart-warnings" hidden>
+      <h2>Left off the chart</h2>
+      <ul id="chart-warnings-list"></ul>
+    </section>
+
+    <main id="chart-sheets"></main>
+  </div>
+
+  <script src="seating-chart.js?v=1"></script>
+</body>
+</html>

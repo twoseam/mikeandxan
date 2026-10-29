@@ -92,6 +92,20 @@
 .seat-back:hover { text-decoration: underline; }
 .seat-head h1 { color: var(--color-text); font-size: 1.6rem; margin: .25rem 0 0; flex: 1; }
 .seat-progress { color: var(--color-muted); font-size: .9rem; font-weight: 700; margin: 0; }
+.seat-chart-link {
+  flex-basis: 100%;
+  align-self: flex-start;
+  width: fit-content;
+  margin-top: .5rem;
+  padding: .45rem 1rem;
+  border-radius: 100px;
+  background: var(--color-paper);
+  color: var(--color-charcoal);
+  font-size: .85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.seat-chart-link:hover { background: var(--color-orange-lt); }
 
 .seat-hint { color: var(--color-text); font-size: .9rem; margin: .5rem 0 0; }
 .seat-status { color: var(--color-paper); font-weight: 700; font-size: .9rem; margin: .25rem 0 0; min-height: 1.2em; }
