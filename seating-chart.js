@@ -112,7 +112,7 @@
   // with the last name in bold so the eye can scan the sort key.
   function azName(e) {
     if (e.guestOf) return escapeHtml(e.first);
-    return (e.first ? escapeHtml(e.first) + ' ' : '') + '<b>' + escapeHtml(e.last) + '</b>' +
+    return (e.first ? escapeHtml(e.first) + ' ' : '') + escapeHtml(e.last) +
       (e.suffix ? ' ' + escapeHtml(e.suffix) : '') + (e.andGuest ? ' &amp; Guest' : '');
   }
   function headCount(list) { return list.reduce((n, e) => n + (e.andGuest ? 2 : 1), 0); }
