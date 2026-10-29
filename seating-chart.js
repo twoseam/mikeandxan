@@ -19,7 +19,7 @@
   const optAz = document.getElementById('opt-az');
   const optTables = document.getElementById('opt-tables');
 
-  let guests = [];   // { id, name, householdId, host, coming }
+  let guests = [];   // { id, name, householdId, order, anon, coming }
   let seating = {};  // guest id -> table no
 
   function escapeHtml(s) {
@@ -35,24 +35,23 @@
   function tableShort(no) { return no === 0 ? 'Head' : String(no); }
 
   // Same rules as seating.js so the two pages always agree on who is coming.
+  // A +1 "name" that is really a placeholder, not a person.
+  const PLACEHOLDER = /^(\+\s*1|plus\s*-?\s*(1|one)|guest|tbd|tba|unknown|n\/?a|none|-+|\?+)$/i;
+
   function buildGuests(households) {
     const out = [];
     households.forEach(h => {
-      const realNames = h.members.filter(m => !m.isPlusOne).map(m => m.name);
-      const hostMember = h.members.find(m => !m.isPlusOne);
-      h.members.forEach(m => {
-        let coming, name, host = null, hostId = null;
+      h.members.forEach((m, order) => {
+        let coming, name, anon = false;
         if (m.isPlusOne) {
           coming = m.bringingPlusOne === 'yes';
-          host = realNames[0] || '';
-          hostId = hostMember ? hostMember.id : null;
-          const hostFirst = host.split(/\s+/)[0];
-          name = (m.actualName || '').trim() || ('Guest of ' + hostFirst);
+          name = (m.actualName || '').trim();
+          if (!name || PLACEHOLDER.test(name)) { anon = true; name = ''; }
         } else {
           coming = m.attending === 'yes';
           name = m.name;
         }
-        out.push({ id: m.id, name, householdId: h.id, host, hostId, coming });
+        out.push({ id: m.id, name, householdId: h.id, order, anon, coming });
       });
     });
     return out;
@@ -78,44 +77,48 @@
     return { first: parts.join(' '), last: lastParts.join(' '), suffix };
   }
   function entryFor(g) {
-    if (g.host !== null && /^Guest of /.test(g.name)) {
-      const hostParts = splitName(g.host);
-      return { id: g.id, hostId: g.hostId, first: g.name, last: hostParts.last || hostParts.first, suffix: '', guestOf: true, andGuest: false, table: seating[g.id] };
-    }
     const p = splitName(g.name);
-    return { id: g.id, hostId: null, first: p.first, last: p.last, suffix: p.suffix, guestOf: false, andGuest: false, table: seating[g.id] };
+    return { id: g.id, householdId: g.householdId, order: g.order, anon: g.anon,
+      first: p.first, last: p.last, suffix: p.suffix, guests: 0, table: seating[g.id] };
   }
-  // An unnamed +1 rides on the line of the person who brought them:
-  // "Henderson, Brooke & Guest". Only when the host is on the chart at the
-  // same table; otherwise the +1 keeps their own "Guest of Brooke" line.
+  // Every unnamed +1 rides on the line of someone from their own household:
+  // "Brooke Henderson & Guest". First choice is a household member at the
+  // same table; failing that, any household member on the chart (the line
+  // shows the +1's own table, "Guest of Brooke Henderson"). Only if nobody
+  // from the household is on the chart does a bare "Guest" line remain.
   function foldGuests(entries) {
-    const byId = new Map(entries.map(e => [e.id, e]));
-    return entries.filter(e => {
-      if (!e.guestOf) return true;
-      const host = byId.get(e.hostId);
-      if (!host || host.table !== e.table) return true;
-      host.andGuest = true;
-      return false;
+    const real = entries.filter(e => !e.anon);
+    const kept = real.slice();
+    entries.filter(e => e.anon).forEach(e => {
+      const family = real.filter(r => r.householdId === e.householdId).sort((a, b) => a.order - b.order);
+      const sameTable = family.find(r => r.table === e.table);
+      if (sameTable) { sameTable.guests++; return; }
+      const host = family[0];
+      kept.push(Object.assign(e, {
+        guestOfName: host ? [host.first, host.last].filter(Boolean).join(' ') : '',
+        last: host ? host.last : 'Guest',
+        first: host ? host.first : ''
+      }));
     });
+    return kept;
   }
   function byName(a, b) {
     return a.last.localeCompare(b.last, 'en', { sensitivity: 'base' }) ||
-      a.first.localeCompare(b.first, 'en', { sensitivity: 'base' });
+      a.first.localeCompare(b.first, 'en', { sensitivity: 'base' }) ||
+      (a.anon ? 1 : 0) - (b.anon ? 1 : 0);
   }
-  // "First Last Jr. & Guest" for the by-table list; a +1 whose host isn't
-  // on the chart stays "Guest of Brooke".
+  function guestTail(e) {
+    if (!e.guests) return '';
+    return e.guests === 1 ? ' & Guest' : ' & ' + e.guests + ' Guests';
+  }
+  // "First Last Jr. & Guest" — used on both sheets (A-to-Z is still sorted
+  // by last name).
   function displayName(e) {
-    if (e.guestOf) return e.first;
-    return [e.first, e.last, e.suffix].filter(Boolean).join(' ') + (e.andGuest ? ' & Guest' : '');
+    if (e.anon) return e.guestOfName ? 'Guest of ' + e.guestOfName : 'Guest';
+    return [e.first, e.last, e.suffix].filter(Boolean).join(' ') + guestTail(e);
   }
-  // A-to-Z list: sorted by last name but shown "First Last Jr. & Guest",
-  // with the last name in bold so the eye can scan the sort key.
-  function azName(e) {
-    if (e.guestOf) return escapeHtml(e.first);
-    return (e.first ? escapeHtml(e.first) + ' ' : '') + escapeHtml(e.last) +
-      (e.suffix ? ' ' + escapeHtml(e.suffix) : '') + (e.andGuest ? ' &amp; Guest' : '');
-  }
-  function headCount(list) { return list.reduce((n, e) => n + (e.andGuest ? 2 : 1), 0); }
+  function azName(e) { return escapeHtml(displayName(e)); }
+  function headCount(list) { return list.reduce((n, e) => n + 1 + (e.guests || 0), 0); }
   // Letter heading: strip accents so "Ødegaard" and "Émile" file under O and E.
   const LETTER_MAP = { 'Ø': 'O', 'Œ': 'O', 'Æ': 'A', 'Ł': 'L', 'Đ': 'D', 'Ð': 'D', 'Þ': 'T', 'ß': 'S' };
   function letterOf(last) {
@@ -182,9 +185,9 @@
     const gone = guests.filter(g => !g.coming && seating[g.id] !== undefined);
     const warnings = [];
     if (unseated.length) {
-      warnings.push(unseated.length + ' coming but not seated yet: ' + unseated.map(g => g.name).join(', ') + '.');
+      warnings.push(unseated.length + ' coming but not seated yet: ' + unseated.map(g => g.name || 'a +1').join(', ') + '.');
     }
-    gone.forEach(g => warnings.push(g.name + ' — at ' + tableName(seating[g.id]).toLowerCase() + ' but marked not coming.'));
+    gone.forEach(g => warnings.push((g.name || 'A +1') + ' — at ' + tableName(seating[g.id]).toLowerCase() + ' but marked not coming.'));
     warningsEl.hidden = !warnings.length;
     warningsListEl.innerHTML = warnings.map(w => '<li>' + escapeHtml(w) + '</li>').join('');
   }
