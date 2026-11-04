@@ -79,6 +79,10 @@
 
   // ---------- Guests from the admin payload ----------
 
+  // A +1 "name" that is really a placeholder, not a person (same list as
+  // seating-chart.js).
+  const PLACEHOLDER = /^(\+\s*1|plus\s*-?\s*(1|one)?|guest|friend|tbd|tba|unknown|n\/?a|none|-+|\?+)$/i;
+
   function buildGuests(households) {
     const out = [];
     households.forEach(h => {
@@ -89,7 +93,8 @@
         if (m.isPlusOne) {
           coming = m.bringingPlusOne === 'yes';
           const host = (realNames[0] || '').split(/\s+/)[0];
-          name = (m.actualName || '').trim() || ('Guest of ' + host);
+          const typed = (m.actualName || '').trim();
+          name = (typed && !PLACEHOLDER.test(typed)) ? typed : ('Guest of ' + host);
         } else {
           coming = m.attending === 'yes';
           name = m.name;
@@ -148,11 +153,11 @@
   }
 
   // One line per person, except a couple from the same household sitting
-  // at the same table shares one: "Brooke & Will" (or "Brooke + guest"
+  // at the same table shares one: "Brooke & Will" (or "Brooke & Guest"
   // for an unnamed +1). Anyone who has since declined stays on their own
   // line, struck through.
   function firstName(g) {
-    if (/^Guest of /.test(g.name)) return 'guest';
+    if (/^Guest of /.test(g.name)) return 'Guest';
     return g.name.trim().split(/\s+/)[0];
   }
   function tableLines(seated) {
@@ -176,8 +181,7 @@
       if (ppl.length === 2) {
         const guestFirst = ppl.findIndex(g => /^Guest of /.test(g.name)) === 0;
         const pair = guestFirst ? [ppl[1], ppl[0]] : ppl;
-        const joiner = /^Guest of /.test(pair[1].name) ? ' + ' : ' & ';
-        out.push({ ids: line.ids, text: firstName(pair[0]) + joiner + firstName(pair[1]), title: ppl.map(g => g.name).join(' & ') });
+        out.push({ ids: line.ids, text: firstName(pair[0]) + ' & ' + firstName(pair[1]), title: ppl.map(g => g.name).join(' & ') });
       } else {
         ppl.forEach(g => out.push({ ids: [g.id], text: shortName(g), title: g.name }));
       }

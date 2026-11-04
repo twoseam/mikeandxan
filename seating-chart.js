@@ -36,7 +36,7 @@
 
   // Same rules as seating.js so the two pages always agree on who is coming.
   // A +1 "name" that is really a placeholder, not a person.
-  const PLACEHOLDER = /^(\+\s*1|plus\s*-?\s*(1|one)|guest|tbd|tba|unknown|n\/?a|none|-+|\?+)$/i;
+  const PLACEHOLDER = /^(\+\s*1|plus\s*-?\s*(1|one)?|guest|friend|tbd|tba|unknown|n\/?a|none|-+|\?+)$/i;
 
   function buildGuests(households) {
     const out = [];
