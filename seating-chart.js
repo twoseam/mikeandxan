@@ -167,11 +167,58 @@
     return '<section class="sheet">' + sheetHead('By Table') + '<div class="tables">' + cards.join('') + '</div></section>';
   }
 
-  function render() {
+  // ---------- Plain text for InDesign ----------
+  // One paragraph per line, no blank lines (spacing belongs to paragraph
+  // styles), a single tab between name and table number so a right-aligned
+  // tab stop with a dot leader lines the numbers up.
+
+  function chartEntries() {
     // The head table (Mike & Xan) stays off the chart — guests don't need
     // to look the two of them up.
     const seatedComing = guests.filter(g => g.coming && seating[g.id] !== undefined && seating[g.id] !== 0);
-    const entries = foldGuests(seatedComing.map(entryFor)).sort(byName);
+    return foldGuests(seatedComing.map(entryFor)).sort(byName);
+  }
+
+  function azText(entries) {
+    const lines = [];
+    let letter = null;
+    entries.forEach(e => {
+      const L = letterOf(e.last);
+      if (L !== letter) { letter = L; lines.push(L); }
+      lines.push(displayName(e) + '\t' + tableShort(e.table));
+    });
+    return lines.join('\r');
+  }
+
+  function tablesText(entries) {
+    const byTable = new Map();
+    entries.forEach(e => {
+      if (!byTable.has(e.table)) byTable.set(e.table, []);
+      byTable.get(e.table).push(e);
+    });
+    const lines = [];
+    Array.from(byTable.keys()).sort((a, b) => a - b).forEach(no => {
+      lines.push(tableName(no));
+      byTable.get(no).slice().sort(byName).forEach(e => lines.push(displayName(e)));
+    });
+    return lines.join('\r');
+  }
+
+  const copyStatusEl = document.getElementById('copy-status');
+  async function copyText(text, label) {
+    // InDesign reads \r as a paragraph break; other apps accept it too.
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (_) {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); ta.remove();
+    }
+    copyStatusEl.textContent = label + ' copied — paste into an InDesign text frame.';
+  }
+
+  function render() {
+    const entries = chartEntries();
     const tableCount = new Set(entries.map(e => e.table)).size;
     const people = headCount(entries);
 
@@ -231,6 +278,8 @@
   optAz.addEventListener('change', render);
   optTables.addEventListener('change', render);
   document.getElementById('print-btn').addEventListener('click', function () { window.print(); });
+  document.getElementById('copy-az-btn').addEventListener('click', function () { copyText(azText(chartEntries()), 'A–Z list'); });
+  document.getElementById('copy-tables-btn').addEventListener('click', function () { copyText(tablesText(chartEntries()), 'By-table list'); });
 
   if (!window.__SEATING_CHART_TEST__) load();
 })();
