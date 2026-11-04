@@ -761,3 +761,19 @@
   .admin-title { font-size: 1rem; }
   .admin-household-address { flex-basis: 100%; }
 }
+
+/* Per-person "Not coming" / "Coming" flip on an answered RSVP. */
+.bx-flip {
+  display: block;
+  margin-top: .15rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: .68rem;
+  color: var(--color-berry);
+  opacity: .75;
+  cursor: pointer;
+}
+.bx-flip:hover { opacity: 1; text-decoration: underline; }
+.bx-flip:disabled { opacity: .4; cursor: default; }

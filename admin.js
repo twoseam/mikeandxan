@@ -480,12 +480,20 @@
       const st = memberStatus(m);
       const diet = dietaryLabel(m);
       const dotState = st.status === 'yes' ? 'y' : (st.status === 'no' ? 'n' : 'p');
+      // Flip one person after the RSVP is in, without Reset. A +1 can only
+      // be switched off (switching on needs their name).
+      let flip = '';
+      if (showRemove && h.alreadySubmitted) {
+        if (st.status === 'yes') flip = '<button type="button" class="bx-flip admin-flip-btn" data-id="' + m.id + '" data-to="no" data-name="' + escapeHtml(memberDisplayName(m)) + '">Not coming</button>';
+        else if (st.status === 'no' && !m.isPlusOne) flip = '<button type="button" class="bx-flip admin-flip-btn" data-id="' + m.id + '" data-to="yes" data-name="' + escapeHtml(memberDisplayName(m)) + '">Coming</button>';
+      }
       return (
         '<div class="bx-member">' +
           '<span class="bx-dot" data-s="' + dotState + '"></span>' +
           '<span class="bx-name">' + escapeHtml(memberDisplayName(m)) +
             (m.isPlusOne ? ' <span class="admin-member-tag">+1</span>' : '') +
             (diet ? '<span class="bx-sub">' + escapeHtml(diet) + '</span>' : '') +
+            flip +
           '</span>' +
         '</div>'
       );
@@ -692,6 +700,31 @@
     }
   }
 
+  async function setAttending(btn) {
+    const session = getSession();
+    if (!session) { showLogin(); return; }
+    const to = btn.getAttribute('data-to');
+    const name = btn.getAttribute('data-name');
+    if (!confirm('Mark ' + name + ' as ' + (to === 'no' ? 'NOT coming' : 'coming') + '? Everything else on their RSVP stays.')) return;
+    btn.disabled = true;
+    try {
+      const result = await apiPost({
+        action: 'adminSetAttending',
+        token: session.token,
+        payload: { guestId: Number(btn.getAttribute('data-id')), attending: to }
+      });
+      if (!result || !result.ok) {
+        setStatus(dashboardStatus, (result && (result.message || result.error)) || 'Could not change that.', 'error');
+        btn.disabled = false;
+        return;
+      }
+      loadDashboard();
+    } catch (err) {
+      setStatus(dashboardStatus, 'Something went wrong — try again.', 'error');
+      btn.disabled = false;
+    }
+  }
+
   async function saveHouseholdEdit(householdId) {
     const session = getSession();
     if (!session) { showLogin(); return; }
@@ -816,6 +849,11 @@
     const removeBtn = e.target.closest('.admin-remove-btn');
     if (removeBtn) {
       removeGuest(removeBtn.getAttribute('data-id'), removeBtn.getAttribute('data-name'));
+      return;
+    }
+    const flipBtn = e.target.closest('.admin-flip-btn');
+    if (flipBtn) {
+      setAttending(flipBtn);
       return;
     }
     const resetBtn = e.target.closest('.admin-reset-btn');
