@@ -24,8 +24,10 @@
     [253, 362], [250, 646], [253, 915], [253, 1210], [253, 1480],
     [503, 537], [491, 813], [511, 1098], [503, 1353],
     [735, 362], [743, 656], [743, 939], [743, 1234], [758, 1496],
-    [985, 537], [972, 830], [972, 1098], [972, 1361],
-    [985, 245]  // 19: added Oct 28, above table 15 (kept as 19 so seats don't renumber)
+    // Right column shifted down one spot Nov 4 (pizza buffet removed, 18
+    // takes the freed bottom spot). Numbers unchanged so seats stay put.
+    [985, 830], [972, 1098], [972, 1361], [972, 1630],
+    [985, 537]  // 19: added Oct 28, above table 15 (kept as 19 so seats don't renumber)
   ].map((p, i) => ({ no: i + 1, x: p[0], y: p[1] }));
   TABLES.forEach(t => { DEFAULT_POS[t.no] = { x: t.x, y: t.y }; });
   const BENCHES = [370, 542, 773, 946, 1179, 1352].map(y => [56, y])
@@ -112,12 +114,6 @@
     svg('rect', { x: 50, y: 52, width: 1157, height: 1754, class: 'room' }, plan);
 
     BENCHES.forEach(b => svg('rect', { x: b[0], y: b[1], width: 59, height: 151, class: 'bench' }, plan));
-
-    // Pizza buffet
-    svg('rect', { x: 801, y: 1715, width: 182, height: 68, class: 'buffet' }, plan);
-    svg('rect', { x: 983, y: 1715, width: 183, height: 68, class: 'buffet' }, plan);
-    const pz = svg('text', { x: 983, y: 1758, class: 'plan-label' }, plan);
-    pz.textContent = 'Pizza';
 
     // Scale bar — 10 feet
     const len = PX_PER_FOOT * 10;
