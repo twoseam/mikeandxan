@@ -24,10 +24,11 @@
     [253, 362], [250, 646], [253, 915], [253, 1210], [253, 1480],
     [503, 537], [491, 813], [511, 1098], [503, 1353],
     [735, 362], [743, 656], [743, 939], [743, 1234], [758, 1496],
-    // Right column shifted down one spot Nov 4 (pizza buffet removed, 18
-    // takes the freed bottom spot). Numbers unchanged so seats stay put.
-    [985, 830], [972, 1098], [972, 1361], [972, 1630],
-    [985, 537]  // 19: added Oct 28, above table 15 (kept as 19 so seats don't renumber)
+    // Right column shifted down one spot Nov 4 (pizza buffet removed).
+    // Same day 18 and 19 swapped numbers: 18 is now the top spot, 19 the
+    // bottom (guests were swapped in the database so nobody moved).
+    [985, 830], [972, 1098], [972, 1361], [985, 537],
+    [972, 1630]
   ].map((p, i) => ({ no: i + 1, x: p[0], y: p[1] }));
   TABLES.forEach(t => { DEFAULT_POS[t.no] = { x: t.x, y: t.y }; });
   const BENCHES = [370, 542, 773, 946, 1179, 1352].map(y => [56, y])
