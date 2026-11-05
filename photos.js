@@ -50,11 +50,12 @@
 
   let prepTimer = null;
   function showPreparing() {
-    if (prepRow) return;
+    if (prepRow || (batch && !batch.finished)) return;
     // Safety: browsers without the input 'cancel' event would leave this
     // stuck after a dismissed picker — clear it after 3 minutes regardless.
     clearTimeout(prepTimer);
     prepTimer = setTimeout(clearPreparing, 3 * 60 * 1000);
+    if (batch && batch.finished) { queueEl.textContent = ''; batch = null; }
     prepRow = document.createElement('div');
     prepRow.className = 'ph-q-item ph-q-prep';
     prepRow.innerHTML =
@@ -94,20 +95,61 @@
     files.forEach(uploadFile);
   });
 
-  function queueRow(fileName) {
-    queueEl.hidden = false;
-    const row = document.createElement('div');
-    row.className = 'ph-q-item';
-    row.innerHTML =
-      '<div class="ph-q-name"><b></b><span class="ph-q-state">0%</span></div>' +
+  // One combined bar for everything being shared (Michael, Nov 5: a row
+  // per file was too busy). Files picked while a batch is still going join
+  // it; the bar is weighted by file size so one big video doesn't look
+  // finished early. When all are done the row says "All shared!" (or how
+  // many didn't make it, with the first reason) and clears itself.
+  let batch = null;
+  function ensureBatch() {
+    if (batch && !batch.finished) return batch;
+    queueEl.textContent = '';
+    const el = document.createElement('div');
+    el.className = 'ph-q-item';
+    el.innerHTML =
+      '<div class="ph-q-name"><b></b><span class="ph-q-state"></span></div>' +
       '<div class="ph-q-bar"><i></i></div>';
-    row.querySelector('b').textContent = fileName;
-    queueEl.appendChild(row);
+    queueEl.appendChild(el);
+    queueEl.hidden = false;
+    batch = { items: [], el, label: el.querySelector('b'), state: el.querySelector('.ph-q-state'), bar: el.querySelector('.ph-q-bar i'), finished: false };
+    return batch;
+  }
+  function renderBatch(b) {
+    const total = b.items.length;
+    const done = b.items.filter(i => i.status === 'done').length;
+    const failed = b.items.filter(i => i.status === 'fail');
+    const bytes = b.items.reduce((n, i) => n + i.size, 0) || 1;
+    const sent = b.items.reduce((n, i) => n + i.size * (i.status === 'active' ? i.frac : 1), 0);
+    const pct = Math.round((sent / bytes) * 100);
+    const active = total - done - failed.length;
+    if (active) {
+      b.label.textContent = total === 1 ? 'Sharing\u2026' : 'Sharing ' + total + ' photos & videos\u2026';
+      b.state.textContent = total === 1 ? Math.min(pct, 99) + '%' : done + ' of ' + total;
+      b.bar.style.width = Math.min(pct, 99) + '%';
+      return;
+    }
+    b.finished = true;
+    b.bar.style.width = '100%';
+    if (!failed.length) {
+      b.el.classList.add('is-done');
+      b.label.textContent = total === 1 ? 'Your upload' : 'All ' + total + ' uploads';
+      b.state.textContent = 'Shared!';
+    } else {
+      b.el.classList.add('is-error');
+      b.label.textContent = done ? done + ' of ' + total + ' shared' : (total === 1 ? 'Didn\u2019t upload' : 'None uploaded');
+      b.state.textContent = failed[0].msg + (failed.length > 1 ? ' (+' + (failed.length - 1) + ' more)' : '');
+    }
+    scheduleQueueClear();
+  }
+  function queueRow(file) {
+    const b = ensureBatch();
+    const item = { size: Math.max(file.size || 0, 1), frac: 0, status: 'active', msg: '' };
+    b.items.push(item);
+    renderBatch(b);
     return {
-      state: row.querySelector('.ph-q-state'),
-      bar: row.querySelector('.ph-q-bar i'),
-      done(msg) { row.classList.add('is-done'); this.state.textContent = msg; this.bar.style.width = '100%'; scheduleQueueClear(); },
-      fail(msg) { row.classList.add('is-error'); this.state.textContent = msg; scheduleQueueClear(); }
+      progress(pct) { item.frac = Math.min(pct, 99) / 100; renderBatch(b); },
+      done() { item.status = 'done'; renderBatch(b); },
+      fail(msg) { item.status = 'fail'; item.msg = msg; renderBatch(b); }
     };
   }
 
@@ -144,7 +186,7 @@
   }
 
   async function uploadFile(file) {
-    const row = queueRow(file.name);
+    const row = queueRow(file);
 
     if (!/^(image|video)\//.test(file.type)) { row.fail('Not a photo or video'); return; }
 
@@ -156,9 +198,7 @@
       let key = null;
       if (file.size <= SINGLE_MAX) {
         const res = await xhrSend('POST', WORKER_URL + '/upload', file, file.type, (loaded, total) => {
-          const pct = Math.round((loaded / total) * 100);
-          row.state.textContent = pct + '%';
-          row.bar.style.width = pct + '%';
+          row.progress(Math.round((loaded / total) * 100));
         });
         key = res.key || null;
       } else if (file.type.startsWith('video/') && file.size <= CHUNKED_MAX) {
@@ -167,19 +207,25 @@
         row.fail(file.type.startsWith('video/') ? 'Too big (1 GB max)' : 'Too big (95 MB max)');
         return;
       }
-      if (assetsPromise && key) {
-        try {
-          const assets = await assetsPromise;
-          if (assets && assets.thumb) {
-            await xhrSend('POST', WORKER_URL + '/upload-thumb?' + new URLSearchParams({ key }), assets.thumb, 'image/jpeg');
-          }
-          if (assets && assets.preview) {
-            await xhrSend('POST', WORKER_URL + '/upload-preview?' + new URLSearchParams({ key }), assets.preview, assets.previewType);
-          }
-        } catch (e) { /* no tile assets — falls back to the video element */ }
-      }
-      row.done('Shared!');
+      // The video itself is in — say so now. The poster frame + preview
+      // clip follow in the background (they used to hold the row at 100%,
+      // which looked stuck — Michael, Nov 5).
+      row.done();
       refreshFeed();
+      if (assetsPromise && key) {
+        (async () => {
+          try {
+            const assets = await assetsPromise;
+            if (assets && assets.thumb) {
+              await xhrSend('POST', WORKER_URL + '/upload-thumb?' + new URLSearchParams({ key }), assets.thumb, 'image/jpeg');
+            }
+            if (assets && assets.preview) {
+              await xhrSend('POST', WORKER_URL + '/upload-preview?' + new URLSearchParams({ key }), assets.preview, assets.previewType);
+            }
+            refreshFeed();
+          } catch (e) { /* no tile assets — falls back to the video element */ }
+        })();
+      }
     } catch (err) {
       row.fail(err.message || 'Upload failed — try again');
     }
@@ -199,9 +245,7 @@
         }),
         chunk, 'application/octet-stream',
         (loaded) => {
-          const pct = Math.round(((i * CHUNK_SIZE + loaded) / file.size) * 100);
-          row.state.textContent = Math.min(pct, 99) + '%';
-          row.bar.style.width = Math.min(pct, 99) + '%';
+          row.progress(Math.round(((i * CHUNK_SIZE + loaded) / file.size) * 100));
         });
       parts.push({ partNumber: res.partNumber, etag: res.etag });
     }
