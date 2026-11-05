@@ -267,11 +267,33 @@
       const video = document.createElement('video');
       video.muted = true;
       video.playsInline = true;
+      video.setAttribute('muted', '');
+      video.setAttribute('playsinline', '');
       video.preload = 'auto';
+      // iPhone Safari won't load a video that isn't on the page and hasn't
+      // been asked to play — every iPhone upload was ending up with no
+      // poster or loop (Nov 5). Park it off-screen and nudge it.
+      video.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
+      document.body.appendChild(video);
       video.src = url;
+      video.load();
+      let loaded = false;
+      video.addEventListener('loadeddata', () => { loaded = true; }, { once: true });
+      const kick = setTimeout(() => {
+        if (!loaded) video.play().then(() => video.pause()).catch(() => {});
+      }, 1200);
       let thumb = null;
       const bail = setTimeout(() => cleanup({ thumb, preview: null }), 30000);
-      function cleanup(result) { clearTimeout(bail); URL.revokeObjectURL(url); resolve(result); }
+      let finished = false;
+      function cleanup(result) {
+        if (finished) return;
+        finished = true;
+        clearTimeout(bail); clearTimeout(kick);
+        try { video.pause(); } catch (e) {}
+        video.remove();
+        URL.revokeObjectURL(url);
+        resolve(result);
+      }
 
       video.addEventListener('error', () => cleanup(null), { once: true });
       video.addEventListener('loadeddata', () => {
