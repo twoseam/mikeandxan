@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="schedule.css?v=11" />
+  <link rel="stylesheet" href="schedule.css?v=12" />
 </head>
 <body class="sched-body">
 
@@ -24,7 +24,7 @@
       <p class="sched-date">Saturday, November 14 &middot; 8 AM &ndash; Midnight</p>
       <div class="sched-tools">
         <label class="sched-toggle"><input type="checkbox" id="sched-filled" /> Only show planned times</label>
-        <button type="button" id="sched-print" class="sched-btn">Print run of show</button>
+        <button type="button" id="sched-print" class="sched-btn">Print schedule</button>
       </div>
       <p id="sched-status" class="sched-status" role="status" aria-live="polite"></p>
     </header>
@@ -36,7 +36,7 @@
   <section id="ros" class="ros" aria-hidden="true">
     <header class="ros-head">
       <div>
-        <p class="ros-kicker">Run of Show</p>
+        <p class="ros-kicker">Day-of Schedule</p>
         <h1 class="ros-title">Michael &amp; Alexandria</h1>
       </div>
       <div class="ros-meta">
@@ -44,13 +44,13 @@
         <p>The Thompson Barn &middot; Lenexa, KS</p>
       </div>
     </header>
-    <table class="ros-table">
-      <thead><tr><th class="c-time">Time</th><th class="c-len">Length</th><th class="c-what">What</th><th class="c-notes">Where / notes</th></tr></thead>
+    <table class="ros-strip">
+      <colgroup id="ros-cols"></colgroup>
       <tbody id="ros-body"></tbody>
     </table>
     <p class="ros-foot" id="ros-foot"></p>
   </section>
 
-  <script src="schedule.js?v=8"></script>
+  <script src="schedule.js?v=9"></script>
 </body>
 </html>
