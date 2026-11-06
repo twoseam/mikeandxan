@@ -122,3 +122,11 @@ dialog img { display: block; max-width: 92vw; max-height: 82vh; width: auto; hei
   .piece img { transition: none; }
   .piece:hover img { transform: none; }
 }
+
+/* Fat legibility stroke, same as the main site: a hairline in the
+   section's own background color opens the counters. */
+:root { --fat-stroke: 0.011em; }
+.hero .stack { -webkit-text-stroke: var(--fat-stroke) var(--orange); }
+.band.cream h2.title, .f-fat { -webkit-text-stroke: var(--fat-stroke) var(--cream); }
+.band.pink h2.title { -webkit-text-stroke: var(--fat-stroke) var(--pink); }
+.band.white h2.title { -webkit-text-stroke: var(--fat-stroke) #FFFFFF; }
