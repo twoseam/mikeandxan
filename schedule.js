@@ -54,10 +54,8 @@
   }
 
   function stripHtml(e) {
-    const half = e.start % 2 === 1;
-    return '<div class="strip' + (half ? ' is-half' : '') + '" data-id="' + e.id + '">' +
+    return '<div class="strip" data-id="' + e.id + '">' +
       '<div class="strip-main">' +
-        (half ? '<span class="strip-badge">' + timeLabel(e.start).replace(/ (AM|PM)$/, '') + '</span>' : '') +
         '<input class="strip-what" data-f="what" type="text" placeholder="What’s happening" value="' + esc(e.what) + '" />' +
         '<span class="strip-times">' +
           '<select data-f="start" aria-label="Starts">' + timeOptions(0, ROWS - 1, e.start) + '</select>' +
@@ -80,17 +78,20 @@
       const running = all.filter(e => e.start < r && e.end > r);
       const filled = starting.length || running.length;
       const half = r + 1 < ROWS;
-      html += '<li class="sched-row is-hour' + (filled ? ' is-filled' : '') + '" data-slot="' + r + '">' +
-        '<div class="sched-time">' + timeLabel(r) + '</div>' +
-        '<div class="sched-cell">' +
+      const onHour = starting.filter(e => e.start === r), onHalf = starting.filter(e => e.start === r + 1);
+      // Each line: time label on the left, strips on the right. Half-hour strips get their own "8:30" label.
+      html += '<li class="sched-row' + (filled ? ' is-filled' : '') + '" data-slot="' + r + '">' +
+        '<div class="sched-line"><div class="sched-time">' + timeLabel(r) + '</div><div class="sched-cell">' +
           running.map(e => '<button type="button" class="strip-cont" data-goto="' + e.id + '">\u21b3 ' +
             esc(e.what || 'Untitled') + ' <span>until ' + timeLabel(e.end) + '</span></button>').join('') +
-          starting.map(stripHtml).join('') +
-          '<div class="sched-adds">' +
-            '<button type="button" class="sched-add" data-slot="' + r + '">+ Add at ' + timeLabel(r) + '</button>' +
-            (half ? '<button type="button" class="sched-add is-half" data-slot="' + (r + 1) + '">+ ' + timeLabel(r + 1).replace(/ (AM|PM)$/, '') + '</button>' : '') +
-          '</div>' +
-        '</div></li>';
+          onHour.map(stripHtml).join('') +
+        '</div></div>' +
+        (onHalf.length ? '<div class="sched-line"><div class="sched-time">' + timeLabel(r + 1) + '</div><div class="sched-cell">' +
+          onHalf.map(stripHtml).join('') + '</div></div>' : '') +
+        '<div class="sched-line sched-adds-line"><div></div><div class="sched-adds">' +
+          '<button type="button" class="sched-add" data-slot="' + r + '">+ Add at ' + timeLabel(r) + '</button>' +
+          (half ? '<button type="button" class="sched-add is-half" data-slot="' + (r + 1) + '">+ ' + timeLabel(r + 1).replace(/ (AM|PM)$/, '') + '</button>' : '') +
+        '</div></div></li>';
     }
     list.innerHTML = html;
     if (focusId != null) {
