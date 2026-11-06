@@ -1,0 +1,91 @@
+/* ============================================================
+   Day-of schedule — 30-minute rows on white paper cards over the
+   tomato ground. Same admin family as seating/mailing.
+   ============================================================ */
+
+[hidden] { display: none !important; }
+
+.sched-body { background: var(--color-bg); min-height: 100vh; margin: 0; }
+.sched-gate { padding: 3rem; text-align: center; color: var(--color-muted); }
+
+.sched-app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-sm);
+  box-sizing: border-box;
+}
+
+.sched-head { margin-bottom: var(--space-sm); }
+.sched-back { color: var(--color-muted); font-size: .9rem; text-decoration: none; }
+.sched-back:hover { color: var(--color-text); }
+.sched-head h1 { margin: .5rem 0 .2rem; color: var(--color-text); }
+.sched-date { color: var(--color-muted); margin: 0 0 .75rem; }
+.sched-tools { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.sched-toggle { color: var(--color-text); font-size: .9rem; cursor: pointer; }
+.sched-print {
+  border: 0; border-radius: 999px; padding: .45rem 1.1rem;
+  background: var(--color-paper); color: var(--color-charcoal);
+  font: inherit; font-weight: 700; cursor: pointer;
+}
+.sched-status { color: var(--color-muted); font-size: .85rem; min-height: 1.2em; margin: .5rem 0 0; }
+
+.sched-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+
+.sched-row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: .75rem;
+  align-items: start;
+  background: var(--color-paper);
+  border-radius: 8px;
+  padding: .55rem .75rem;
+  border-left: 6px solid transparent;
+}
+.sched-row.is-hour { margin-top: 6px; }
+.sched-row.is-filled { border-left-color: var(--color-berry); }
+
+.sched-time {
+  font-weight: 700; color: var(--color-charcoal);
+  padding-top: .35rem; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.sched-row:not(.is-hour) .sched-time { color: #8a8580; font-weight: 400; }
+
+.sched-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: .4rem;
+}
+.sched-fields input,
+.sched-fields textarea {
+  font: inherit; font-size: .95rem; color: var(--color-charcoal);
+  border: 1px solid transparent; border-radius: 6px;
+  background: var(--color-cream);
+  padding: .35rem .55rem; width: 100%; box-sizing: border-box;
+}
+.sched-fields textarea { grid-column: 1 / -1; resize: vertical; min-height: 2rem; font-size: .88rem; }
+.sched-fields input:focus,
+.sched-fields textarea:focus { outline: none; border-color: var(--color-bg); background: #fff; }
+.sched-what { font-weight: 700; }
+
+/* Empty slots stay compact: notes only appear once something's planned or you click in. */
+.sched-row:not(.is-filled) .sched-notes:not(:focus) { display: none; }
+.sched-row:not(.is-filled):focus-within .sched-notes { display: block; }
+
+.only-filled .sched-row:not(.is-filled) { display: none; }
+
+@media (max-width: 600px) {
+  .sched-row { grid-template-columns: 1fr; gap: .3rem; }
+  .sched-time { padding-top: 0; }
+  .sched-fields { grid-template-columns: 1fr; }
+}
+
+/* ---------- Print: only planned slots, plain text ---------- */
+@media print {
+  .sched-body { background: #fff; }
+  .sched-back, .sched-tools, .sched-status { display: none; }
+  .sched-head h1, .sched-date { color: #000; }
+  .sched-row { border: 0; border-bottom: 1px solid #ccc; border-radius: 0; break-inside: avoid; }
+  .sched-row:not(.is-filled) { display: none; }
+  .sched-fields input, .sched-fields textarea { background: none; border: 0; padding: 0; resize: none; }
+  .sched-row .sched-notes { display: block; }
+}
