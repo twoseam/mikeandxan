@@ -1,7 +1,8 @@
-/* Day-of schedule — a timeline for the wedding day, 8 AM to midnight in
-   half-hours. Events can span several half-hours, and several events can
-   happen at once (shown side by side). Tap a time to add, tap an event to
-   edit. Saves on its own to D1, so it follows Michael + Xan across devices.
+/* Day-of schedule — strip board. One row per half-hour, 8 AM to midnight.
+   Each row can hold several events (strips). Each strip has its own start
+   and end, so it can run longer than half an hour; the rows it runs through
+   show a "continues" marker. Type straight into a strip; it saves on its own
+   to D1, so it follows Michael + Xan across devices.
    "Print run of show" prints a clean call-sheet style table. */
 (function () {
   'use strict';
@@ -9,19 +10,17 @@
   const WORKER_URL = 'https://mikeandxan-rsvp.michael-afc.workers.dev';
   const SESSION_KEY = 'mx_admin_session';
   const START_HOUR = 8;
-  const ROWS = 33;        // labelled half-hours: 8:00 AM ... 12:00 AM
+  const ROWS = 33;        // 8:00 AM ... 12:00 AM
   const END_MAX = 34;     // last possible end: 12:30 AM
-  const ROW_PX = 44;
 
   const $ = id => document.getElementById(id);
-  const gate = $('gate'), app = $('app'), grid = $('sched-grid'), statusEl = $('sched-status');
-  const editor = $('sched-editor');
-  const ed = { what: $('ed-what'), who: $('ed-who'), notes: $('ed-notes'), start: $('ed-start'), end: $('ed-end') };
+  const gate = $('gate'), app = $('app'), list = $('sched-list'), statusEl = $('sched-status');
+  const filledToggle = $('sched-filled');
 
   let events = [];        // { id, start, end, what, who, notes }
-  let editing = null;     // event being edited
-  let saveTimer = null;
-  let saving = Promise.resolve();
+  const timers = new Map();
+  let queue = Promise.resolve();
+  let tempId = 0;
 
   function getSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
@@ -31,7 +30,6 @@
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
-
   function timeLabel(slot) {
     const mins = START_HOUR * 60 + slot * 30;
     const h24 = Math.floor(mins / 60), m = mins % 60;
@@ -43,57 +41,57 @@
     const h = Math.floor(mins / 60), m = mins % 60;
     return (h ? h + ' hr' : '') + (h && m ? ' ' : '') + (m ? m + ' min' : '');
   }
-  function sorted() {
-    return events.slice().sort((a, b) => a.start - b.start || a.end - b.end || a.id - b.id);
-  }
-
-  // Side-by-side layout: events that overlap share the width.
-  function layout() {
-    const list = sorted(), out = new Map();
-    let cluster = [], clusterEnd = -1;
-    function flush() {
-      const lanes = [];
-      cluster.forEach(e => {
-        let lane = lanes.findIndex(end => end <= e.start);
-        if (lane === -1) { lane = lanes.length; lanes.push(e.end); } else lanes[lane] = e.end;
-        out.set(e, { lane });
-      });
-      cluster.forEach(e => { out.get(e).lanes = lanes.length; });
-      cluster = []; clusterEnd = -1;
-    }
-    list.forEach(e => {
-      if (cluster.length && e.start >= clusterEnd) flush();
-      cluster.push(e); clusterEnd = Math.max(clusterEnd, e.end);
-    });
-    if (cluster.length) flush();
-    return out;
-  }
+  function byTime(a, b) { return a.start - b.start || a.end - b.end || Math.abs(a.id) - Math.abs(b.id); }
+  function sorted() { return events.slice().sort(byTime); }
+  function find(id) { return events.find(e => String(e.id) === String(id)); }
 
   // ---------- Drawing ----------
 
-  function render() {
-    grid.style.height = (ROWS * ROW_PX) + 'px';
+  function timeOptions(from, to, selected) {
+    let h = '';
+    for (let i = from; i <= to; i++) h += '<option value="' + i + '"' + (i === selected ? ' selected' : '') + '>' + timeLabel(i) + '</option>';
+    return h;
+  }
+
+  function stripHtml(e) {
+    return '<div class="strip" data-id="' + e.id + '">' +
+      '<div class="strip-main">' +
+        '<input class="strip-what" data-f="what" type="text" placeholder="What’s happening" value="' + esc(e.what) + '" />' +
+        '<input class="strip-who" data-f="who" type="text" placeholder="Who" value="' + esc(e.who) + '" />' +
+        '<span class="strip-times">' +
+          '<select data-f="start" aria-label="Starts">' + timeOptions(0, ROWS - 1, e.start) + '</select>' +
+          '<span class="strip-dash">to</span>' +
+          '<select data-f="end" aria-label="Ends">' + timeOptions(e.start + 1, END_MAX, e.end) + '</select>' +
+          '<span class="strip-len">' + lengthLabel(e) + '</span>' +
+        '</span>' +
+        '<button type="button" class="strip-del" aria-label="Delete">&times;</button>' +
+      '</div>' +
+      '<textarea class="strip-notes' + (e.notes ? ' has-text' : '') + '" data-f="notes" rows="1" placeholder="Where / notes">' + esc(e.notes) + '</textarea>' +
+    '</div>';
+  }
+
+  function render(focusId) {
+    const all = sorted();
     let html = '';
     for (let r = 0; r < ROWS; r++) {
-      html += '<button type="button" class="sched-slot' + (r % 2 ? '' : ' is-hour') + '" data-slot="' + r +
-        '" style="top:' + (r * ROW_PX) + 'px;height:' + ROW_PX + 'px" aria-label="Add event at ' + timeLabel(r) + '">' +
-        '<span class="sched-slot-time">' + timeLabel(r) + '</span></button>';
+      const starting = all.filter(e => e.start === r);
+      const running = all.filter(e => e.start < r && e.end > r);
+      const filled = starting.length || running.length;
+      html += '<li class="sched-row' + (r % 2 ? '' : ' is-hour') + (filled ? ' is-filled' : '') + '" data-slot="' + r + '">' +
+        '<div class="sched-time">' + timeLabel(r) + '</div>' +
+        '<div class="sched-cell">' +
+          running.map(e => '<button type="button" class="strip-cont" data-goto="' + e.id + '">↳ ' +
+            esc(e.what || 'Untitled') + ' <span>until ' + timeLabel(e.end) + '</span></button>').join('') +
+          starting.map(stripHtml).join('') +
+          '<button type="button" class="sched-add' + (starting.length ? ' is-more' : '') + '">' +
+            (starting.length ? '+ Add another at ' + timeLabel(r) : '+ Add') + '</button>' +
+        '</div></li>';
     }
-    const pos = layout();
-    sorted().forEach(e => {
-      const p = pos.get(e);
-      const w = 100 / p.lanes;
-      const h = Math.max(1, e.end - e.start) * ROW_PX - 4;
-      html += '<button type="button" class="sched-event' + (h < 60 ? ' is-short' : '') + (e.what ? '' : ' is-empty') +
-        '" data-id="' + e.id + '" style="top:' + (e.start * ROW_PX + 2) + 'px;height:' + h + 'px;' +
-        'left:calc(var(--lane-x) + (100% - var(--lane-x)) * ' + (p.lane * w / 100) + ');' +
-        'width:calc((100% - var(--lane-x)) * ' + (w / 100) + ' - 4px)">' +
-        '<span class="ev-time">' + timeLabel(e.start) + ' &ndash; ' + timeLabel(e.end) + '</span>' +
-        '<span class="ev-what">' + esc(e.what || 'Untitled') + '</span>' +
-        (e.who ? '<span class="ev-who">' + esc(e.who) + '</span>' : '') +
-        '</button>';
-    });
-    grid.innerHTML = html;
+    list.innerHTML = html;
+    if (focusId != null) {
+      const f = list.querySelector('.strip[data-id="' + focusId + '"] .strip-what');
+      if (f) f.focus();
+    }
     renderPrint();
   }
 
@@ -111,49 +109,6 @@
       ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   }
 
-  // ---------- Editor ----------
-
-  function fillTimes() {
-    let s = '', e = '';
-    for (let i = 0; i < ROWS; i++) s += '<option value="' + i + '">' + timeLabel(i) + '</option>';
-    for (let i = 1; i <= END_MAX; i++) e += '<option value="' + i + '">' + timeLabel(i) + '</option>';
-    ed.start.innerHTML = s; ed.end.innerHTML = e;
-  }
-
-  function openEditor(ev) {
-    editing = ev;
-    ed.what.value = ev.what || ''; ed.who.value = ev.who || ''; ed.notes.value = ev.notes || '';
-    ed.start.value = ev.start; ed.end.value = ev.end;
-    editor.hidden = false;
-    setTimeout(() => ed.what.focus(), 30);
-  }
-
-  async function closeEditor() {
-    if (!editing) return;
-    const ev = editing;
-    editing = null;
-    editor.hidden = true;
-    clearTimeout(saveTimer);
-    if (!ev.what && !ev.who && !ev.notes) { await removeEvent(ev); return; }
-    await queueSave(ev);
-  }
-
-  function onEditorChange(e) {
-    if (!editing) return;
-    const ev = editing;
-    ev.what = ed.what.value; ev.who = ed.who.value; ev.notes = ed.notes.value;
-    let start = Number(ed.start.value), end = Number(ed.end.value);
-    if (e && e.target === ed.start && end <= start) {
-      end = Math.min(END_MAX, start + Math.max(1, ev.end - ev.start)); ed.end.value = end;
-    }
-    if (end <= start) { start = end - 1; ed.start.value = start; }
-    ev.start = start; ev.end = end;
-    render();
-    status('Saving…');
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => queueSave(ev), 600);
-  }
-
   // ---------- Saving ----------
 
   async function post(action, payload) {
@@ -169,70 +124,106 @@
     return data;
   }
 
-  // Saves run one after another so a new event gets its id before it's updated.
-  function queueSave(ev) {
-    saving = saving.then(async () => {
+  // Saves run one after another, so a new strip gets its id before it's updated.
+  function save(ev) {
+    timers.delete(ev);
+    queue = queue.then(async () => {
+      if (!events.includes(ev)) return;
       try {
+        const oldId = ev.id;
         const data = await post('adminSaveEvent', {
           id: ev.id > 0 ? ev.id : undefined,
           start: ev.start, end: ev.end, what: ev.what, who: ev.who, notes: ev.notes
         });
-        if (!(ev.id > 0)) { ev.id = data.id; render(); }
-        status('Saved');
+        if (!(oldId > 0)) {
+          ev.id = data.id;
+          list.querySelectorAll('[data-id="' + oldId + '"]').forEach(n => { n.dataset.id = data.id; });
+          list.querySelectorAll('[data-goto="' + oldId + '"]').forEach(n => { n.dataset.goto = data.id; });
+        }
+        if (!timers.size) status('Saved');
       } catch (err) {
-        status('Didn’t save “' + (ev.what || 'event') + '” — check your connection and try again.');
+        status('Didn’t save “' + (ev.what || 'event') + '” — check your connection and type again.');
       }
     });
-    return saving;
+    return queue;
+  }
+  function saveSoon(ev) {
+    status('Saving…');
+    clearTimeout(timers.get(ev));
+    timers.set(ev, setTimeout(() => save(ev), 600));
   }
 
-  function removeEvent(ev) {
+  function remove(ev) {
+    clearTimeout(timers.get(ev)); timers.delete(ev);
     events = events.filter(x => x !== ev);
     render();
-    saving = saving.then(async () => {
+    queue = queue.then(async () => {
       if (!(ev.id > 0)) return;
       try { await post('adminDeleteEvent', { id: ev.id }); status('Deleted'); }
       catch (err) { status('Couldn’t delete — reload and try again.'); }
     });
-    return saving;
   }
 
-  let tempId = 0;
   function addAt(slot) {
     const ev = { id: --tempId, start: slot, end: Math.min(END_MAX, slot + 1), what: '', who: '', notes: '' };
     events.push(ev);
-    render();
-    openEditor(ev);
+    filledToggle.checked = false; applyFilter();
+    render(ev.id);
+    save(ev);
   }
+
+  function applyFilter() { app.classList.toggle('only-filled', filledToggle.checked); }
 
   // ---------- Wiring ----------
 
-  grid.addEventListener('click', e => {
-    const evBtn = e.target.closest('.sched-event');
-    if (evBtn) {
-      const ev = events.find(x => String(x.id) === evBtn.dataset.id);
-      if (ev) closeEditor().then(() => { if (events.includes(ev)) openEditor(ev); });
+  list.addEventListener('input', e => {
+    const strip = e.target.closest('.strip'); const f = e.target.dataset.f;
+    if (!strip || !f || f === 'start' || f === 'end') return;
+    const ev = find(strip.dataset.id); if (!ev) return;
+    ev[f] = e.target.value;
+    if (f === 'notes') e.target.classList.toggle('has-text', !!e.target.value);
+    if (f === 'what') list.querySelectorAll('.strip-cont[data-goto="' + ev.id + '"]').forEach(n => {
+      n.firstChild.nodeValue = '↳ ' + (ev.what || 'Untitled') + ' ';
+    });
+    renderPrint();
+    saveSoon(ev);
+  });
+
+  list.addEventListener('change', e => {
+    const strip = e.target.closest('.strip'); const f = e.target.dataset.f;
+    if (!strip || (f !== 'start' && f !== 'end')) return;
+    const ev = find(strip.dataset.id); if (!ev) return;
+    const len = ev.end - ev.start;
+    if (f === 'start') { ev.start = Number(e.target.value); ev.end = Math.min(END_MAX, ev.start + len); }
+    else ev.end = Number(e.target.value);
+    render();
+    const moved = list.querySelector('.strip[data-id="' + ev.id + '"]');
+    if (moved) moved.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    clearTimeout(timers.get(ev));
+    status('Saving…');
+    save(ev);
+  });
+
+  list.addEventListener('click', e => {
+    const add = e.target.closest('.sched-add');
+    if (add) { addAt(Number(add.closest('.sched-row').dataset.slot)); return; }
+    const del = e.target.closest('.strip-del');
+    if (del) {
+      const ev = find(del.closest('.strip').dataset.id);
+      if (ev && (!(ev.what || ev.who || ev.notes) || confirm('Delete “' + (ev.what || 'this event') + '”?'))) remove(ev);
       return;
     }
-    const slot = e.target.closest('.sched-slot');
-    if (slot) closeEditor().then(() => addAt(Number(slot.dataset.slot)));
+    const cont = e.target.closest('.strip-cont');
+    if (cont) {
+      const s = list.querySelector('.strip[data-id="' + cont.dataset.goto + '"]');
+      if (s) { s.scrollIntoView({ block: 'center', behavior: 'smooth' }); s.querySelector('.strip-what').focus({ preventScroll: true }); }
+    }
   });
-  $('sched-add').addEventListener('click', () => {
-    const last = sorted().reduce((m, x) => Math.max(m, x.end), 0);
-    closeEditor().then(() => addAt(Math.min(ROWS - 1, last)));
-  });
-  $('sched-print').addEventListener('click', () => closeEditor().then(() => { renderPrint(); window.print(); }));
-  ['input', 'change'].forEach(t => [ed.what, ed.who, ed.notes, ed.start, ed.end].forEach(f => f.addEventListener(t, onEditorChange)));
-  $('ed-done').addEventListener('click', closeEditor);
-  $('ed-close').addEventListener('click', closeEditor);
-  editor.addEventListener('click', e => { if (e.target === editor) closeEditor(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && editing) closeEditor(); });
-  $('ed-delete').addEventListener('click', () => {
-    if (!editing) return;
-    const ev = editing;
-    if ((ev.what || ev.who || ev.notes) && !confirm('Delete “' + (ev.what || 'this event') + '”?')) return;
-    editing = null; editor.hidden = true; clearTimeout(saveTimer);
-    removeEvent(ev);
+
+  filledToggle.addEventListener('change', applyFilter);
+  $('sched-print').addEventListener('click', () => { renderPrint(); window.print(); });
+  window.addEventListener('beforeunload', e => {
+    if (timers.size) { e.preventDefault(); e.returnValue = ''; }
   });
 
   // ---------- Loading ----------
@@ -255,7 +246,6 @@
     events = (data.scheduleEvents || []).map(e => ({
       id: e.id, start: Number(e.start), end: Number(e.end), what: e.what || '', who: e.who || '', notes: e.notes || ''
     }));
-    fillTimes();
     gate.hidden = true;
     app.hidden = false;
     render();

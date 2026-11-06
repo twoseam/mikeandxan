@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="schedule.css?v=5" />
+  <link rel="stylesheet" href="schedule.css?v=6" />
 </head>
 <body class="sched-body">
 
@@ -23,37 +23,13 @@
       <h1>Schedule</h1>
       <p class="sched-date">Saturday, November 14 &middot; 8 AM &ndash; Midnight</p>
       <div class="sched-tools">
-        <button type="button" id="sched-add" class="sched-btn">+ Add event</button>
-        <button type="button" id="sched-print" class="sched-btn sched-btn-ghost">Print run of show</button>
+        <label class="sched-toggle"><input type="checkbox" id="sched-filled" /> Only show planned times</label>
+        <button type="button" id="sched-print" class="sched-btn">Print run of show</button>
       </div>
-      <p class="sched-hint">Tap a time to add an event there. Tap an event to edit it.</p>
       <p id="sched-status" class="sched-status" role="status" aria-live="polite"></p>
     </header>
 
-    <div class="sched-grid-wrap">
-      <div id="sched-grid" class="sched-grid"></div>
-    </div>
-  </div>
-
-  <!-- Editor: side panel on desktop, bottom sheet on phone -->
-  <div id="sched-editor" class="sched-editor" hidden>
-    <div class="sched-editor-card" role="dialog" aria-labelledby="ed-title">
-      <div class="sched-editor-head">
-        <h2 id="ed-title">Event</h2>
-        <button type="button" id="ed-close" class="sched-x" aria-label="Close">&times;</button>
-      </div>
-      <label class="ed-label">What<input type="text" id="ed-what" placeholder="e.g. First look" /></label>
-      <div class="ed-times">
-        <label class="ed-label">Starts<select id="ed-start"></select></label>
-        <label class="ed-label">Ends<select id="ed-end"></select></label>
-      </div>
-      <label class="ed-label">Who<input type="text" id="ed-who" placeholder="e.g. Photographer, wedding party" /></label>
-      <label class="ed-label">Where / notes<textarea id="ed-notes" rows="3" placeholder="e.g. Bridal suite"></textarea></label>
-      <div class="ed-actions">
-        <button type="button" id="ed-delete" class="ed-delete">Delete event</button>
-        <button type="button" id="ed-done" class="sched-btn">Done</button>
-      </div>
-    </div>
+    <ol id="sched-list" class="sched-list"></ol>
   </div>
 
   <!-- Print-only run of show -->
@@ -75,6 +51,6 @@
     <p class="ros-foot" id="ros-foot"></p>
   </section>
 
-  <script src="schedule.js?v=3"></script>
+  <script src="schedule.js?v=4"></script>
 </body>
 </html>
