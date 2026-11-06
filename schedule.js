@@ -286,7 +286,7 @@
     events = (data.scheduleEvents || []).map(e => ({
       id: e.id, start: Number(e.start), end: Number(e.end), what: e.what || '', who: e.who || '', notes: e.notes || ''
     }));
-    if (data.scheduleShareUrl) setupShare(data.scheduleShareUrl);
+    setupShare('https://mikeandxan.com/day');
     gate.hidden = true;
     app.hidden = false;
     render();
