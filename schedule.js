@@ -102,38 +102,48 @@
   }
 
   // Print: the whole day as a half-hour strip on one page. Each event is one
-  // block spanning its rows; events at the same time sit in side-by-side lanes.
+  // block spanning its rows. Only events that overlap share the width; every
+  // other block runs full width.
   function renderPrint() {
     const evs = sorted().filter(e => e.what || e.notes);
-    const laneEnds = [], laneOf = new Map();
-    evs.forEach(e => {
-      let lane = laneEnds.findIndex(end => end <= e.start);
-      if (lane === -1) { lane = laneEnds.length; laneEnds.push(e.end); } else laneEnds[lane] = e.end;
-      laneOf.set(e, lane);
-    });
-    const lanes = Math.max(1, laneEnds.length);
     const lastRow = Math.max(ROWS, ...evs.map(e => e.end));   // runs past midnight add a row
-    const cover = Array.from({ length: lanes }, () => new Array(lastRow).fill(null));
-    evs.forEach(e => { for (let r = e.start; r < e.end; r++) cover[laneOf.get(e)][r] = e; });
+    const place = new Map();
+    let cluster = [], clusterEnd = -1;
+    function flush() {
+      const lanes = [];
+      cluster.forEach(e => {
+        let lane = lanes.findIndex(end => end <= e.start);
+        if (lane === -1) { lane = lanes.length; lanes.push(e.end); } else lanes[lane] = e.end;
+        place.set(e, { lane });
+      });
+      cluster.forEach(e => { place.get(e).lanes = lanes.length; });
+      cluster = []; clusterEnd = -1;
+    }
+    evs.forEach(e => {
+      if (cluster.length && e.start >= clusterEnd) flush();
+      cluster.push(e); clusterEnd = Math.max(clusterEnd, e.end);
+    });
+    if (cluster.length) flush();
 
-    $('ros-cols').innerHTML = '<col class="c-time">' + '<col>'.repeat(lanes);
     let html = '';
     for (let r = 0; r < lastRow; r++) {
-      html += '<tr class="' + (r % 2 ? 'is-half' : 'is-hour') + '"><td class="c-time">' + timeLabel(r) + '</td>';
-      for (let l = 0; l < lanes; l++) {
-        const e = cover[l][r];
-        if (!e) { html += '<td class="c-empty"></td>'; continue; }
-        if (e.start !== r) continue;
-        const span = e.end - e.start;
-        html += '<td class="c-ev' + (span === 1 ? ' is-one' : '') + '" rowspan="' + span + '"><div class="ev-box">' +
-          '<span class="ev-name">' + esc(e.what || 'Untitled') + '</span>' +
-          '<span class="ev-when">' + timeLabel(e.start) + ' &ndash; ' + timeLabel(e.end) + '</span>' +
-          (e.notes ? '<span class="ev-notes">' + esc(e.notes).replace(/\n/g, ' · ') + '</span>' : '') +
-          '</div></td>';
-      }
-      html += '</tr>';
+      html += '<div class="ros-row ' + (r % 2 ? 'is-half' : 'is-hour') + '" style="top:calc(var(--row) * ' + r + ')">' +
+        '<span class="ros-time">' + timeLabel(r) + '</span></div>';
     }
-    $('ros-body').innerHTML = html;
+    evs.forEach(e => {
+      const p = place.get(e), span = e.end - e.start;
+      html += '<div class="ros-ev' + (span === 1 ? ' is-one' : '') + '" style="' +
+        'top:calc(var(--row) * ' + e.start + ');height:calc(var(--row) * ' + span + ');' +
+        'left:calc(var(--tcol) + (100% - var(--tcol)) * ' + (p.lane / p.lanes) + ');' +
+        'width:calc((100% - var(--tcol)) / ' + p.lanes + ')"><div class="ev-box">' +
+        '<span class="ev-name">' + esc(e.what || 'Untitled') + '</span>' +
+        '<span class="ev-when">' + timeLabel(e.start) + ' &ndash; ' + timeLabel(e.end) + '</span>' +
+        (e.notes ? '<span class="ev-notes">' + esc(e.notes).replace(/\n/g, ' · ') + '</span>' : '') +
+        '</div></div>';
+    });
+    const day = $('ros-day');
+    day.style.setProperty('--rows', lastRow);
+    day.innerHTML = html;
     const d = new Date();
     $('ros-foot').textContent = 'Printed ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
       ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
