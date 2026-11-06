@@ -294,14 +294,14 @@
 
   // Copy the guest-facing phone schedule link (day.html) for key people.
   function setupShare(url) {
-    const btn = $('sched-share'), open = $('sched-share-open');
-    btn.hidden = false; open.hidden = false; open.href = url;
+    const btn = $('sched-share'), label = btn.querySelector('span');
     btn.addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(url); btn.textContent = 'Copied!'; }
+      try { await navigator.clipboard.writeText(url); label.textContent = 'Copied'; }
       catch (_) { window.prompt('Copy this link:', url); }
-      setTimeout(() => { btn.textContent = 'Copy share link'; }, 2000);
+      setTimeout(() => { label.textContent = 'Copy link'; }, 1800);
     });
   }
+
 
   load();
 })();

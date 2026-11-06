@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="schedule.css?v=14" />
+  <link rel="stylesheet" href="schedule.css?v=15" />
   <link rel="stylesheet" href="admin-nav.css?v=2" />
   <script src="admin-nav.js?v=1" defer></script>
 </head>
@@ -21,17 +21,22 @@
 
   <div id="app" class="sched-app" hidden>
     <header class="sched-head">
-      <h1>Schedule</h1>
-      <p class="sched-date">Saturday, November 14 &middot; 8 AM &ndash; Midnight</p>
-      <div class="sched-tools">
-        <label class="sched-toggle"><input type="checkbox" id="sched-filled" /> Only show planned times</label>
-        <span class="sched-btns">
-          <button type="button" id="sched-share" class="sched-btn sched-btn-ghost" hidden>Copy share link</button>
-          <a id="sched-share-open" class="sched-share-open" target="_blank" rel="noopener" hidden>Open</a>
-          <button type="button" id="sched-print" class="sched-btn">Print schedule</button>
-        </span>
+      <div class="sched-titles">
+        <h1>Schedule</h1>
+        <p class="sched-date">Saturday, Nov 14 &middot; 8 AM &ndash; Midnight</p>
       </div>
-      <p id="sched-status" class="sched-status" role="status" aria-live="polite"></p>
+      <div class="sched-btns">
+        <button type="button" id="sched-share" class="sched-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+          <span>Copy link</span></button>
+        <button type="button" id="sched-print" class="sched-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/></svg>
+          <span>Print</span></button>
+      </div>
+      <div class="sched-sub">
+        <label class="sched-toggle"><input type="checkbox" id="sched-filled" /> Only show planned times</label>
+        <p id="sched-status" class="sched-status" role="status" aria-live="polite"></p>
+      </div>
     </header>
 
     <ol id="sched-list" class="sched-list"></ol>
@@ -53,6 +58,6 @@
     <p class="ros-foot" id="ros-foot"></p>
   </section>
 
-  <script src="schedule.js?v=12"></script>
+  <script src="schedule.js?v=13"></script>
 </body>
 </html>
