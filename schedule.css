@@ -1,6 +1,7 @@
 /* ============================================================
-   Day-of schedule — 30-minute rows on white paper cards over the
-   tomato ground. Same admin family as seating/mailing.
+   Day-of schedule — a timeline on a white paper card over the
+   tomato ground (same admin family as seating/mailing), plus a
+   print-only "run of show" in plain call-sheet style.
    ============================================================ */
 
 [hidden] { display: none !important; }
@@ -8,84 +9,133 @@
 .sched-body { background: var(--color-bg); min-height: 100vh; margin: 0; }
 .sched-gate { padding: 3rem; text-align: center; color: var(--color-muted); }
 
-.sched-app {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: var(--space-sm);
-  box-sizing: border-box;
-}
+.sched-app { max-width: 960px; margin: 0 auto; padding: var(--space-sm); box-sizing: border-box; }
 
 .sched-head { margin-bottom: var(--space-sm); }
 .sched-back { color: var(--color-muted); font-size: .9rem; text-decoration: none; }
 .sched-back:hover { color: var(--color-text); }
-.sched-head h1 { margin: .5rem 0 .2rem; color: var(--color-text); font-family: "new-kansas-extra-swash", var(--font-body); font-weight: 600; font-style: italic; font-feature-settings: "liga" 1, "dlig" 1, "clig" 1, "calt" 1; }
+.sched-head h1 {
+  margin: .5rem 0 .2rem; color: var(--color-text);
+  font-family: "new-kansas-extra-swash", var(--font-body); font-weight: 600; font-style: italic;
+  font-feature-settings: "liga" 1, "dlig" 1, "clig" 1, "calt" 1;
+}
 .sched-date { color: var(--color-muted); margin: 0 0 .75rem; }
-.sched-tools { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-.sched-toggle { color: var(--color-text); font-size: .9rem; cursor: pointer; }
-.sched-print {
-  border: 0; border-radius: 999px; padding: .45rem 1.1rem;
+.sched-tools { display: flex; gap: .5rem; flex-wrap: wrap; }
+.sched-btn {
+  border: 0; border-radius: 999px; padding: .5rem 1.1rem;
   background: var(--color-paper); color: var(--color-charcoal);
   font: inherit; font-weight: 700; cursor: pointer;
 }
-.sched-status { color: var(--color-muted); font-size: .85rem; min-height: 1.2em; margin: .5rem 0 0; }
+.sched-btn-ghost { background: transparent; color: var(--color-text); box-shadow: inset 0 0 0 2px var(--color-paper); }
+.sched-hint { color: var(--color-muted); font-size: .85rem; margin: .6rem 0 0; }
+.sched-status { color: var(--color-muted); font-size: .85rem; min-height: 1.2em; margin: .25rem 0 0; }
 
-.sched-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+/* ---------- Timeline ---------- */
 
-.sched-row {
-  display: grid;
-  grid-template-columns: 6.5rem minmax(0, 1fr);
-  gap: .75rem;
-  align-items: start;
-  background: var(--color-paper);
-  border-radius: 8px;
-  padding: .55rem .75rem;
-  border-left: 6px solid transparent;
+.sched-grid-wrap { background: var(--color-paper); border-radius: 12px; padding: .75rem .75rem .75rem .5rem; }
+.sched-grid { position: relative; --lane-x: 5.5rem; }
+
+.sched-slot {
+  position: absolute; left: 0; right: 0;
+  display: block; padding: 0; margin: 0; border: 0;
+  border-top: 1px dashed rgba(53, 50, 48, .12);
+  background: none; text-align: left; cursor: copy; font: inherit;
 }
-.sched-row.is-hour { margin-top: 6px; }
-.sched-row.is-filled { border-left-color: var(--color-berry); }
-
-.sched-time {
-  font-weight: 700; color: var(--color-charcoal);
-  padding-top: .35rem; white-space: nowrap; font-variant-numeric: tabular-nums;
+.sched-slot.is-hour { border-top: 1px solid rgba(53, 50, 48, .28); }
+.sched-slot:hover { background: rgba(241, 88, 38, .06); }
+.sched-slot-time {
+  display: block; width: calc(var(--lane-x) - .5rem); padding: .2rem 0 0 .35rem;
+  font-size: .8rem; color: #8a8580; font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.sched-row:not(.is-hour) .sched-time { color: #8a8580; font-weight: 400; }
+.sched-slot.is-hour .sched-slot-time { color: var(--color-charcoal); font-weight: 700; }
 
-.sched-fields {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-  gap: .4rem;
+.sched-event {
+  position: absolute; box-sizing: border-box; z-index: 2;
+  display: flex; flex-direction: column; align-items: flex-start; gap: .1rem; overflow: hidden;
+  padding: .3rem .55rem; margin-left: 2px;
+  border: 0; border-left: 5px solid var(--color-berry); border-radius: 6px;
+  background: var(--color-orange-lt); color: var(--color-charcoal);
+  font: inherit; text-align: left; cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
 }
-.sched-fields input,
-.sched-fields textarea {
-  font: inherit; font-size: .95rem; color: var(--color-charcoal);
-  border: 1px solid transparent; border-radius: 6px;
-  background: var(--color-cream);
-  padding: .35rem .55rem; width: 100%; box-sizing: border-box;
+.sched-event:hover { background: #fbd2bd; }
+.sched-event.is-empty { opacity: .65; }
+.ev-time { font-size: .72rem; color: #6d6560; font-variant-numeric: tabular-nums; }
+.ev-what { font-weight: 700; font-size: .92rem; line-height: 1.2; }
+.ev-who { font-size: .8rem; color: #5a5450; }
+.sched-event.is-short { flex-direction: row; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.sched-event.is-short .ev-who { display: none; }
+
+/* ---------- Editor ---------- */
+
+.sched-editor {
+  position: fixed; inset: 0; z-index: 20;
+  background: rgba(0, 0, 0, .25);
+  display: flex; justify-content: flex-end;
 }
-.sched-fields textarea { grid-column: 1 / -1; resize: vertical; min-height: 2rem; font-size: .88rem; }
-.sched-fields input:focus,
-.sched-fields textarea:focus { outline: none; border-color: var(--color-bg); background: #fff; }
-.sched-what { font-weight: 700; }
-
-/* Empty slots stay compact: notes only appear once something's planned or you click in. */
-.sched-row:not(.is-filled) .sched-notes:not(:focus) { display: none; }
-.sched-row:not(.is-filled):focus-within .sched-notes { display: block; }
-
-.only-filled .sched-row:not(.is-filled) { display: none; }
+.sched-editor-card {
+  width: min(380px, 100%); height: 100%; box-sizing: border-box; overflow-y: auto;
+  background: var(--color-paper); color: var(--color-charcoal);
+  padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: .8rem;
+  box-shadow: -4px 0 18px rgba(0, 0, 0, .15);
+}
+.sched-editor-head { display: flex; align-items: center; justify-content: space-between; }
+.sched-editor-head h2 { margin: 0; font-size: 1.3rem; color: var(--color-charcoal); }
+.sched-x { border: 0; background: none; font-size: 1.8rem; line-height: 1; cursor: pointer; color: var(--color-charcoal); }
+.ed-label { display: flex; flex-direction: column; gap: .3rem; font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.ed-label input, .ed-label select, .ed-label textarea {
+  font: inherit; font-size: 1rem; letter-spacing: 0; text-transform: none; font-weight: 400;
+  color: var(--color-charcoal); background: var(--color-cream);
+  border: 1px solid transparent; border-radius: 8px; padding: .55rem .65rem; width: 100%; box-sizing: border-box;
+}
+.ed-label input:focus, .ed-label select:focus, .ed-label textarea:focus { outline: none; border-color: var(--color-bg); background: #fff; }
+#ed-what { font-weight: 700; }
+.ed-times { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.ed-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: .5rem; }
+.ed-actions .sched-btn { background: var(--color-bg); color: #fff; }
+.ed-delete { border: 0; background: none; color: var(--color-berry); font: inherit; text-decoration: underline; cursor: pointer; padding: 0; }
 
 @media (max-width: 600px) {
-  .sched-row { grid-template-columns: 1fr; gap: .3rem; }
-  .sched-time { padding-top: 0; }
-  .sched-fields { grid-template-columns: 1fr; }
+  .sched-grid { --lane-x: 4.6rem; }
+  .sched-editor { align-items: flex-end; }
+  .sched-editor-card { width: 100%; height: auto; max-height: 85vh; border-radius: 14px 14px 0 0; }
 }
 
-/* ---------- Print: only planned slots, plain text ---------- */
+/* ---------- Print: run of show only ---------- */
+
+.ros { display: none; }
+
 @media print {
-  .sched-body { background: #fff; }
-  .sched-back, .sched-tools, .sched-status { display: none; }
-  .sched-head h1, .sched-date { color: #000; }
-  .sched-row { border: 0; border-bottom: 1px solid #ccc; border-radius: 0; break-inside: avoid; }
-  .sched-row:not(.is-filled) { display: none; }
-  .sched-fields input, .sched-fields textarea { background: none; border: 0; padding: 0; resize: none; }
-  .sched-row .sched-notes { display: block; }
+  @page { size: letter; margin: .5in; }
+  body.sched-body { background: #fff; }
+  .sched-gate, .sched-app, .sched-editor { display: none !important; }
+  .ros {
+    display: block; color: #000;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.5pt;
+  }
+  .ros-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 2.5pt solid #000; padding-bottom: 6pt; margin-bottom: 8pt;
+  }
+  .ros-kicker { margin: 0; font-size: 8pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .ros-title { margin: 2pt 0 0; font-family: inherit; font-size: 18pt; font-weight: 700; font-style: normal; color: #000; line-height: 1.1; }
+  .ros-meta { text-align: right; }
+  .ros-meta p { margin: 0; font-size: 9pt; line-height: 1.35; }
+
+  .ros-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .ros-table th {
+    text-align: left; font-size: 7.5pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    border-bottom: 1pt solid #000; padding: 3pt 6pt 4pt;
+  }
+  .ros-table td { vertical-align: top; padding: 5pt 6pt; border-bottom: .5pt solid #bbb; line-height: 1.3; }
+  .ros-table tbody tr { break-inside: avoid; }
+  .ros-table tbody tr:nth-child(even) td { background: #f2f2f2; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .c-time { width: 22%; white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .ros-to { font-weight: 400; color: #555; }
+  .c-len { width: 10%; color: #555; white-space: nowrap; }
+  .c-what { width: 23%; font-weight: 700; }
+  .c-who { width: 19%; }
+  .c-notes { width: 26%; }
+  .ros-table thead { display: table-header-group; }
+  .ros-foot { margin: 8pt 0 0; font-size: 7.5pt; color: #777; text-align: right; }
 }
