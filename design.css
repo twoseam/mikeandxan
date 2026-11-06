@@ -29,7 +29,7 @@ body { background: var(--cream); color: var(--brown); font-family: var(--serif);
 .band.white { background: #FFFFFF; color: var(--brown); }
 .eyebrow { font-family: var(--label); font-weight: 400; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; margin: 0; }
 h2 { font-family: var(--serif); font-style: italic; font-weight: 600; font-size: clamp(34px, 5vw, 56px); line-height: 1.05; margin: 10px 0 0; text-wrap: balance; }
-h2.title { font-family: var(--display); font-style: normal; font-weight: 800; font-size: clamp(46px, 8.5vw, 104px); line-height: .86; letter-spacing: -.035em; margin: 14px 0 0; }
+h2.title { font-family: var(--display); font-style: normal; font-weight: 800; font-size: clamp(46px, 8.5vw, 104px); line-height: .86; letter-spacing: normal; margin: 14px 0 0; }
 h2.title span { display: block; }
 .t-cream span:nth-child(1) { color: var(--orange); } .t-cream span:nth-child(2) { color: var(--pink); } .t-cream span:nth-child(3) { color: var(--hot); }
 .t-pink span:nth-child(1) { color: var(--hot); } .t-pink span:nth-child(2) { color: var(--cream); } .t-pink span:nth-child(3) { color: var(--orange); }
@@ -39,7 +39,7 @@ h2.title span { display: block; }
 /* Hero */
 .hero { background: var(--orange); color: var(--cream); padding-block: clamp(40px, 7vw, 88px); overflow: hidden; }
 .hero-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(28px, 5vw, 64px); align-items: center; }
-.stack { font-family: var(--display); font-weight: 800; font-size: clamp(64px, 12.5vw, 150px); line-height: .86; letter-spacing: -.035em; margin: 18px 0 0; }
+.stack { font-family: var(--display); font-weight: 800; font-size: clamp(64px, 12.5vw, 150px); line-height: .86; letter-spacing: normal; margin: 18px 0 0; }
 .stack span { display: block; }
 .stack span:nth-child(1) { color: var(--cream); }
 .stack span:nth-child(2) { color: var(--pink); }
@@ -63,7 +63,7 @@ h2.title span { display: block; }
 .faces li { display: grid; grid-template-columns: 220px minmax(0, 1fr); align-items: center; gap: 12px 24px; padding: 22px 0; border-bottom: 1px solid rgba(78, 39, 22, .2); }
 .fname { font-family: var(--label); font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: #7a5a48; }
 .fspec { min-width: 0; color: var(--brown); line-height: 1.05; overflow-wrap: anywhere; }
-.f-fat { font-family: "fat", var(--display); font-weight: 800; letter-spacing: -.035em; font-size: clamp(40px, 6vw, 72px); color: var(--hot); }
+.f-fat { font-family: "fat", var(--display); font-weight: 800; letter-spacing: normal; font-size: clamp(40px, 6vw, 72px); color: var(--hot); }
 .f-nk { font-family: "new-kansas", var(--serif); font-weight: 500; font-size: clamp(28px, 4vw, 44px); }
 .f-sw { font-family: "new-kansas-extra-swash", var(--serif); font-style: italic; font-weight: 600; font-size: clamp(30px, 4.4vw, 48px); color: var(--orange); }
 .f-me { font-family: "mr-eaves-modern", var(--label); font-weight: 300; text-transform: uppercase; letter-spacing: .14em; font-size: clamp(16px, 2vw, 22px); }
@@ -122,11 +122,3 @@ dialog img { display: block; max-width: 92vw; max-height: 82vh; width: auto; hei
   .piece img { transition: none; }
   .piece:hover img { transform: none; }
 }
-
-/* Fat legibility stroke, same as the main site: a hairline in the
-   section's own background color opens the counters. */
-:root { --fat-stroke: 0.011em; }
-.hero .stack { -webkit-text-stroke: var(--fat-stroke) var(--orange); }
-.band.cream h2.title, .f-fat { -webkit-text-stroke: var(--fat-stroke) var(--cream); }
-.band.pink h2.title { -webkit-text-stroke: var(--fat-stroke) #FCD9D6; }
-.band.white h2.title { -webkit-text-stroke: var(--fat-stroke) #FFFFFF; }
