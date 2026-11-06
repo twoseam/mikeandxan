@@ -1,51 +1,41 @@
-/* Admin menu bar (admin-nav.js). Charcoal bar, white panel, grouped links. */
+/* Admin tab bar (admin-nav.js). Charcoal bar, icon + name tabs, "More" list. */
 .anav { position: sticky; top: 0; z-index: 1000; font-family: var(--font-body); }
-.anav-bar {
-  display: flex; align-items: center; gap: .75rem;
-  background: var(--color-charcoal); color: #fff;
-  padding: .55rem max(16px, env(safe-area-inset-left)); box-sizing: border-box;
+.anav-bar { background: var(--color-charcoal); }
+.anav-tabs {
+  display: flex; justify-content: center; gap: .25rem;
+  max-width: 1100px; margin: 0 auto; padding: .4rem 12px;
+  overflow-x: auto; scrollbar-width: none;
 }
-.anav-brand {
-  color: #fff; text-decoration: none; font-weight: 700; font-size: 1.05rem;
-  font-family: "new-kansas-extra-swash", var(--font-body); font-style: italic;
+.anav-tabs::-webkit-scrollbar { display: none; }
+.anav-tab {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: .45rem;
+  padding: .5rem .85rem; border: 0; border-radius: 999px;
+  background: none; color: rgba(255, 255, 255, .78); text-decoration: none;
+  font: inherit; font-size: .95rem; cursor: pointer; white-space: nowrap;
 }
-.anav-here { flex: 1; font-size: .9rem; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.anav-toggle {
-  display: inline-flex; align-items: center; gap: .5rem;
-  border: 0; border-radius: 999px; padding: .4rem .9rem;
-  background: var(--color-bg); color: #fff; font: inherit; font-weight: 700; font-size: .9rem; cursor: pointer;
-}
-.anav-burger, .anav-burger::before, .anav-burger::after {
-  display: block; width: 14px; height: 2px; background: currentColor; border-radius: 2px; position: relative; transition: transform .15s;
-}
-.anav-burger::before, .anav-burger::after { content: ""; position: absolute; left: 0; }
-.anav-burger::before { top: -5px; }
-.anav-burger::after { top: 5px; }
-.anav.is-open .anav-burger { background: transparent; }
-.anav.is-open .anav-burger::before { transform: translateY(5px) rotate(45deg); }
-.anav.is-open .anav-burger::after { transform: translateY(-5px) rotate(-45deg); }
+.anav-tab:hover, .anav-tab.is-open { background: rgba(255, 255, 255, .1); color: #fff; }
+.anav-tab.is-current { background: var(--color-bg); color: #fff; font-weight: 700; }
+.anav-tab svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-.anav-panel {
-  position: absolute; right: 12px; top: calc(100% + 6px);
-  width: min(520px, calc(100vw - 24px)); box-sizing: border-box;
-  background: var(--color-paper); color: var(--color-charcoal);
-  border-radius: 14px; padding: 1rem 1.1rem; box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.25rem;
+.anav-more {
+  position: absolute; right: max(12px, calc(50% - 550px + 12px)); top: calc(100% + 6px);
+  width: min(300px, calc(100vw - 24px)); box-sizing: border-box;
+  background: var(--color-paper); border-radius: 12px; padding: .5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
 }
-.anav-panel[hidden] { display: none; }
-.anav-group-name {
-  margin: 0 0 .35rem; font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #8a8580;
-}
-.anav-link {
-  display: block; padding: .4rem .5rem; margin: 0 -.5rem; border-radius: 8px;
+.anav-more[hidden] { display: none; }
+.anav-more a {
+  display: block; padding: .6rem .7rem; border-radius: 8px;
   color: var(--color-charcoal); text-decoration: none; font-size: 1rem;
 }
-.anav-link:hover { background: var(--color-cream); }
-.anav-link.is-current { background: var(--color-orange-lt); font-weight: 700; }
-.anav-ext { font-size: .8rem; color: #a39d98; }
+.anav-more a:hover { background: var(--color-cream); }
+.anav-more-note { margin: .25rem .7rem .3rem; font-size: .78rem; color: #8a8580; }
 
-@media (max-width: 480px) {
-  .anav-panel { grid-template-columns: 1fr 1fr; gap: .75rem 1rem; padding: .9rem 1rem; }
+/* Phone: icons stacked over short names so all tabs fit. */
+@media (max-width: 640px) {
+  .anav-tabs { justify-content: space-between; gap: 0; padding: .3rem 6px; }
+  .anav-tab { flex-direction: column; gap: .15rem; padding: .4rem .45rem; font-size: .68rem; border-radius: 10px; }
+  .anav-tab svg { width: 20px; height: 20px; }
 }
 
 @media print { .anav { display: none !important; } }
