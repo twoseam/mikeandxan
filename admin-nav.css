@@ -1,6 +1,6 @@
 /* Admin tab bar (admin-nav.js). Charcoal bar, icon + name tabs, "More" list. */
-.anav { position: sticky; top: 0; z-index: 1000; font-family: var(--font-body); }
-.anav-bar { background: var(--color-charcoal); }
+.anav { position: sticky; top: 0; z-index: 1000; font-family: var(--font-body, "new-kansas", Georgia, serif); }
+.anav-bar { background: var(--color-charcoal, #353230); }
 .anav-tabs {
   display: flex; justify-content: center; gap: .25rem;
   max-width: 1100px; margin: 0 auto; padding: .4rem 12px;
@@ -13,23 +13,9 @@
   background: none; color: rgba(255, 255, 255, .78); text-decoration: none;
   font: inherit; font-size: .95rem; cursor: pointer; white-space: nowrap;
 }
-.anav-tab:hover, .anav-tab.is-open { background: rgba(255, 255, 255, .1); color: #fff; }
-.anav-tab.is-current { background: var(--color-bg); color: #fff; font-weight: 700; }
+.anav-tab:hover { background: rgba(255, 255, 255, .1); color: #fff; }
+.anav-tab.is-current { background: var(--color-bg, #f15826); color: #fff; font-weight: 700; }
 .anav-tab svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-.anav-more {
-  position: absolute; right: max(12px, calc(50% - 550px + 12px)); top: calc(100% + 6px);
-  width: min(300px, calc(100vw - 24px)); box-sizing: border-box;
-  background: var(--color-paper); border-radius: 12px; padding: .5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
-}
-.anav-more[hidden] { display: none; }
-.anav-more a {
-  display: block; padding: .6rem .7rem; border-radius: 8px;
-  color: var(--color-charcoal); text-decoration: none; font-size: 1rem;
-}
-.anav-more a:hover { background: var(--color-cream); }
-.anav-more-note { margin: .25rem .7rem .3rem; font-size: .78rem; color: #8a8580; }
 
 /* Phone: icons stacked over short names so all tabs fit. */
 @media (max-width: 640px) {

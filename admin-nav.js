@@ -1,6 +1,5 @@
-/* Admin menu — one shared bar across every admin page. The pages you work
-   in are always-visible tabs (icon + name). Extras (printables, the public
-   site) sit under "More". Shows only when logged in. Add a page here and it
+/* Admin menu — one shared bar across every admin page: always-visible tabs
+   (icon + name). Shows only when logged in. Add a page to TABS and it
    appears everywhere. */
 (function () {
   'use strict';
@@ -12,7 +11,8 @@
     stats: '<path d="M18 20V10M12 20V4M6 20v-6"/>',
     reminders: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
     mailing: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6 12 13 2 6"/>',
-    more: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>'
+    photos: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
+    design: '<path d="M12 2a10 10 0 1 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A5.6 5.6 0 0 0 22 9.8C22 5.5 17.5 2 12 2z"/>'
   };
 
   const TABS = [
@@ -20,16 +20,9 @@
     { href: 'schedule.html', label: 'Schedule', icon: 'schedule' },
     { href: 'seating.html', label: 'Seating', icon: 'seating' },
     { href: 'stats.html', label: 'Stats', icon: 'stats' },
-    { href: 'reminders.html', label: 'Reminders', icon: 'reminders' },
-    { href: 'mailing.html', label: 'Mailing', icon: 'mailing' }
-  ];
-  const MORE = [
-    { href: 'day', label: 'Shared schedule (what guests see)' },
-    { href: 'seating-chart.html', label: 'Print seating chart' },
-    { href: 'envelopes.html', label: 'Print envelopes' },
-    { href: 'index.html', label: 'Wedding website' },
-    { href: 'photos.html', label: 'Guest photos' },
-    { href: 'design.html', label: 'Design notes' }
+    { href: 'mailing.html', label: 'Mailing', icon: 'mailing' },
+    { href: 'photos.html', label: 'Photos', icon: 'photos' },
+    { href: 'design.html', label: 'Design', icon: 'design' }
   ];
 
   try {
@@ -48,29 +41,11 @@
       '<div class="anav-tabs">' +
         TABS.map(t => '<a href="' + t.href + '" class="anav-tab' + (t.href === here ? ' is-current" aria-current="page' : '') + '">' +
           svg(t.icon) + '<span>' + t.label + '</span></a>').join('') +
-        '<button type="button" class="anav-tab anav-more-btn" aria-expanded="false" aria-controls="anav-more">' +
-          svg('more') + '<span>More</span></button>' +
       '</div>' +
-    '</div>' +
-    '<div class="anav-more" id="anav-more" hidden>' +
-      MORE.map(m => '<a href="' + m.href + '" target="_blank" rel="noopener">' + m.label + '</a>').join('') +
-      '<p class="anav-more-note">These open in a new tab.</p>' +
     '</div>';
 
   function start() {
     document.body.insertBefore(bar, document.body.firstChild);
-    const btn = bar.querySelector('.anav-more-btn'), panel = bar.querySelector('.anav-more');
-    function set(open) {
-      panel.hidden = !open; btn.setAttribute('aria-expanded', String(open)); btn.classList.toggle('is-open', open);
-      if (open) { // line the list up under the More button
-        const r = btn.getBoundingClientRect();
-        panel.style.right = 'auto';
-        panel.style.left = Math.max(12, Math.min(r.right - panel.offsetWidth, window.innerWidth - panel.offsetWidth - 12)) + 'px';
-      }
-    }
-    btn.addEventListener('click', e => { e.stopPropagation(); set(panel.hidden); });
-    document.addEventListener('click', e => { if (!bar.contains(e.target)) set(false); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') set(false); });
     const cur = bar.querySelector('.is-current');
     if (cur) cur.scrollIntoView({ inline: 'center', block: 'nearest' });
   }
