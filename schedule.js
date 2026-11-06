@@ -54,8 +54,10 @@
   }
 
   function stripHtml(e) {
-    return '<div class="strip" data-id="' + e.id + '">' +
+    const half = e.start % 2 === 1;
+    return '<div class="strip' + (half ? ' is-half' : '') + '" data-id="' + e.id + '">' +
       '<div class="strip-main">' +
+        (half ? '<span class="strip-badge">' + timeLabel(e.start).replace(/ (AM|PM)$/, '') + '</span>' : '') +
         '<input class="strip-what" data-f="what" type="text" placeholder="What’s happening" value="' + esc(e.what) + '" />' +
         '<span class="strip-times">' +
           '<select data-f="start" aria-label="Starts">' + timeOptions(0, ROWS - 1, e.start) + '</select>' +

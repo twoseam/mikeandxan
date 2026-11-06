@@ -54,6 +54,13 @@
 .strip select { width: auto; padding-right: .2rem; font-size: .85rem; }
 .strip input:focus, .strip select:focus, .strip textarea:focus { outline: none; border-color: var(--color-bg); }
 .strip .strip-what { font-weight: 700; }
+/* Strips that start on the half-hour: indented, pink edge, time badge. */
+.strip.is-half { margin-left: 1.25rem; border-left: 4px solid var(--color-accent); background: #fdeef2; }
+.strip.is-half .strip-main { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+.strip-badge {
+  font-size: .8rem; font-weight: 800; color: #fff; background: var(--color-berry);
+  border-radius: 999px; padding: .2rem .55rem; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
 .strip-times { display: flex; align-items: center; gap: .3rem; white-space: nowrap; }
 .strip-dash { font-size: .8rem; color: #8a8580; }
 .strip-len { font-size: .78rem; color: #8a8580; min-width: 4.8rem; }
@@ -84,6 +91,9 @@
   .sched-time { padding-top: 0; }
   .strip-main { grid-template-columns: minmax(0, 1fr) auto; }
   .strip-times { grid-column: 1 / -1; grid-row: 2; }
+  .strip.is-half { margin-left: .6rem; }
+  .strip.is-half .strip-main { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .strip.is-half .strip-del { grid-column: 3; }
   .strip-del { grid-column: 2; grid-row: 1; }
 }
 
