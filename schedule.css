@@ -18,7 +18,7 @@
 .sched-head { margin-bottom: var(--space-sm); }
 .sched-back { color: var(--color-muted); font-size: .9rem; text-decoration: none; }
 .sched-back:hover { color: var(--color-text); }
-.sched-head h1 { margin: .5rem 0 .2rem; color: var(--color-text); }
+.sched-head h1 { margin: .5rem 0 .2rem; color: var(--color-text); font-family: var(--font-body); font-weight: 700; font-style: normal; }
 .sched-date { color: var(--color-muted); margin: 0 0 .75rem; }
 .sched-tools { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .sched-toggle { color: var(--color-text); font-size: .9rem; cursor: pointer; }
