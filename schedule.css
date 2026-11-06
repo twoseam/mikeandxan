@@ -45,7 +45,7 @@
 .sched-cell { display: flex; flex-direction: column; gap: .4rem; min-width: 0; align-self: stretch; }
 
 .strip { background: var(--color-cream); border-radius: 8px; padding: .4rem; display: flex; flex-direction: column; gap: .35rem; }
-.strip-main { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.3fr) auto auto; gap: .4rem; align-items: center; }
+.strip-main { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: .4rem; align-items: center; }
 .strip input, .strip select, .strip textarea {
   font: inherit; font-size: .95rem; color: var(--color-charcoal);
   border: 1px solid transparent; border-radius: 6px; background: #fff;
@@ -83,8 +83,7 @@
   .sched-row { grid-template-columns: 1fr; gap: .3rem; }
   .sched-time { padding-top: 0; }
   .strip-main { grid-template-columns: minmax(0, 1fr) auto; }
-  .strip-who { grid-column: 1 / -1; grid-row: 2; }
-  .strip-times { grid-column: 1 / -1; grid-row: 3; }
+  .strip-times { grid-column: 1 / -1; grid-row: 2; }
   .strip-del { grid-column: 2; grid-row: 1; }
 }
 
@@ -124,9 +123,8 @@
   .c-time { width: 22%; white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; }
   .ros-to { font-weight: 400; color: #555; }
   .c-len { width: 10%; color: #555; white-space: nowrap; }
-  .c-what { width: 23%; font-weight: 700; }
-  .c-who { width: 19%; }
-  .c-notes { width: 26%; }
+  .c-what { width: 30%; font-weight: 700; }
+  .c-notes { width: 38%; }
   .ros-table thead { display: table-header-group; }
   .ros-foot { margin: 8pt 0 0; font-size: 7.5pt; color: #777; text-align: right; }
 }

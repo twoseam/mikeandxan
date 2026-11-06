@@ -57,7 +57,6 @@
     return '<div class="strip" data-id="' + e.id + '">' +
       '<div class="strip-main">' +
         '<input class="strip-what" data-f="what" type="text" placeholder="What’s happening" value="' + esc(e.what) + '" />' +
-        '<input class="strip-who" data-f="who" type="text" placeholder="Who" value="' + esc(e.who) + '" />' +
         '<span class="strip-times">' +
           '<select data-f="start" aria-label="Starts">' + timeOptions(0, ROWS - 1, e.start) + '</select>' +
           '<span class="strip-dash">to</span>' +
@@ -100,14 +99,13 @@
   }
 
   function renderPrint() {
-    const rows = sorted().filter(e => e.what || e.who || e.notes);
+    const rows = sorted().filter(e => e.what || e.notes);
     $('ros-body').innerHTML = rows.length ? rows.map(e =>
       '<tr><td class="c-time">' + timeLabel(e.start) + '<span class="ros-to"> &ndash; ' + timeLabel(e.end) + '</span></td>' +
       '<td class="c-len">' + lengthLabel(e) + '</td>' +
       '<td class="c-what">' + esc(e.what) + '</td>' +
-      '<td class="c-who">' + esc(e.who) + '</td>' +
       '<td class="c-notes">' + esc(e.notes).replace(/\n/g, '<br>') + '</td></tr>'
-    ).join('') : '<tr><td colspan="5">Nothing scheduled yet.</td></tr>';
+    ).join('') : '<tr><td colspan="4">Nothing scheduled yet.</td></tr>';
     const d = new Date();
     $('ros-foot').textContent = 'Printed ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
       ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
