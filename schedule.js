@@ -73,18 +73,22 @@
   function render(focusId) {
     const all = sorted();
     let html = '';
-    for (let r = 0; r < ROWS; r++) {
-      const starting = all.filter(e => e.start === r);
+    // One row per hour (8 AM ... midnight). Half-hour starts live in their hour's row.
+    for (let r = 0; r < ROWS; r += 2) {
+      const starting = all.filter(e => e.start === r || e.start === r + 1);
       const running = all.filter(e => e.start < r && e.end > r);
       const filled = starting.length || running.length;
-      html += '<li class="sched-row' + (r % 2 ? '' : ' is-hour') + (filled ? ' is-filled' : '') + '" data-slot="' + r + '">' +
+      const half = r + 1 < ROWS;
+      html += '<li class="sched-row is-hour' + (filled ? ' is-filled' : '') + '" data-slot="' + r + '">' +
         '<div class="sched-time">' + timeLabel(r) + '</div>' +
         '<div class="sched-cell">' +
-          running.map(e => '<button type="button" class="strip-cont" data-goto="' + e.id + '">↳ ' +
+          running.map(e => '<button type="button" class="strip-cont" data-goto="' + e.id + '">\u21b3 ' +
             esc(e.what || 'Untitled') + ' <span>until ' + timeLabel(e.end) + '</span></button>').join('') +
           starting.map(stripHtml).join('') +
-          '<button type="button" class="sched-add' + (starting.length ? ' is-more' : '') + '">' +
-            (starting.length ? '+ Add another at ' + timeLabel(r) : '+ Add') + '</button>' +
+          '<div class="sched-adds">' +
+            '<button type="button" class="sched-add" data-slot="' + r + '">+ Add at ' + timeLabel(r) + '</button>' +
+            (half ? '<button type="button" class="sched-add is-half" data-slot="' + (r + 1) + '">+ ' + timeLabel(r + 1).replace(/ (AM|PM)$/, '') + '</button>' : '') +
+          '</div>' +
         '</div></li>';
     }
     list.innerHTML = html;
@@ -206,7 +210,7 @@
 
   list.addEventListener('click', e => {
     const add = e.target.closest('.sched-add');
-    if (add) { addAt(Number(add.closest('.sched-row').dataset.slot)); return; }
+    if (add) { addAt(Number(add.dataset.slot)); return; }
     const del = e.target.closest('.strip-del');
     if (del) {
       const ev = find(del.closest('.strip').dataset.id);
