@@ -1,5 +1,5 @@
 /* Shareable day-of schedule — phone-first, read-only. Reads the live
-   schedule from the backend (needs the share key in the link: day.html?k=...)
+   schedule from the backend (public link: mikeandxan.com/day)
    and checks for changes every minute, so edits on the admin Schedule page
    show up here on their own. On the wedding day it marks what's on now. */
 (function () {
@@ -13,7 +13,6 @@
 
   const $ = id => document.getElementById(id);
   const list = $('day-list'), foot = $('day-foot'), nowBox = $('day-now');
-  const key = new URLSearchParams(location.search).get('k') || '';
 
   let events = [];
   let lastJson = '';
@@ -94,16 +93,8 @@
   }
 
   async function refresh() {
-    if (!key) {
-      list.innerHTML = '<li class="day-msg">This link is missing its key. Ask Michael or Alexandria for the full link.</li>';
-      return;
-    }
     try {
-      const res = await fetch(WORKER_URL + '?action=schedule&k=' + encodeURIComponent(key), { cache: 'no-store' });
-      if (res.status === 404) {
-        list.innerHTML = '<li class="day-msg">This link isn’t working. Ask Michael or Alexandria for a fresh one.</li>';
-        return;
-      }
+      const res = await fetch(WORKER_URL + '?action=schedule', { cache: 'no-store' });
       const data = await res.json();
       if (!data || !data.ok) throw new Error('bad response');
       const json = JSON.stringify(data.events);
