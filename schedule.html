@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="schedule.css?v=13" />
+  <link rel="stylesheet" href="schedule.css?v=14" />
 </head>
 <body class="sched-body">
 
@@ -24,7 +24,11 @@
       <p class="sched-date">Saturday, November 14 &middot; 8 AM &ndash; Midnight</p>
       <div class="sched-tools">
         <label class="sched-toggle"><input type="checkbox" id="sched-filled" /> Only show planned times</label>
-        <button type="button" id="sched-print" class="sched-btn">Print schedule</button>
+        <span class="sched-btns">
+          <button type="button" id="sched-share" class="sched-btn sched-btn-ghost" hidden>Copy share link</button>
+          <a id="sched-share-open" class="sched-share-open" target="_blank" rel="noopener" hidden>Open</a>
+          <button type="button" id="sched-print" class="sched-btn">Print schedule</button>
+        </span>
       </div>
       <p id="sched-status" class="sched-status" role="status" aria-live="polite"></p>
     </header>
@@ -48,6 +52,6 @@
     <p class="ros-foot" id="ros-foot"></p>
   </section>
 
-  <script src="schedule.js?v=10"></script>
+  <script src="schedule.js?v=11"></script>
 </body>
 </html>

@@ -286,9 +286,21 @@
     events = (data.scheduleEvents || []).map(e => ({
       id: e.id, start: Number(e.start), end: Number(e.end), what: e.what || '', who: e.who || '', notes: e.notes || ''
     }));
+    if (data.scheduleShareUrl) setupShare(data.scheduleShareUrl);
     gate.hidden = true;
     app.hidden = false;
     render();
+  }
+
+  // Copy the guest-facing phone schedule link (day.html) for key people.
+  function setupShare(url) {
+    const btn = $('sched-share'), open = $('sched-share-open');
+    btn.hidden = false; open.hidden = false; open.href = url;
+    btn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(url); btn.textContent = 'Copied!'; }
+      catch (_) { window.prompt('Copy this link:', url); }
+      setTimeout(() => { btn.textContent = 'Copy share link'; }, 2000);
+    });
   }
 
   load();
