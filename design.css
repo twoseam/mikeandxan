@@ -1,0 +1,115 @@
+/* Design showcase page: every printed piece from the wedding identity. */
+/* Layout: full-width color bands in the wedding palette, each a chapter of the identity; work sits on the band like cards on a table. */
+/* Single deliberate look: the brand's own colors in both themes. */
+:root {
+  color-scheme: light;
+  --orange: #D54E2A;   /* signage ground */
+  --hot: #F15826;      /* RSVP orange */
+  --pink: #FFA4C5;     /* RSVP pink */
+  --cream: #FAEFDE;    /* paper */
+  --peach: #FCD497;    /* type on orange */
+  --brown: #4E2716;    /* ink */
+  --display: "fat", "Arial Black", Impact, sans-serif;
+  --serif: "new-kansas", Georgia, "Times New Roman", serif;
+  --swash: "new-kansas-extra-swash", "new-kansas", Georgia, serif;
+  --label: "mr-eaves-modern", "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+img { max-width: 100%; }
+.back { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); font-family: var(--label); font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: var(--peach); text-decoration: none; z-index: 2; }
+.back:hover, .back:focus-visible { color: var(--cream); }
+.hero { position: relative; }
+body { background: var(--cream); color: var(--brown); font-family: var(--serif); font-size: 17px; line-height: 1.55; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.band { padding-block: clamp(56px, 9vw, 112px); }
+.band.orange { background: var(--orange); color: var(--cream); }
+.band.pink { background: var(--pink); color: var(--brown); }
+.band.cream { background: var(--cream); color: var(--brown); }
+.eyebrow { font-family: var(--label); font-weight: 400; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; margin: 0; }
+h2 { font-family: var(--serif); font-style: italic; font-weight: 600; font-size: clamp(34px, 5vw, 56px); line-height: 1.05; margin: 10px 0 0; text-wrap: balance; }
+h2.title { font-family: var(--display); font-style: normal; font-weight: 800; font-size: clamp(46px, 8.5vw, 104px); line-height: .86; letter-spacing: -.035em; margin: 14px 0 0; }
+h2.title span { display: block; }
+.t-cream span:nth-child(1) { color: var(--orange); } .t-cream span:nth-child(2) { color: var(--pink); } .t-cream span:nth-child(3) { color: var(--hot); }
+.t-pink span:nth-child(1) { color: var(--hot); } .t-pink span:nth-child(2) { color: var(--cream); } .t-pink span:nth-child(3) { color: var(--orange); }
+.t-orange span:nth-child(1) { color: var(--cream); } .t-orange span:nth-child(2) { color: var(--pink); } .t-orange span:nth-child(3) { color: var(--peach); }
+.faces b { font-family: var(--swash); font-style: italic; font-weight: 600; font-size: 20px; }
+
+
+/* Hero */
+.hero { background: var(--orange); color: var(--cream); padding-block: clamp(40px, 7vw, 88px); overflow: hidden; }
+.hero-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(28px, 5vw, 64px); align-items: center; }
+.stack { font-family: var(--display); font-weight: 800; font-size: clamp(64px, 12.5vw, 150px); line-height: .86; letter-spacing: -.035em; margin: 18px 0 0; }
+.stack span { display: block; }
+.stack span:nth-child(1) { color: var(--cream); }
+.stack span:nth-child(2) { color: var(--pink); }
+.stack span:nth-child(3) { color: var(--peach); }
+.names { font-family: var(--swash); font-style: italic; font-weight: 600; font-size: clamp(28px, 3.6vw, 42px); margin: 26px 0 4px; color: var(--cream); }
+.place { font-family: var(--label); font-weight: 400; font-size: 13px; letter-spacing: .2em; text-transform: uppercase; color: var(--peach); margin: 0; }
+.hero-art { position: relative; min-width: 0; }
+.hero-art img { display: block; width: 100%; height: auto; box-shadow: 0 30px 60px -20px rgba(60, 20, 8, .55); }
+.hero-art img:first-child { transform: rotate(-3deg); }
+.hero-art img + img { position: absolute; width: 62%; right: -4%; bottom: -16%; transform: rotate(5deg); }
+
+/* Palette + type */
+.kit { display: grid; grid-template-columns: 1.4fr 1fr; gap: clamp(32px, 5vw, 72px); margin-top: 48px; }
+.swatches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 20px; }
+.sw { display: flex; flex-direction: column; }
+.chip { aspect-ratio: 1 / 1; max-width: 100%; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(78, 39, 22, .15); }
+.sw dl { margin: 0; padding: 12px 2px 0; text-align: center; text-transform: uppercase; letter-spacing: .12em; font-family: var(--label); font-size: 12px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.sw dt { font-weight: 600; font-size: 12px; margin-bottom: 2px; }
+.sw dd { margin: 0; color: #7a5a48; }
+.faces { list-style: none; padding: 0; margin: 0; display: grid; gap: 0; border-top: 1px solid rgba(78, 39, 22, .2); }
+.faces li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(78, 39, 22, .2); }
+.faces b { font-weight: 600; }
+.faces span { font-family: var(--label); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #7a5a48; text-align: right; }
+.note { font-size: 14px; color: #7a5a48; margin: 14px 0 0; }
+
+/* Galleries */
+.group { margin-top: 48px; }
+.group h3 { font-family: var(--label); font-weight: 400; font-size: 13px; letter-spacing: .2em; text-transform: uppercase; margin: 0 0 16px; }
+.grid { display: grid; gap: clamp(14px, 2vw, 24px); }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+figure { margin: 0; min-width: 0; }
+.piece { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.piece img { display: block; width: 100%; height: auto; max-width: 100%; box-shadow: 0 14px 30px -14px rgba(60, 20, 8, .45); transition: transform .25s ease, box-shadow .25s ease; }
+.piece:hover img { transform: translateY(-4px); box-shadow: 0 24px 40px -16px rgba(60, 20, 8, .5); }
+.piece:focus-visible { outline: 3px solid var(--brown); outline-offset: 6px; }
+.orange .piece:focus-visible { outline-color: var(--peach); }
+figcaption { font-family: var(--label); font-weight: 400; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; margin-top: 10px; display: flex; justify-content: space-between; gap: 10px; }
+figcaption span { opacity: .75; font-variant-numeric: tabular-nums; }
+.feature { display: grid; grid-template-columns: 1fr 1.25fr; gap: clamp(20px, 3vw, 36px); align-items: start; }
+.feature .col { display: grid; gap: clamp(20px, 3vw, 36px); min-width: 0; }
+.tall { align-items: end; }
+
+/* Footer */
+footer { background: var(--brown); color: var(--cream); padding-block: 40px; font-family: var(--label); font-size: 13px; letter-spacing: .08em; }
+footer a { color: inherit; }
+footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+/* Lightbox */
+dialog { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 94vh; color: var(--cream); }
+dialog::backdrop { background: rgba(40, 16, 6, .9); }
+dialog img { display: block; max-width: 92vw; max-height: 82vh; width: auto; height: auto; margin: 0 auto; }
+.lb-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; font-family: var(--label); font-size: 13px; letter-spacing: .06em; }
+.lb-bar button { font: inherit; font-weight: 600; color: var(--brown); background: var(--peach); border: 0; padding: 8px 14px; cursor: pointer; border-radius: 999px; }
+.lb-bar button:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
+.lb-nav { display: flex; gap: 8px; }
+
+@media (max-width: 820px) {
+  .hero-grid, .kit, .feature { grid-template-columns: 1fr; }
+  .hero-art { margin: 10px 8% 70px; }
+  .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .swatches { gap: 20px 12px; }
+  .sw dl { font-size: 10px; letter-spacing: .08em; }
+  .g2.wide { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .piece img { transition: none; }
+  .piece:hover img { transform: none; }
+}
