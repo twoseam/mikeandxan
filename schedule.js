@@ -8,7 +8,7 @@
   const WORKER_URL = 'https://mikeandxan-rsvp.michael-afc.workers.dev';
   const SESSION_KEY = 'mx_admin_session';
   const START_HOUR = 8;
-  const SLOTS = 32; // 8:00 AM ... 11:30 PM
+  const SLOTS = 33; // 8:00 AM ... 12:00 AM (midnight)
   const FIELDS = ['what', 'who', 'notes'];
 
   const gate = document.getElementById('gate');
@@ -30,7 +30,7 @@
     const mins = START_HOUR * 60 + slot * 30;
     const h24 = Math.floor(mins / 60), m = mins % 60;
     const h12 = ((h24 + 11) % 12) + 1;
-    return h12 + ':' + (m ? '30' : '00') + ' ' + (h24 < 12 ? 'AM' : 'PM');
+    return h12 + ':' + (m ? '30' : '00') + ' ' + (h24 % 24 < 12 ? 'AM' : 'PM');
   }
   function isFilled(slot) {
     const s = schedule[slot];
