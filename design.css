@@ -24,7 +24,7 @@ body { background: var(--cream); color: var(--brown); font-family: var(--serif);
 .wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .band { padding-block: clamp(56px, 9vw, 112px); }
 .band.orange { background: var(--orange); color: var(--cream); }
-.band.pink { background: var(--pink); color: var(--brown); }
+.band.pink { background: #FCD9D6; color: var(--brown); } /* pink at 30% over paper */
 .band.cream { background: var(--cream); color: var(--brown); }
 .band.white { background: #FFFFFF; color: var(--brown); }
 .eyebrow { font-family: var(--label); font-weight: 400; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; margin: 0; }
@@ -128,5 +128,5 @@ dialog img { display: block; max-width: 92vw; max-height: 82vh; width: auto; hei
 :root { --fat-stroke: 0.011em; }
 .hero .stack { -webkit-text-stroke: var(--fat-stroke) var(--orange); }
 .band.cream h2.title, .f-fat { -webkit-text-stroke: var(--fat-stroke) var(--cream); }
-.band.pink h2.title { -webkit-text-stroke: var(--fat-stroke) var(--pink); }
+.band.pink h2.title { -webkit-text-stroke: var(--fat-stroke) #FCD9D6; }
 .band.white h2.title { -webkit-text-stroke: var(--fat-stroke) #FFFFFF; }
