@@ -280,8 +280,7 @@
   </div>
   <details class="diag">
     <summary>Diagnostics</summary>
-    <div class="btns"><button id="copy">Copy log</button><button id="probe">Run mode test</button>
-      <span class="fmt">Format <select id="fmt"><option value="auto">Auto</option><option value="B">B</option><option value="A">A</option></select></span></div>
+    <div class="btns"><button id="copy">Copy log</button><button id="probe">Run mode test</button></div>
     <div id="log"></div>
   </details>
   <!-- hidden stores for settings -->
@@ -325,7 +324,8 @@ function setStatus(text, on){ $('statusText').textContent=text; $('dot').classLi
 
 // Format A: [1, size+1, type, ...payload, checksum]  (two's-complement sum)
 // Format B: [1, type, size, ...payload]
-function packet([type,size], payload=[], fmt=format||'A'){
+function packet([type,size], payload=[], fmt){
+  fmt='B';
   if (fmt === 'B') return new Uint8Array([1, type, size, ...payload]);
   const body = [1, (size+1)&255, type, ...payload];
   const sum = body.reduce((s,b)=>(s+b)&255, 0);
@@ -471,16 +471,16 @@ const wait = ms => new Promise(r=>setTimeout(r,ms));
 async function gotReplyWithin(ms){ const start=Date.now(); while(Date.now()-start<ms){ if(lastRx>=start) return true; await wait(50);} return false; }
 
 async function pair(){
-  const choice = $('fmt').value;
-  const tries = choice==='auto' ? ['B','A'] : [choice];
-  for (const f of tries){
-    const t0 = Date.now(); lastRx = 0;
-    await send(CMD.PAIR, PAIR_PAYLOAD, f);
-    if (await gotReplyWithin(1500)) { format = f; log('Camera answered. Using format '+f+'.'); store.set('fmt',f); return true; }
-    log('No answer with format '+f+'.');
+  // Always format B (confirmed on this camera). Never fall back to format A:
+  // an A-format hello starts with byte 09, which this camera reads as FIRE.
+  format='B';
+  for (let tries=1; tries<=3; tries++){
+    const t0=Date.now();
+    await send(CMD.PAIR, PAIR_PAYLOAD, 'B');
+    while (Date.now()-t0 < 2000) { if (lastRxType===1 && lastRx>=t0) { log('Camera answered hello.'); return true; } await wait(20); }
+    log('No hello reply (try '+tries+' of 3)');
   }
-  format = choice==='auto' ? (store.get('fmt','B')) : choice;
-  log('No pairing answer. Will still try format '+format+'.');
+  log('Camera never answered hello. Commands may still work.');
   return false;
 }
 
