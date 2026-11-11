@@ -236,7 +236,7 @@
   </div>
   <button id="fNext">Next</button>
   <p class="fstat" id="fStat">Waiting for new film…</p>
-  <button id="fDone">New film is in</button>
+  <button id="fDone" hidden>New film is in</button>
 </div>
 <div id="lagScreen"><video id="lagVid" playsinline muted autoplay></video><p id="lagMsg">Getting ready…</p><canvas id="lagCan" width="64" height="48" hidden></canvas></div>
 <button id="gear" aria-label="Settings">settings</button>
@@ -295,7 +295,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '73';
+const BOOTH_VERSION = '74';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -404,7 +404,8 @@ function runFilmSteps(on){
   const nx=$('fNext');
   if (on && !fTimer){ fTimer=true; fStep=1; paint(); nx.textContent='Next'; }
   if (!on){ fTimer=null; }
-  nx.onclick=()=>{ fStep = fStep%4+1; paint(); nx.textContent = fStep===4 ? 'Start over' : 'Next'; };
+  const st=$('fStat'); st.style.visibility = fStep===4 ? 'visible' : 'hidden';
+  nx.onclick=()=>{ if (fStep===4) { $('fDone').click(); return; } fStep++; paint(); nx.textContent = fStep===4 ? 'New film is in' : 'Next'; st.style.visibility = fStep===4 ? 'visible' : 'hidden'; };
 }
 function checkFilmScreen(){
   const scr=$('filmScreen');
