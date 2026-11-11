@@ -250,7 +250,7 @@
       <h3>Guest flow</h3>
       <label>Countdown</label><div class="seg" data-for="cd" data-opts="3:3s,5:5s,10:10s"></div>
       <label>Countdown beeps</label><div class="seg" data-for="snd" data-opts="on:On,off:Off"></div>
-      <label>Shutter sound timing</label><div class="seg" data-for="sdelay" data-opts="auto:Sync to camera,0:0s,300:0.3s,600:0.6s,900:0.9s,1200:1.2s"></div>
+      <label>Fire early to match camera lag</label><div class="seg" data-for="sdelay" data-opts="auto:Auto,0:0s,300:0.3s,600:0.6s,900:0.9s,1200:1.2s,1500:1.5s"></div>
       <label>Film</label>
       <div class="film"><button id="minus" aria-label="minus">−</button><span id="shotsBig">8</span><button id="plus" aria-label="plus">+</button><button id="newpack">New pack</button></div>
       <label>Photos taken (real exposures)</label>
@@ -569,23 +569,33 @@ async function shoot(){
   $('shoot').disabled = true;
   const modeCheck = isDemo() ? Promise.resolve(true) : ensureMode().catch(e=>{ log('Mode check failed: '+e); return false; });
   const c = $('count'), cn=$('cnum'), cl=$('clabel'); c.classList.remove('flash'); c.style.display='flex'; cl.textContent='Look at the camera';
+  // Fire early by the camera's lag so the shutter goes off right as the countdown ends.
+  const total=+$('cd').value*1000, start=Date.now();
+  const lagSet=$('sdelay').value, lag = lagSet==='auto' ? +store.get('lagMeasured',600) : +lagSet;
+  let fireErr=null, sentAt=0;
+  const fire = (async()=>{
+    await wait(Math.max(0, total-lag));
+    if (isDemo()) { log('Demo mode: shutter skipped'); return; }
+    try { await modeCheck; sentAt=Date.now(); await send(CMD.SHUTTER); log('Fired '+(start+total-sentAt)+'ms before countdown end (lag setting '+lag+'ms)'); }
+    catch(e){ fireErr=e; }
+  })();
   for (let n=+$('cd').value; n>0; n--){
     cn.textContent=n; cn.classList.remove('tick'); void cn.offsetWidth; cn.classList.add('tick');
     if (n===1) beep(1046, 320, 0.4, 'triangle'); else beep(523, 150, 0.35, 'triangle');
     if (n===1) cl.textContent='Smile!';
-    await wait(1000);
+    await wait(Math.max(0, start+(+$('cd').value-n+1)*1000-Date.now()));
   }
   cn.textContent=''; cl.textContent='';
-  let sentAt=Date.now();
-  if (isDemo()) log('Demo mode: shutter skipped');
-  else try { await modeCheck; sentAt=Date.now(); await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
-  // Flash + sound when the camera actually fires: its "photo taken" message, or the set delay.
-  const sd=$('sdelay').value;
-  if (sd==='auto' && !isDemo()) {
-    const t0=sentAt; while (Date.now()-t0<1500 && !(lastExposure>=t0)) await wait(15);
-    log(lastExposure>=t0 ? 'Camera reported exposure '+(lastExposure-t0)+'ms after fire' : 'No exposure message from camera (used 1.5s)');
-  } else if (sd!=='auto') { await wait(+sd); }
   c.classList.add('flash'); playShutter();
+  await fire;
+  if (fireErr) { log('Shutter failed: '+fireErr); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
+  // Learn the real lag from the camera's "photo taken" message, if it sends one.
+  if (!isDemo() && sentAt) {
+    const t0=sentAt; while (Date.now()-t0<2500 && !(lastExposure>=t0)) await wait(15);
+    if (lastExposure>=t0) { const m=lastExposure-t0, prev=+store.get('lagMeasured',600), next=Math.round(prev*0.5+m*0.5);
+      store.set('lagMeasured', next); log('Camera exposed '+m+'ms after fire command. Auto lag now '+next+'ms'); }
+    else log('No exposure message from camera, so auto lag stays '+lag+'ms');
+  }
   if (!isDemo()) { const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm(); }
   await wait(800); c.style.display='none';
   if (!isDemo()) setTimeout(()=>send(CMD.STATUS).catch(()=>{}), 4000);
