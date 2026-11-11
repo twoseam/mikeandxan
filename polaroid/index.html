@@ -142,6 +142,10 @@
   #shotsBig { font-family:"Caprasimo",Georgia,serif; font-size:40px; min-width:44px; text-align:center; color:var(--bg); }
   .film #newpack { margin-left:auto; }
   .hint { color:#a0938a; margin:14px 0 0; font-size:16px; }
+  .result { margin:12px 0 0; padding:12px 16px; border-radius:12px; font-weight:600; font-size:16px; display:none; }
+  .result.ok { display:block; background:#e4f4e8; color:#2c7a45; }
+  .result.bad { display:block; background:#fde6e1; color:#b23a1d; }
+  .result.busy { display:block; background:#f3ebe0; color:#7a6e64; }
   .diag { background:#fff; border-radius:22px; padding:16px 24px; }
   .diag summary { font-weight:600; color:#a0938a; cursor:pointer; }
   .fmt { color:#a0938a; } .fmt select { font-size:16px; padding:8px; border-radius:10px; border:1px solid #e5dccf; background:#fff; }
@@ -252,6 +256,7 @@
       </div>
       <p class="hint" id="autoHint">Camera meters and fires its own flash.</p>
       <div class="btns"><button id="xcheck">Check camera mode</button></div>
+      <p class="result" id="xresult"></p>
       <p class="hint" id="camReport">Camera reports: not checked yet</p>
     </section>
   </div>
@@ -534,9 +539,21 @@ $('previewFilm').onclick = ()=>{ $('panel').style.display='none'; $('filmScreen'
 const syncCd=()=>$('cdText').textContent=$('cd').value; syncCd(); document.querySelector('.seg[data-for=cd]').addEventListener('click',syncCd);
 $('minus').onclick=()=>{ store.set('shots',Math.max(0,+store.get('shots',8)-1)); showFilm(); };
 $('plus').onclick=()=>{ store.set('shots',Math.min(8,+store.get('shots',8)+1)); showFilm(); };
-$('xsend').onclick = ()=> ensureMode().catch(e=>log('Send failed: '+e));
-$('xcheck').onclick = ()=> ensureMode().catch(e=>log('Check failed: '+e));
-$('xread').onclick = ()=> readMode().catch(e=>log('Read failed: '+e));
+async function withResult(btn, label, fn){
+  const r=$('xresult'), b=$(btn), old=b.textContent;
+  if (isDemo()) { r.className='result bad'; r.textContent='Demo mode is on. Turn it off to talk to the camera.'; return; }
+  if (!rx) { r.className='result bad'; r.textContent='Camera not connected.'; return; }
+  b.disabled=true; b.textContent=label; r.className='result busy'; r.textContent='Talking to the camera…';
+  try { const ok=await fn();
+    const d = camMode ? describeMode(camMode.raw) : 'no reply';
+    r.className = ok ? 'result ok' : 'result bad';
+    r.textContent = ok ? '✓ Camera confirmed: '+d : '✗ Camera did not confirm. It reports: '+d;
+  } catch(e){ r.className='result bad'; r.textContent='✗ '+e.message; }
+  b.disabled=false; b.textContent=old;
+}
+$('xsend').onclick = ()=> withResult('xsend','Sending…', ensureMode);
+$('xcheck').onclick = ()=> withResult('xcheck','Checking…', ensureMode);
+$('xread').onclick = ()=> withResult('xread','Reading…', async()=>!!(await readMode()));
 
 showFilm();
 log('Ready. '+(navigator.bluetooth?'Bluetooth available.':'No Bluetooth in this browser.'));
