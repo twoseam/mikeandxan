@@ -231,6 +231,8 @@
         <button id="test">Check connection</button>
         <button id="repair">Re-pair</button>
       </div>
+      <label>Demo mode (camera won't fire)</label><div class="seg" data-for="demo" data-opts="off:Off,on:On"></div>
+      <div class="btns"><button id="previewFilm">Preview film-change screen</button></div>
     </section>
     <section class="card">
       <h3>Guest flow</h3>
@@ -258,7 +260,7 @@
     <div id="log"></div>
   </details>
   <!-- hidden stores for settings -->
-  <input type="hidden" id="cd" value="5"><input type="hidden" id="cool" value="20"><input type="hidden" id="shots">
+  <input type="hidden" id="demo" value="off"><input type="hidden" id="cd" value="5"><input type="hidden" id="cool" value="20"><input type="hidden" id="shots">
   <input type="hidden" id="xmode" value="auto"><input type="hidden" id="xshut" value="8"><input type="hidden" id="xap" value="4">
   <input type="hidden" id="xfl" value="9"><input type="hidden" id="xlens" value="2">
 </div>
@@ -452,9 +454,10 @@ async function afterShot(){
   scr.classList.remove('show','phase2');
 }
 
+const isDemo=()=>$('demo').value==='on';
 async function shoot(){
-  if (!rx) return;
-  if (outOfFilm()) { checkFilmScreen(); return; }
+  if (!rx && !isDemo()) return;
+  if (!isDemo() && outOfFilm()) { checkFilmScreen(); return; }
   $('shoot').disabled = true;
   const c = $('count'), cn=$('cnum'), cl=$('clabel'); c.classList.remove('flash'); c.style.display='flex'; cl.textContent='Look at the camera';
   for (let n=+$('cd').value; n>0; n--){
@@ -463,13 +466,14 @@ async function shoot(){
     await wait(1000);
   }
   cn.textContent=''; cl.textContent=''; c.classList.add('flash');
-  try { await applyExposure(); await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
-  const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm();
+  if (isDemo()) log('Demo mode: shutter skipped');
+  else try { await applyExposure(); await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
+  if (!isDemo()) { const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm(); }
   await wait(800); c.style.display='none';
-  setTimeout(()=>send(CMD.STATUS).catch(()=>{}), 4000);
+  if (!isDemo()) setTimeout(()=>send(CMD.STATUS).catch(()=>{}), 4000);
   await afterShot();
   $('shoot').disabled=false;
-  checkFilmScreen();
+  if (!isDemo()) checkFilmScreen();
 }
 
 // keep the screen awake if the browser allows it
@@ -498,6 +502,13 @@ document.querySelectorAll('.seg').forEach(seg=>{
   seg.paint=paint; paint();
 });
 refreshManual();
+function applyDemo(){
+  if (isDemo()) { $('connect').style.display='none'; $('shoot').style.display=''; $('shoot').disabled=false; setStatus('Demo mode — camera won\'t fire', true); }
+  else if (!rx) { $('shoot').style.display='none'; $('connect').style.display=''; setStatus('Camera not connected'); }
+  else setStatus('Camera ready', true);
+}
+document.querySelector('.seg[data-for=demo]').addEventListener('click', applyDemo); applyDemo();
+$('previewFilm').onclick = ()=>{ $('panel').style.display='none'; $('filmScreen').classList.add('show'); runFilmSteps(true); };
 const syncCd=()=>$('cdText').textContent=$('cd').value; syncCd(); document.querySelector('.seg[data-for=cd]').addEventListener('click',syncCd);
 $('minus').onclick=()=>{ store.set('shots',Math.max(0,+store.get('shots',8)-1)); showFilm(); };
 $('plus').onclick=()=>{ store.set('shots',Math.min(8,+store.get('shots',8)+1)); showFilm(); };
