@@ -139,10 +139,9 @@
   .card label { display:block; font-weight:600; font-size:16px; margin:16px 0 8px; }
   .seg { display:flex; background:#f3ebe0; border-radius:14px; padding:4px; gap:4px; flex-wrap:wrap; }
   .seg button { flex:1; min-width:64px; padding:12px 10px; border-radius:11px; background:transparent; color:var(--charcoal); font:600 17px "Source Sans 3",sans-serif; }
-  .evrow { display:flex; align-items:center; gap:16px; margin-top:6px; }
-  .evrow input { flex:1; height:44px; accent-color:var(--bg); }
-  .evend { color:#a0938a; font-weight:600; font-size:15px; }
-  #evOut { min-width:2.6em; text-align:center; font:700 30px/1 'Source Sans 3',sans-serif; color:var(--bg); }
+  .evrow { display:flex; align-items:center; gap:14px; margin-top:6px; }
+  .evrow button { width:56px; height:56px; border-radius:50%; font-size:30px; font-weight:700; line-height:1; padding:0; }
+  #evOut { min-width:2.4em; text-align:center; font:700 32px/1 'Source Sans 3',sans-serif; color:var(--bg); }
   .seg button.on { background:var(--bg); color:#fff; box-shadow:0 2px 8px rgba(241,88,38,.35); }
   .seg.big button { padding:16px; font-size:20px; }
   .btns { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; align-items:center; }
@@ -277,8 +276,8 @@
         <div class="btns"><button id="xsend" class="accent">Send to camera</button></div>
       </div>
       <p class="hint" id="autoHint">Camera meters and fires its own flash.</p>
-      <label>Brightness (exposure compensation)</label><div class="evrow"><span class="evend">Darker</span><input type="range" id="evSlider" min="-6" max="6" step="1" value="0"><span class="evend">Brighter</span><output id="evOut">0</output></div>
-      <div class="btns"><button id="xread">Read camera (changes nothing)</button><button id="xcheck">Check &amp; fix camera mode</button><button id="xmeter">Test brightness (no photo)</button></div>
+      <label>Brightness (exposure compensation)</label><div class="evrow"><button id="evMinus" aria-label="Darker">−</button><output id="evOut">0</output><button id="evPlus" aria-label="Brighter">+</button></div>
+      <div class="btns"><button id="xread">Read camera (changes nothing)</button><button id="xcheck">Check &amp; fix camera mode</button><button id="xmeter">Read light meter (no photo)</button></div>
       <p class="result" id="xresult"></p>
       <p class="hint" id="camReport">Camera reports: not checked yet</p>
     </section>
@@ -296,7 +295,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '71';
+const BOOTH_VERSION = '72';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -694,11 +693,12 @@ $('probe').onclick = async ()=>{
 $('copy').onclick = ()=>{ try{ navigator.clipboard.writeText($('log').textContent); }catch(e){} };
 for (const id of ['xev','sdelay','snd','cd','cool','xmode','xshut','xap','xfl','xlens']){ const v=store.get(id,null); if(v!==null) $(id).value=v; }
 $('xmode').value='auto'; store.set('xmode','auto'); $('sdelay').value='auto'; store.set('sdelay','auto');
-{ const EVS=[-200,-166,-133,-100,-66,-33,0,33,66,100,133,166,200], sl=$('evSlider'), out=$('evOut');
-  const lab=i=>EVL[EVS[i+6]];
-  sl.value=Math.max(0,EVS.indexOf(+$('xev').value))-6; out.textContent=lab(+sl.value);
-  sl.oninput=()=>{ out.textContent=lab(+sl.value); };
-  sl.onchange=()=>{ const v=EVS[+sl.value+6]; $('xev').value=v; store.set('xev',v); log('Brightness set to '+lab(+sl.value)); if (rx) $('xcheck').click(); }; }
+{ const EVS=[-200,-166,-133,-100,-66,-33,0,33,66,100,133,166,200], out=$('evOut');
+  let i=Math.max(0,EVS.indexOf(+$('xev').value)); out.textContent=EVL[EVS[i]];
+  let tmr=null;
+  const step=d=>{ i=Math.min(12,Math.max(0,i+d)); const v=EVS[i]; out.textContent=EVL[v]; $('xev').value=v; store.set('xev',v);
+    clearTimeout(tmr); tmr=setTimeout(()=>{ log('Brightness set to '+EVL[v]); if (rx) $('xcheck').click(); }, 700); };
+  $('evMinus').onclick=()=>step(-1); $('evPlus').onclick=()=>step(1); }
 if (store.get('totalFix8','')!=='1'){ store.set('totalFix8','1'); store.set('totalShots',8); }
 showTotal();
 function refreshManual(){ const m=$('xmode').value==='manual'; $('manualBox').style.display=m?'':'none'; $('autoHint').style.display=m?'none':''; }
@@ -755,23 +755,22 @@ $('previewFilm').onclick = ()=>{ $('panel').style.display='none'; $('filmScreen'
 const syncCd=()=>$('cdText').textContent=$('cd').value; syncCd(); document.querySelector('.seg[data-for=cd]').addEventListener('click',syncCd);
 $('minus').onclick=()=>{ store.set('shots',Math.max(0,+store.get('shots',8)-1)); showFilm(); };
 $('plus').onclick=()=>{ store.set('shots',Math.min(8,+store.get('shots',8)+1)); showFilm(); };
+const fmtT=ms=> ms>=1000 ? (ms/1000).toFixed(ms%1000?1:0)+' s' : '1/'+Math.round(1000/ms)+' s';
+const SLOT_AP={2:'f/64',3:'f/32',4:'f/22',5:'f/16',6:'f/13',7:'f/11'};
 async function meterTest(){
   const r=$('xresult');
   if (isDemo()) { r.className='result bad'; r.textContent='Demo mode is on.'; return; }
   if (!rx) { r.className='result bad'; r.textContent='Camera not connected.'; return; }
-  const keep=$('xev').value;
-  const readAt=async ev=>{ $('xev').value=ev; await ensureMode(); lastMeter=null; const t=Date.now(); await send(CMD.METER).catch(()=>{}); while(!lastMeter && Date.now()-t<2000) await wait(50); return lastMeter ? lastMeter.nums.filter(n=>n>0) : null; };
-  try {
-    r.className='result busy'; r.textContent='Reading meter at 0, then +2. Keep the camera still…';
-    const a=await readAt(0), b=await readAt(200);
-    $('xev').value=keep; await ensureMode();
-    log('Meter test: at 0 → '+(a||[]).join(', ')+' · at +2 → '+(b||[]).join(', '));
-    if (!a || !b || !a.length || !b.length) { r.className='result bad'; r.textContent='Meter gave empty readings. Point the camera at a normally lit spot (not a window) and try again.'; return; }
-    const ratio = b.reduce((x,y)=>x+y,0) / a.reduce((x,y)=>x+y,0);
-    r.className = ratio>1.5 ? 'result ok' : 'result bad';
-    const stops=Math.log2(ratio);
-    r.textContent = ratio>1.5 ? '✓ Working. At +2 the camera lets in '+ratio.toFixed(1)+'× more light ('+stops.toFixed(1)+' stops brighter) than at 0.' : '✗ Not working. +2 made no real difference, so the camera seems to ignore brightness.';
-  } catch(e){ $('xev').value=keep; r.className='result bad'; r.textContent='Test failed: '+e.message; }
+  r.className='result busy'; r.textContent='Reading the light meter…';
+  await ensureMode(); lastMeter=null; const t=Date.now();
+  await send(CMD.METER).catch(()=>{});
+  while(!lastMeter && Date.now()-t<2000) await wait(50);
+  if (!lastMeter) { r.className='result bad'; r.textContent='Camera gave no reading.'; return; }
+  const pairs=lastMeter.nums.map((ms,i)=>[i,ms]).filter(([i,ms])=>ms>0 && SLOT_AP[i]);
+  log('Meter at brightness '+$('evOut').textContent+': '+lastMeter.nums.join(', '));
+  if (!pairs.length) { r.className='result bad'; r.textContent='No reading. The scene may be too bright or too dark for the meter.'; return; }
+  r.className='result ok';
+  r.textContent='Without flash, at brightness '+$('evOut').textContent+', the camera wants: '+pairs.reverse().map(([i,ms])=>fmtT(ms)+' at '+SLOT_AP[i]).join(' · ')+'  (aperture labels unconfirmed)';
 }
 async function withResult(btn, label, fn){
   const r=$('xresult'), b=$(btn), old=b.textContent;
