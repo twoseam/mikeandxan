@@ -14,36 +14,35 @@
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; }
   html,body { margin:0; height:100%; background:var(--bg); color:var(--ink);
     font-family: "Source Sans 3",-apple-system,Helvetica,sans-serif; overflow:hidden; }
-  h1 { align-self:end; font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-weight:600; font-style:italic; font-feature-settings:"liga" 1,"dlig" 1,"clig" 1,"calt" 1; font-size:clamp(56px,9vw,110px); line-height:1.05; margin:0; letter-spacing:-.01em; color:#f9eed5; text-shadow:0 2px 8px rgba(0,0,0,.18); }
+  h1 { font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-weight:600; font-style:italic; font-feature-settings:"liga" 1,"dlig" 1,"clig" 1,"calt" 1; font-size:clamp(56px,9vw,110px); line-height:1.05; margin:0; letter-spacing:-.01em; color:#f9eed5; text-shadow:0 2px 8px rgba(0,0,0,.18); }
   button { font-family:inherit; border:0; cursor:pointer; }
-  main { height:100%; display:grid; grid-template-rows:auto auto 1fr auto; justify-items:center; align-items:center; gap:2.5vh; padding:3vh 4vw 4vh; text-align:center; }
-  .topbar { width:100%; display:flex; justify-content:space-between; gap:12px; padding-right:70px; }
+  main { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5.5vh; padding:10vh 4vw 6vh; text-align:center; }
+  .topbar { position:fixed; top:3vh; left:4vw; right:4vw; width:auto; display:flex; justify-content:space-between; gap:12px; padding-right:70px; }
   .pill { display:inline-flex; align-items:center; gap:.5em; padding:10px 18px; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-weight:600; font-size:clamp(15px,1.8vw,19px); }
   .pill:empty { display:none; }
   #dot { width:10px; height:10px; border-radius:50%; background:#ffd9c9; opacity:.6; }
   #dot.on { background:#7ee08a; opacity:1; box-shadow:0 0 0 4px rgba(126,224,138,.25); }
-  .stage { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
-  #shoot { --w:min(56vw,40vh); width:var(--w); padding:calc(var(--w)*.06) calc(var(--w)*.06) 0; background:#fffaf2; border-radius:6px;
-    display:flex; flex-direction:column; align-items:stretch; transform:rotate(-2.5deg);
-    box-shadow:0 2px 0 rgba(0,0,0,.05), 0 24px 50px rgba(110,30,10,.35); transition:transform .15s ease, box-shadow .15s ease; }
-  #shoot:active { transform:rotate(-2.5deg) scale(.97); box-shadow:0 10px 24px rgba(110,30,10,.35); }
-  #shoot .win { position:relative; aspect-ratio:1; background:radial-gradient(120% 120% at 30% 25%, #f7b9c8 0%, var(--accent) 45%, var(--berry) 120%);
-    display:flex; align-items:center; justify-content:center; color:#fffaf2; overflow:hidden; }
-  #shoot .lens { width:42%; transition:opacity .2s; }
-  #winText { position:absolute; font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; font-size:calc(var(--w)*.34); line-height:1; }
-  #winText:empty { display:none; }
-  #shoot .cap { display:block; padding:calc(var(--w)*.045) 0 calc(var(--w)*.075); color:var(--berry);
+  .stage { display:flex; align-items:center; justify-content:center; width:100%; padding-bottom:12px; }
+  #shoot { display:inline-flex; align-items:center; justify-content:center; gap:.45em; padding:.42em 1.1em .5em;
+    min-width:min(70vw,620px); border-radius:999px; background:#fffaf2; color:var(--berry);
     font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-weight:600; font-style:italic; letter-spacing:-.01em;
-    font-feature-settings:"liga" 1,"dlig" 1,"clig" 1,"calt" 1; font-size:calc(var(--w)*.12); line-height:1.1; }
-  #shoot:disabled .win { filter:grayscale(.6) brightness(1.05); }
-  #shoot:disabled .lens { opacity:0; }
-  #shoot:disabled .cap { color:#c9a79a; }
+    font-feature-settings:"liga" 1,"dlig" 1,"clig" 1,"calt" 1; font-size:clamp(40px,6.5vw,76px); line-height:1.1;
+    box-shadow:0 12px 0 #e3c9b8, 0 26px 50px rgba(110,30,10,.35); transition:transform .08s, box-shadow .08s;
+    animation:breathe 2.6s ease-in-out infinite; }
+  #shoot:active { transform:translateY(10px); box-shadow:0 2px 0 #e3c9b8, 0 8px 20px rgba(110,30,10,.3); animation:none; }
+  #shoot .cam { width:.95em; height:.95em; flex:none; color:var(--bg); }
+  #winText { font-variant-numeric:tabular-nums; }
+  #winText:empty { display:none; }
+  #shoot:disabled { background:rgba(255,250,242,.55); color:#b7816f; box-shadow:0 12px 0 rgba(227,201,184,.5); animation:none; }
+  #shoot:disabled .cam { display:none; }
+  @keyframes breathe { 0%,100% { box-shadow:0 12px 0 #e3c9b8, 0 26px 50px rgba(110,30,10,.35), 0 0 0 0 rgba(255,250,242,.45); }
+                       50% { box-shadow:0 12px 0 #e3c9b8, 0 26px 50px rgba(110,30,10,.35), 0 0 0 22px rgba(255,250,242,0); } }
   #connect { padding:28px 56px; font-size:clamp(24px,3vw,36px); border-radius:999px; background:#fffaf2; color:var(--bg); font-weight:700; box-shadow:0 16px 40px rgba(110,30,10,.3); }
-  .steps { list-style:none; margin:0; padding:22px 26px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; width:min(94vw,1000px);
+  .steps { list-style:none; margin:0; padding:30px 26px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; width:min(94vw,1000px);
     background:rgba(255,255,255,.12); border-radius:24px; }
-  .steps li { display:flex; flex-direction:column; align-items:center; gap:10px; font-weight:600; font-size:clamp(17px,2.3vw,24px); line-height:1.2; color:#fff; padding:0 6px; }
+  .steps li { display:flex; flex-direction:column; align-items:center; gap:14px; font-weight:600; font-size:clamp(20px,2.9vw,30px); line-height:1.2; color:#fff; padding:0 6px; }
   .steps li + li { border-left:1px solid rgba(255,255,255,.22); }
-  .steps b { width:40px; height:40px; border-radius:50%; background:#fffaf2; color:var(--bg); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; }
+  .steps b { width:54px; height:54px; border-radius:50%; background:#fffaf2; color:var(--bg); display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:700; }
   .steps em { font-style:normal; }
   #count { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(241,88,38,.95); font-family:"Caprasimo",Georgia,serif;
     font-size:min(60vw,60vh); line-height:1; color:var(--cream); z-index:5; }
@@ -88,16 +87,9 @@
     <span class="pill" id="film"></span>
   </div>
   <h1 id="title">Say cheese</h1>
-  <div class="stage">
-    <button id="connect">Connect camera</button>
-    <button id="shoot" style="display:none" aria-label="Take a photo">
-      <span class="win"><svg viewBox="0 0 100 100" class="lens" aria-hidden="true"><circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="50" cy="50" r="22" fill="currentColor" opacity=".55"/><circle cx="58" cy="42" r="6" fill="#fff" opacity=".8"/></svg><span id="winText"></span></span>
-      <span class="cap" id="shootLabel">Take a photo</span>
-    </button>
-  </div>
   <ol class="steps" id="steps">
     <li><b>1</b><span>Stand in the box on the floor</span></li>
-    <li><b>2</b><span>Tap the photo</span></li>
+    <li><b>2</b><span>Tap the button below</span></li>
     <li><b>3</b><span><em id="cdText">5</em>-second countdown</span></li>
     <li><b>4</b><span>Ready in about 15&nbsp;min</span></li>
   </ol>
@@ -107,6 +99,13 @@
     <li><b>3</b><span>Place it face down. Don't shake it!</span></li>
     <li><b>4</b><span>Ready in about 15&nbsp;min</span></li>
   </ol>
+  <div class="stage">
+    <button id="connect">Connect camera</button>
+    <button id="shoot" style="display:none">
+      <svg viewBox="0 0 48 48" class="cam" aria-hidden="true"><path d="M17 9h14l3 5h6a4 4 0 0 1 4 4v19a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4h6z" fill="currentColor"/><circle cx="24" cy="27" r="8.5" fill="#fffaf2"/><circle cx="24" cy="27" r="5" fill="currentColor"/></svg>
+      <span id="shootLabel">Take a photo</span><span id="winText"></span>
+    </button>
+  </div>
 </main>
 <div id="count"></div>
 <button id="gear" aria-label="Settings">settings</button>
@@ -305,7 +304,7 @@ async function shoot(){
   await wait(800); c.style.display='none';
   $('title').textContent='Coming right out'; $('steps').style.display='none'; $('after').style.display='';
   let cool=+$('cool').value;
-  while(cool>0){ $('winText').textContent=cool; $('shootLabel').textContent='One moment…'; await wait(1000); cool--; }
+  while(cool>0){ $('winText').textContent=cool; $('shootLabel').textContent='Next photo in'; await wait(1000); cool--; }
   $('winText').textContent=''; $('title').textContent='Say cheese'; $('shootLabel').textContent='Take a photo'; $('shoot').disabled=false; $('after').style.display='none'; $('steps').style.display='';
 }
 
