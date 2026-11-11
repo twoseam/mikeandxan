@@ -505,6 +505,23 @@ async function afterShot(){
 
 const isDemo=()=>$('demo').value==='on';
 let actx=null;
+function shutterSound(){
+  if ($('snd').value!=='on') return;
+  try {
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state==='suspended') actx.resume();
+    const burst=(at, dur, f, vol)=>{
+      const n=Math.floor(actx.sampleRate*dur), buf=actx.createBuffer(1,n,actx.sampleRate), d=buf.getChannelData(0);
+      for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3);
+      const src=actx.createBufferSource(), bp=actx.createBiquadFilter(), g=actx.createGain();
+      src.buffer=buf; bp.type='bandpass'; bp.frequency.value=f; bp.Q.value=1.2; g.gain.value=vol;
+      src.connect(bp); bp.connect(g); g.connect(actx.destination); src.start(actx.currentTime+at);
+    };
+    burst(0, 0.045, 2600, 1.4);      // click (shutter opens)
+    burst(0.09, 0.06, 1500, 1.1);    // clack (shutter closes)
+    burst(0.16, 0.12, 700, 0.5);     // little mechanical tail
+  } catch(e){}
+}
 function beep(freq, ms, vol=0.35){
   if ($('snd').value!=='on') return;
   try {
@@ -529,7 +546,7 @@ async function shoot(){
     await wait(1000);
   }
   cn.textContent=''; cl.textContent=''; c.classList.add('flash');
-  beep(1568, 380, 0.45);
+  shutterSound();
   if (isDemo()) log('Demo mode: shutter skipped');
   else try { await modeCheck; await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
   if (!isDemo()) { const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm(); }
