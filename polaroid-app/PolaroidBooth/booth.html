@@ -144,6 +144,8 @@
   .pdot.on { background:#3aa55d; box-shadow:0 0 0 4px rgba(58,165,93,.18); }
   .film { display:flex; align-items:center; gap:12px; }
   .film #minus, .film #plus { width:52px; height:52px; padding:0; font-size:26px; }
+  #totalBig { font-family:"Caprasimo",Georgia,serif; font-size:40px; min-width:44px; text-align:center; color:var(--berry); }
+  .film #totalReset { margin-left:auto; }
   #shotsBig { font-family:"Caprasimo",Georgia,serif; font-size:40px; min-width:44px; text-align:center; color:var(--bg); }
   .film #newpack { margin-left:auto; }
   .hint { color:#a0938a; margin:14px 0 0; font-size:16px; }
@@ -250,6 +252,8 @@
       <label>Countdown beeps</label><div class="seg" data-for="snd" data-opts="on:On,off:Off"></div>
       <label>Film</label>
       <div class="film"><button id="minus" aria-label="minus">−</button><span id="shotsBig">8</span><button id="plus" aria-label="plus">+</button><button id="newpack">New pack</button></div>
+      <label>Photos taken (real exposures)</label>
+      <div class="film"><span id="totalBig">0</span><span id="totalPacks" style="color:#a0938a;font-weight:600"></span><button id="totalReset">Reset</button></div>
     </section>
     <section class="card wide">
       <h3>Exposure</h3>
@@ -342,12 +346,18 @@ function onData(e){
 // Camera status (from Polaroid's app), byte positions in the full reply:
 // [3] battery, [6] film door (1 closed), [7] film pack (1 present), [8] film counter
 // (0 empty, 1 last, 2-8 shots left, 9 dark slide), [10] busy
-let cam = { film:null, pack:null, door:null };
+let cam = { film:null, pack:null, door:null, raw:null };
 function parseStatus(v){
   if (v.length < 13) return;
   const f=v[8];
+  const prevPack=cam.pack, prevRaw=cam.raw;
   cam.door = v[6]===1 ? 'closed' : 'open';
-  cam.pack = v[7]===1;
+  cam.pack = v[7]===1; cam.raw = f;
+  // Count real exposures: the camera's own shots-left number went down with the same pack in.
+  if (prevPack && cam.pack && prevRaw>=1 && prevRaw<=8 && f>=0 && f<prevRaw) {
+    const used=prevRaw-f, total=+store.get('totalShots',0)+used;
+    store.set('totalShots', total); log('   counted '+used+' real photo'+(used>1?'s':'')+' (total '+total+')'); showTotal();
+  }
   cam.film = !cam.pack ? 0 : (f===0 ? 0 : f===1 ? 1 : (f>=2 && f<=8) ? f : f===9 ? 'slide' : null);
   log('   camera: film '+(cam.film===null?'unknown':cam.film)+', pack '+(cam.pack?'in':'out')+', door '+cam.door+', battery '+(v[3]&0x80?'charging':'on battery'));
   if (typeof cam.film==='number') store.set('shots', cam.film);
@@ -488,6 +498,8 @@ async function onDisconnect(){
   $('shoot').style.display='none'; $('connect').style.display='';
 }
 
+function showTotal(){ const t=+store.get('totalShots',0); $('totalBig').textContent=t; $('totalPacks').textContent = t ? '≈ '+(t/8).toFixed(1)+' packs' : ''; }
+let resetArm=0;
 function showFilm(){
   let n=+store.get('shots',8);
   let txt = n>1 ? n+' left in pack' : n===1 ? 'Last photo in pack' : 'Out of film';
@@ -584,6 +596,10 @@ $('shoot').onclick = shoot;
 $('gear').onclick = ()=>{ $('panel').style.display='flex'; };
 $('close').onclick = ()=>{ $('panel').style.display='none'; showFilm(); };
 $('newpack').onclick = ()=>{ store.set('shots',8); cam.film=null; showFilm(); };
+$('totalReset').onclick = ()=>{ const b=$('totalReset');
+  if (Date.now()-resetArm<3000){ store.set('totalShots',0); showTotal(); b.textContent='Reset'; resetArm=0; log('Photo total reset'); }
+  else { resetArm=Date.now(); b.textContent='Tap again to reset'; setTimeout(()=>{ if(Date.now()-resetArm>=3000) b.textContent='Reset'; },3100); } };
+showTotal();
 $('fDone').onclick = ()=>{ store.set('shots',8); cam.film=null; $('filmScreen').classList.remove('show'); runFilmSteps(false); showFilm(); if(rx) send(CMD.STATUS).catch(()=>{}); };
 $('test').onclick = async ()=>{ if(!rx){ setStatus('Not connected'); return; } lastRx=0; await send(CMD.STATUS).catch(e=>log('Test failed: '+e)); setStatus(await gotReplyWithin(1500)?'Camera ready — it answered':'Camera did not answer', true); };
 $('repair').onclick = ()=> pair().catch(e=>log('Pair failed: '+e));
