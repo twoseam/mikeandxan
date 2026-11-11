@@ -291,7 +291,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '57';
+const BOOTH_VERSION = '58';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -709,8 +709,10 @@ async function measureLag(){
     const sentAt=performance.now(); fireReason='lag test'; await send(CMD.SHUTTER);
     let hitAt=0, peak=0; const samp=[];
     while (performance.now()-sentAt<3000){ const t=await frame(); const b=bright(); samp.push([t,b]); if (b>peak) peak=b; }
-    if (peak-mean>=15){ const half=mean+(peak-mean)/2; const hit=samp.find(x=>x[1]>half); if (hit) hitAt=hit[0]; }
-    log('Lag test samples: room '+mean.toFixed(0)+' sd '+sd.toFixed(1)+' peak '+peak.toFixed(0));
+    const rises=[]; let prevB=base[base.length-1]; for (const [t,b] of samp){ rises.push([t,b-prevB,b]); prevB=b; }
+    const top=rises.slice().sort((a,b)=>b[1]-a[1]).slice(0,3);
+    if (top[0] && top[0][1]>=15) hitAt=top[0][0];
+    log('Lag test: room '+mean.toFixed(0)+' sd '+sd.toFixed(1)+' peak '+peak.toFixed(0)+' · biggest jumps: '+top.map(x=>'+'+x[1].toFixed(0)+' at '+Math.round(x[0]-sentAt)+'ms').join(', '));
     stream.getTracks().forEach(t=>t.stop()); scr.classList.remove('show'); $('panel').style.display='flex';
     if (!hitAt) return show('bad','Did not see the flash (room '+mean.toFixed(0)+', peak '+peak.toFixed(0)+'). Point the iPad front camera at the camera flash.');
     const lag=Math.round(hitAt-sentAt);
