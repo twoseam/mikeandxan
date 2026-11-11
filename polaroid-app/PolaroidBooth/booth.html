@@ -291,7 +291,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '55';
+const BOOTH_VERSION = '56';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -704,13 +704,14 @@ async function measureLag(){
     await ensureMode();
     let base=[]; const tb=performance.now(); while (performance.now()-tb<1500){ await frame(); base.push(bright()); }
     const mean=base.reduce((a,b)=>a+b,0)/base.length, sd=Math.sqrt(base.reduce((a,b)=>a+(b-mean)**2,0)/base.length);
-    const thresh=mean+Math.max(12, sd*6);
-    msg.textContent='Firing…';
+        msg.textContent='Firing…';
     const sentAt=performance.now(); fireReason='lag test'; await send(CMD.SHUTTER);
-    let hitAt=0, peak=0;
-    while (performance.now()-sentAt<3000){ const t=await frame(); const b=bright(); if (b>peak) peak=b; if (!hitAt && b>thresh){ hitAt=t; } if (hitAt && performance.now()-hitAt>300) break; }
+    let hitAt=0, peak=0; const samp=[];
+    while (performance.now()-sentAt<3000){ const t=await frame(); const b=bright(); samp.push([t,b]); if (b>peak) peak=b; }
+    if (peak-mean>=15){ const half=mean+(peak-mean)/2; const hit=samp.find(x=>x[1]>half); if (hit) hitAt=hit[0]; }
+    log('Lag test samples: room '+mean.toFixed(0)+' sd '+sd.toFixed(1)+' peak '+peak.toFixed(0));
     stream.getTracks().forEach(t=>t.stop()); scr.classList.remove('show'); $('panel').style.display='flex';
-    if (!hitAt) return show('bad','Did not see the flash (room '+mean.toFixed(0)+', peak '+peak.toFixed(0)+'). Try with the room a bit darker.');
+    if (!hitAt) return show('bad','Did not see the flash (room '+mean.toFixed(0)+', peak '+peak.toFixed(0)+'). Point the iPad front camera at the camera flash.');
     const lag=Math.round(hitAt-sentAt);
     log('Lag test: flash seen '+lag+'ms after fire command (room '+mean.toFixed(0)+', flash '+peak.toFixed(0)+')');
     res.className='result ok'; res.innerHTML='✓ Camera lag: <b>'+lag+' ms</b> (±17ms) <button id="useLag" style="margin-left:12px">Use this</button>';
