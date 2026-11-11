@@ -14,9 +14,9 @@
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; }
   html,body { margin:0; height:100%; background:var(--bg); color:var(--ink);
     font-family: "Source Sans 3",-apple-system,Helvetica,sans-serif; overflow:hidden; }
-  h1 { font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-weight:600; font-style:italic; font-feature-settings:"liga" 1,"dlig" 1,"clig" 1,"calt" 1; font-size:clamp(56px,9vw,110px); line-height:1.05; margin:0; letter-spacing:-.01em; color:#f9eed5; text-shadow:0 2px 8px rgba(0,0,0,.18); }
+  h1 { font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-weight:600; font-style:italic; font-feature-settings:"liga" 1,"dlig" 1,"clig" 1,"calt" 1; font-size:clamp(56px,min(9vw,12vh),110px); line-height:1.05; margin:0; letter-spacing:-.01em; color:#f9eed5; text-shadow:0 2px 8px rgba(0,0,0,.18); }
   button { font-family:inherit; border:0; cursor:pointer; }
-  main { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5.5vh; padding:10vh 4vw 6vh; text-align:center; }
+  main { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7vh; padding:9vh 4vw 6vh; text-align:center; }
   .topbar { position:fixed; top:3vh; left:4vw; right:4vw; width:auto; display:flex; justify-content:space-between; gap:12px; padding-right:70px; }
   .pill { display:inline-flex; align-items:center; gap:.5em; padding:10px 18px; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-weight:600; font-size:clamp(15px,1.8vw,19px); }
   .pill:empty { display:none; }
@@ -24,9 +24,9 @@
   #dot.on { background:#7ee08a; opacity:1; box-shadow:0 0 0 4px rgba(126,224,138,.25); }
   .stage { display:flex; align-items:center; justify-content:center; width:100%; padding-bottom:12px; }
   #shoot { display:inline-flex; align-items:center; justify-content:center; gap:.5em; padding:.55em 1.5em .62em;
-    min-width:min(84vw,780px); border-radius:999px; background:#fffaf2; color:var(--berry);
+    min-width:min(70vw,520px); border-radius:999px; background:#fffaf2; color:var(--berry);
     font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-weight:600; font-style:italic; letter-spacing:-.01em;
-    font-feature-settings:"liga" 1,"dlig" 1,"clig" 1,"calt" 1; font-size:clamp(48px,8vw,96px); line-height:1;
+    font-feature-settings:"liga" 1,"dlig" 1,"clig" 1,"calt" 1; font-size:clamp(36px,min(5.5vw,6.5vh),68px); line-height:1;
     box-shadow:0 12px 0 #e3c9b8, 0 26px 50px rgba(110,30,10,.35); transition:transform .08s, box-shadow .08s;
     animation:breathe 2.6s ease-in-out infinite; }
   #shoot:active { transform:translateY(10px); box-shadow:0 2px 0 #e3c9b8, 0 8px 20px rgba(110,30,10,.3); animation:none; }
@@ -41,50 +41,78 @@
   #connect { padding:28px 56px; font-size:clamp(24px,3vw,36px); border-radius:999px; background:#fffaf2; color:var(--bg); font-weight:700; box-shadow:0 16px 40px rgba(110,30,10,.3); }
   .steps { list-style:none; margin:0; padding:24px 22px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:min(90vw,860px);
     background:rgba(255,255,255,.12); border-radius:24px; }
-  .steps li { display:flex; flex-direction:column; align-items:center; gap:14px; font-weight:600; font-size:clamp(18px,2.4vw,24px); line-height:1.2; color:#fff; padding:0 6px; }
+  .steps li { display:flex; flex-direction:column; align-items:center; gap:14px; font-weight:600; font-size:clamp(20px,min(2.6vw,3.4vh),28px); line-height:1.2; color:#fff; padding:0 6px; }
   .steps li + li { border-left:1px solid rgba(255,255,255,.22); }
   .steps b { width:44px; height:44px; border-radius:50%; background:#fffaf2; color:var(--bg); display:flex; align-items:center; justify-content:center; font-size:21px; font-weight:700; }
   .steps em { font-style:normal; }
   #afterScreen { position:fixed; inset:0; z-index:6; background:var(--bg); display:none; flex-direction:column; align-items:center; justify-content:center; padding:6vh 6vw; text-align:center; }
   #afterScreen.show { display:flex; }
-  .aphase { display:flex; flex-direction:column; align-items:center; gap:4.5vh; }
-  .alead { margin:0; color:#fff; font-weight:600; font-size:clamp(26px,4vw,44px); }
-  .dev { --w:min(62vw,46vh); width:var(--w); background:#fffaf2; padding:calc(var(--w)*.06) calc(var(--w)*.06) 0; border-radius:6px;
-    transform:rotate(-3deg); box-shadow:0 30px 60px rgba(110,30,10,.4); animation:devin .7s cubic-bezier(.2,.9,.3,1.2); }
-  @keyframes devin { from { transform:translateY(60vh) rotate(8deg); } to { transform:rotate(-3deg); } }
-  .devimg { position:relative; aspect-ratio:1; overflow:hidden; background:linear-gradient(170deg,#f7b9c8 0%,#f5a0b5 40%,#f15826 75%,#a82a52 100%); }
-  .devimg::after { content:""; position:absolute; inset:0; background:#23201f; opacity:1; transition:opacity 10s linear; }
-  .dev.go .devimg::after { opacity:0; }
-  .devsun { position:absolute; width:38%; aspect-ratio:1; border-radius:50%; left:31%; top:30%; background:#fffaf2; opacity:.9; }
-  .devhill { position:absolute; left:-20%; right:-20%; bottom:-38%; height:70%; border-radius:50%; background:#a82a52; }
-  .devcap { height:calc(var(--w)*.27); display:flex; align-items:center; justify-content:center; }
-  .anum { font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:var(--berry); line-height:1;
-    font-size:calc(var(--w)*.2); display:inline-block; }
+  .aphase { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; --r:min(46vw,56vh); }
+  .alead { position:absolute; left:0; right:0; top:calc(50% - var(--r)/2 - 9vh); margin:0; text-align:center; color:#fff; font-weight:600; font-size:clamp(26px,min(3.4vw,4.6vh),42px); }
+  .aring { position:relative; width:var(--r); aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
+  .aring svg { position:absolute; inset:0; transform:rotate(-90deg); }
+  .arbg { fill:none; stroke:rgba(255,255,255,.16); stroke-width:5; }
+  .arfg { fill:none; stroke:#fffaf2; stroke-width:5; stroke-linecap:round; stroke-dasharray:339.3; stroke-dashoffset:0; }
+  .arfg.run { transition:stroke-dashoffset 10s linear; stroke-dashoffset:339.3; }
+  .anum { font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:#f9eed5; line-height:1;
+    font-size:calc(var(--r)*.45); position:relative; top:.225em; text-shadow:0 4px 18px rgba(0,0,0,.18); display:inline-block; }
   .anum.tick { animation:tick .5s cubic-bezier(.2,.9,.3,1.4); }
-  @keyframes tick { from { transform:scale(1.5) rotate(-6deg); opacity:0; } to { transform:none; opacity:1; } }
-  .dots { display:flex; gap:10px; }
-  .dots i { width:12px; height:12px; border-radius:50%; background:rgba(255,255,255,.3); transition:background .3s; }
-  .dots i.on { background:#fffaf2; }
-  .alist { list-style:none; margin:0; padding:0; display:none; flex-direction:column; gap:3.2vh; counter-reset:a; width:min(88vw,820px); text-align:left; }
-  #afterScreen.phase2 .alist { display:flex; } #afterScreen.phase2 .aphase { display:none; }
-  .alist li { counter-increment:a; display:flex; align-items:center; gap:24px; color:#fff; font-weight:700; font-size:clamp(28px,4.4vw,50px); line-height:1.15;
-    opacity:0; transform:translateY(24px); transition:opacity .5s ease, transform .5s ease; }
-  .alist li::before { content:counter(a); flex:none; width:1.6em; height:1.6em; border-radius:50%; background:#fffaf2; color:var(--bg);
-    display:flex; align-items:center; justify-content:center; font-size:.8em; }
+  @keyframes tick { from { transform:scale(1.4); opacity:0; } to { transform:none; opacity:1; } }
+  .asteps { display:none; flex-direction:column; align-items:center; gap:5vh; }
+  #afterScreen.phase2 .asteps { display:flex; } #afterScreen.phase2 .aphase { display:none; }
+  .alist { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2.2vh; width:min(80vw,760px); }
+  .alist li { display:flex; align-items:center; gap:22px; padding:2.2vh 28px; border-radius:22px; background:rgba(255,255,255,.12);
+    color:#fff; font-weight:700; font-size:clamp(24px,min(3vw,4.4vh),36px); line-height:1.2; text-align:left;
+    opacity:0; transform:translateY(20px); transition:opacity .45s ease, transform .45s ease; }
+  .alist li b { flex:none; width:1.6em; height:1.6em; border-radius:50%; background:#fffaf2; color:var(--bg); display:flex; align-items:center; justify-content:center; font-size:.8em; }
+  .alist li small { display:block; font-weight:600; font-size:.6em; opacity:.75; margin-top:2px; }
   .alist li.in { opacity:1; transform:none; }
-  .alist li.done { opacity:.45; }
-  .alist li.last { font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:#f9eed5; font-size:clamp(36px,6vw,68px); }
-  .alist .aside { font-weight:600; opacity:.75; font-size:.7em; }
-  #count { position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:5vh; background:var(--bg); z-index:5; }
-  .ring { position:relative; width:min(70vw,58vh); aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
-  .ring svg { position:absolute; inset:0; transform:rotate(-90deg); }
-  .rbg { fill:none; stroke:rgba(255,255,255,.18); stroke-width:6; }
-  .rfg { fill:none; stroke:#fffaf2; stroke-width:6; stroke-linecap:round; stroke-dasharray:339.3; stroke-dashoffset:0; }
-  .rfg.run { transition:stroke-dashoffset 1s linear; stroke-dashoffset:339.3; }
+  .afinal { margin:0; font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:#f9eed5;
+    font-size:clamp(40px,min(5.5vw,8vh),76px); line-height:1.2; padding-top:.08em; text-shadow:0 4px 18px rgba(0,0,0,.18);
+    opacity:0; transform:scale(.9); transition:opacity .5s ease, transform .5s cubic-bezier(.2,.9,.3,1.3); }
+  .afinal.in { opacity:1; transform:none; }
+  #filmScreen { position:fixed; inset:0; z-index:7; background:var(--bg); display:none; flex-direction:column; align-items:center; justify-content:center; gap:3.5vh; padding:5vh 5vw; text-align:center; }
+  #filmScreen.show { display:flex; }
+  .fhead { margin:0; font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:#f9eed5;
+    font-size:clamp(40px,min(5.5vw,8vh),76px); line-height:1.2; padding-top:.08em; text-shadow:0 4px 18px rgba(0,0,0,.18); }
+  .fsteps li { font-size:clamp(20px,min(2.4vw,3.6vh),30px); padding:1.8vh 26px; }
+  .fstat { margin:0; color:#ffd9c9; font-weight:600; font-size:clamp(18px,min(2vw,3vh),24px); }
+  #fDone { padding:14px 28px; border-radius:999px; background:rgba(255,255,255,.16); color:#fff; font:600 18px "Source Sans 3",sans-serif; }
+  .fwrap { display:flex; align-items:center; gap:4vw; }
+  .cam { width:min(36vw,52vh); flex:none; overflow:visible; }
+  .fsteps { width:min(46vw,620px); }
+  .fsteps li { opacity:.4 !important; transform:none !important; transition:opacity .4s, background .4s; }
+  .fsteps li.cur { opacity:1 !important; background:rgba(255,255,255,.22); }
+  .cam .door, .cam .oldpack, .cam .newpack, .cam .sheet { transform-box:fill-box; }
+  .cam .door { transform-origin:50% 100%; }
+  .cam .sheet { transform-origin:50% 0; transform:scaleY(0); }
+  .cam .newpack { transform:translateY(160px); opacity:0; }
+  .cam .hint { opacity:0; }
+  .cam[data-step="1"] .door { animation:dOpen 3.4s ease-in-out infinite; }
+  .cam[data-step="1"] .h1 { animation:hint 3.4s ease-in-out infinite; }
+  .cam[data-step="1"] .btn { animation:press 3.4s ease-in-out infinite; }
+  .cam[data-step="2"] .door, .cam[data-step="3"] .door { transform:scaleY(-.22); }
+  .cam[data-step="2"] .oldpack { animation:pOut 3.4s ease-in-out infinite; }
+  .cam[data-step="2"] .h2 { animation:hint 3.4s ease-in-out infinite; }
+  .cam[data-step="3"] .oldpack, .cam[data-step="4"] .oldpack { opacity:0; }
+  .cam[data-step="3"] .newpack { animation:pIn 3.4s ease-in-out infinite; }
+  .cam[data-step="3"] .h3 { animation:hint 3.4s ease-in-out infinite; }
+  .cam[data-step="4"] .newpack { transform:none; opacity:1; }
+  .cam[data-step="4"] .door { animation:dClose 3.4s ease-in-out infinite; }
+  .cam[data-step="4"] .sheet { animation:sheet 3.4s ease-in-out infinite; }
+  @keyframes dOpen { 0%,30% { transform:none; } 60%,100% { transform:scaleY(-.22); } }
+  @keyframes dClose { 0%,10% { transform:scaleY(-.22); } 35%,100% { transform:none; } }
+  @keyframes press { 0%,8% { transform:none; } 16%,24% { transform:translateX(-4px); } 32%,100% { transform:none; } }
+  @keyframes pOut { 0%,15% { transform:none; opacity:1; } 70% { transform:translateY(150px); opacity:0; } 100% { transform:translateY(150px); opacity:0; } }
+  @keyframes pIn { 0%,10% { transform:translateY(160px); opacity:0; } 25% { opacity:1; } 65%,100% { transform:none; opacity:1; } }
+  @keyframes sheet { 0%,40% { transform:scaleY(0); opacity:1; } 62% { transform:scaleY(1.6); opacity:1; } 80% { transform:scaleY(1.6) translateY(40px); opacity:0; } 100% { opacity:0; } }
+  @keyframes hint { 0%,100% { opacity:0; } 20%,70% { opacity:1; } }
+  @media (orientation:portrait){ .fwrap { flex-direction:column; } .cam { width:min(56vw,34vh); } .fsteps { width:min(86vw,620px); } }
+  #count { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:var(--bg); z-index:5; }
   #cnum { font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:#f9eed5; line-height:1;
-    font-size:min(40vw,34vh); text-shadow:0 4px 18px rgba(0,0,0,.18); display:inline-block; }
+    font-size:min(40vw,52vh); position:relative; top:.225em; text-shadow:0 6px 24px rgba(0,0,0,.18); display:inline-block; }
   #cnum.tick { animation:tick .5s cubic-bezier(.2,.9,.3,1.4); }
-  #clabel { margin:0; color:#fff; font-weight:600; font-size:clamp(26px,4vw,44px); }
+  #clabel { position:absolute; left:0; right:0; bottom:9vh; margin:0; text-align:center; color:#fff; font-weight:600; font-size:clamp(26px,min(3.4vw,4.6vh),42px); }
   #count.flash { animation:flash .6s ease-out; }
   @keyframes flash { 0% { background:#fff; } 100% { background:var(--bg); } }
   #gear { position:fixed; top:0; right:0; width:90px; height:90px; background:transparent; color:transparent; }
@@ -127,7 +155,6 @@
     <span class="pill" id="status"><span id="dot"></span><span id="statusText">Camera not connected</span></span>
     <span class="pill" id="film"></span>
   </div>
-  <h1 id="title">Say cheese</h1>
   <ol class="steps" id="steps">
     <li><b>1</b><span>Press the button</span></li>
     <li><b>2</b><span><em id="cdText">5</em>-second timer</span></li>
@@ -141,22 +168,53 @@
     </button>
   </div>
 </main>
-<div id="count"><div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" class="rbg"/><circle cx="60" cy="60" r="54" class="rfg" id="rfg"/></svg><span id="cnum">5</span></div><p id="clabel">Look at the camera</p></div>
+<div id="count"><span id="cnum">5</span><p id="clabel">Look at the camera</p></div>
 <div id="afterScreen">
   <div class="aphase" id="aWait">
-    <p class="alead">Your photo will be ready in</p>
-    <div class="dev">
-      <div class="devimg"><div class="devsun"></div><div class="devhill"></div></div>
-      <div class="devcap"><span class="anum" id="aNum">10</span></div>
-    </div>
-    <div class="dots" id="aDots"></div>
+    <p class="alead">Safe to remove photo in:</p>
+    <div class="aring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" class="arbg"/><circle cx="60" cy="60" r="54" class="arfg" id="arfg"/></svg><span class="anum" id="aNum">10</span></div>
   </div>
-  <ol class="alist" id="aList">
-    <li>Remove photo from camera</li>
-    <li>Place it face down</li>
-    <li>No shaking or bending <span class="aside">(sorry, OutKast)</span></li>
-    <li class="last">Ready in 10–15 minutes!</li>
-  </ol>
+  <div class="asteps">
+    <ol class="alist" id="aList">
+      <li><b>1</b><span>Remove photo from camera</span></li>
+      <li><b>2</b><span>Place it face down</span></li>
+      <li><b>3</b><span>No shaking <small>(sorry, OutKast)</small></span></li>
+    </ol>
+    <p class="afinal" id="aFinal">Ready in 10–15 minutes!</p>
+  </div>
+</div>
+<div id="filmScreen">
+  <h2 class="fhead">Time for new film!</h2>
+  <div class="fwrap">
+    <svg class="cam" id="camArt" data-step="1" viewBox="0 0 400 400" aria-hidden="true">
+      <!-- body -->
+      <rect x="60" y="40" width="280" height="236" rx="38" fill="#fffaf2"/>
+      <rect x="92" y="62" width="34" height="24" rx="6" fill="#353230"/>
+      <rect x="262" y="62" width="48" height="24" rx="6" fill="#e9e1d6"/>
+      <circle cx="200" cy="122" r="50" fill="#353230"/><circle cx="200" cy="122" r="31" fill="#1d1a19"/><circle cx="214" cy="108" r="8" fill="#fffaf2" opacity=".7"/>
+      <rect class="slot" x="108" y="186" width="184" height="7" rx="3.5" fill="#353230"/>
+      <!-- film bay (seen when the door is open) -->
+      <rect x="78" y="204" width="244" height="66" rx="8" fill="#2a2321"/>
+      <g class="oldpack"><rect x="96" y="210" width="208" height="54" rx="4" fill="#6b6260"/><rect x="186" y="262" width="28" height="16" rx="3" fill="#9b928f"/></g>
+      <g class="newpack"><rect x="96" y="210" width="208" height="54" rx="4" fill="#111"/><rect x="186" y="262" width="28" height="16" rx="3" fill="#f5a0b5"/></g>
+      <!-- door -->
+      <g class="door"><rect x="60" y="200" width="280" height="76" rx="10" fill="#efe5d8"/><rect x="60" y="200" width="280" height="10" fill="#e3d6c6"/></g>
+      <rect class="sheet" x="118" y="190" width="164" height="78" rx="3" fill="#111"/>
+      <!-- door button + hints -->
+      <rect class="btn" x="336" y="214" width="10" height="30" rx="4" fill="#a82a52"/>
+      <g class="hint h1"><path d="M372 229h-16" stroke="#fffaf2" stroke-width="6" stroke-linecap="round"/><path d="M362 219l-8 10 8 10" fill="none" stroke="#fffaf2" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g class="hint h2"><path d="M200 300v60" stroke="#fffaf2" stroke-width="6" stroke-linecap="round"/><path d="M188 348l12 14 12-14" fill="none" stroke="#fffaf2" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g class="hint h3"><path d="M200 362v-60" stroke="#fffaf2" stroke-width="6" stroke-linecap="round"/><path d="M188 314l12-14 12 14" fill="none" stroke="#fffaf2" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g>
+    </svg>
+    <ol class="alist fsteps" id="fSteps">
+      <li class="in"><b>1</b><span>Press the film door button and pull the door open</span></li>
+      <li class="in"><b>2</b><span>Pull the empty pack out by its tab</span></li>
+      <li class="in"><b>3</b><span>Slide in a new pack, black side up, tab toward you, until it clicks</span></li>
+      <li class="in"><b>4</b><span>Close the door. Take out the black sheet that pops out</span></li>
+    </ol>
+  </div>
+  <p class="fstat" id="fStat">Waiting for new film…</p>
+  <button id="fDone">New film is in</button>
 </div>
 <button id="gear" aria-label="Settings">settings</button>
 
@@ -173,6 +231,8 @@
         <button id="test">Check connection</button>
         <button id="repair">Re-pair</button>
       </div>
+      <label>Demo mode (camera won't fire)</label><div class="seg" data-for="demo" data-opts="off:Off,on:On"></div>
+      <div class="btns"><button id="previewFilm">Preview film-change screen</button></div>
     </section>
     <section class="card">
       <h3>Guest flow</h3>
@@ -200,7 +260,7 @@
     <div id="log"></div>
   </details>
   <!-- hidden stores for settings -->
-  <input type="hidden" id="cd" value="5"><input type="hidden" id="cool" value="20"><input type="hidden" id="shots">
+  <input type="hidden" id="demo" value="off"><input type="hidden" id="cd" value="5"><input type="hidden" id="cool" value="20"><input type="hidden" id="shots">
   <input type="hidden" id="xmode" value="auto"><input type="hidden" id="xshut" value="8"><input type="hidden" id="xap" value="4">
   <input type="hidden" id="xfl" value="9"><input type="hidden" id="xlens" value="2">
 </div>
@@ -260,8 +320,41 @@ function onData(e){
   const name = RESPONSES[format==='B'?tB:tA] || RESPONSES[tA] || RESPONSES[tB] || '?';
   log('← '+hex(v)+'  ('+name+')');
   const type = format==='B'?tB:tA;
+  if (type===4 || type===33) parseStatus(v);
   if (type===8 || type===34){ const pl = format==='B' ? v.slice(3) : v.slice(3, v.length-1); log('   camera settings: '+describeMode(pl)); }
 }
+
+// Camera status (from Polaroid's app), byte positions in the full reply:
+// [3] battery, [6] film door (1 closed), [7] film pack (1 present), [8] film counter
+// (0 empty, 1 last, 2-8 shots left, 9 dark slide), [10] busy
+let cam = { film:null, pack:null, door:null };
+function parseStatus(v){
+  if (v.length < 13) return;
+  const f=v[8];
+  cam.door = v[6]===1 ? 'closed' : 'open';
+  cam.pack = v[7]===1;
+  cam.film = !cam.pack ? 0 : (f===0 ? 0 : f===1 ? 1 : (f>=2 && f<=8) ? f : f===9 ? 'slide' : null);
+  log('   camera: film '+(cam.film===null?'unknown':cam.film)+', pack '+(cam.pack?'in':'out')+', door '+cam.door+', battery '+(v[3]&0x80?'charging':'on battery'));
+  if (typeof cam.film==='number') store.set('shots', cam.film);
+  showFilm(); checkFilmScreen();
+}
+function outOfFilm(){ return cam.film===0 || (cam.film===null && +store.get('shots',8)<=0); }
+let fTimer=null, fStep=1;
+function runFilmSteps(on){
+  const art=$('camArt'), items=[...document.querySelectorAll('#fSteps li')];
+  const paint=()=>{ art.dataset.step=fStep; items.forEach((li,i)=>li.classList.toggle('cur', i===fStep-1)); };
+  if (on && !fTimer){ fStep=1; paint(); fTimer=setInterval(()=>{ fStep = fStep%4+1; paint(); }, 3400); }
+  if (!on && fTimer){ clearInterval(fTimer); fTimer=null; }
+}
+function checkFilmScreen(){
+  const scr=$('filmScreen');
+  if (outOfFilm()) { scr.classList.add('show'); runFilmSteps(true); $('fStat').textContent = cam.door==='open' ? 'Door is open. Swap the pack.' : 'Waiting for new film…'; }
+  else if (scr.classList.contains('show')) {
+    if (cam.film==='slide') { $('fStat').textContent='Almost! Take out the black sheet.'; }
+    else { scr.classList.remove('show'); runFilmSteps(false); }
+  }
+}
+setInterval(()=>{ if (rx && $('filmScreen').classList.contains('show')) send(CMD.STATUS).catch(()=>{}); }, 4000);
 
 // Mode settings layout (16 bytes), from Polaroid's app:
 // [mode, camMode, flashMode, curtain, flashPower, eject, lens, aperture, shutterMs(4, little-endian), EV(2), 0, 0]
@@ -340,38 +433,47 @@ async function onDisconnect(){
   $('shoot').style.display='none'; $('connect').style.display='';
 }
 
-function showFilm(){ const n=+store.get('shots',8); $('film').textContent = n>0 ? n+' left in pack' : 'Out of film'; $('shots').value=n; $('shotsBig').textContent=n; }
+function showFilm(){
+  let n=+store.get('shots',8);
+  let txt = n>1 ? n+' left in pack' : n===1 ? 'Last photo in pack' : 'Out of film';
+  if (cam.film==='slide') txt='New pack loading';
+  if (cam.film===null && cam.pack===false) txt='No film pack';
+  $('film').textContent=txt; $('shots').value=n; $('shotsBig').textContent=n;
+}
 
 async function afterShot(){
-  const scr=$('afterScreen'), num=$('aNum'), items=[...document.querySelectorAll('#aList li')];
-  items.forEach(li=>li.className=li.className.replace(/\b(in|done)\b/g,'').trim());
+  const scr=$('afterScreen'), num=$('aNum'), ring=$('arfg'), items=[...document.querySelectorAll('#aList li')], fin=$('aFinal');
+  items.forEach(li=>li.classList.remove('in')); fin.classList.remove('in');
   scr.classList.remove('phase2'); scr.classList.add('show');
-  const dev=scr.querySelector('.dev'), dots=$('aDots');
-  dots.innerHTML='<i></i>'.repeat(10); const di=[...dots.children];
-  dev.classList.remove('go'); dev.style.animation='none'; void dev.offsetWidth; dev.style.animation='';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>dev.classList.add('go')));
-  for (let n=10;n>0;n--){ num.textContent=n; num.classList.remove('tick'); void num.offsetWidth; num.classList.add('tick'); di.forEach((d,i)=>d.classList.toggle('on', i<11-n)); await wait(1000); }
+  ring.classList.remove('run'); void ring.getBoundingClientRect();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>ring.classList.add('run')));
+  for (let n=10;n>0;n--){ num.textContent=n; num.classList.remove('tick'); void num.offsetWidth; num.classList.add('tick'); await wait(1000); }
   scr.classList.add('phase2');
-  for (let i=0;i<items.length;i++){ if(i>0) items[i-1].classList.add('done'); items[i].classList.add('in'); await wait(i===items.length-1?4500:2800); }
+  for (const li of items){ await wait(250); li.classList.add('in'); await wait(2300); }
+  fin.classList.add('in'); await wait(4500);
   scr.classList.remove('show','phase2');
 }
 
+const isDemo=()=>$('demo').value==='on';
 async function shoot(){
-  if (!rx) return;
+  if (!rx && !isDemo()) return;
+  if (!isDemo() && outOfFilm()) { checkFilmScreen(); return; }
   $('shoot').disabled = true;
-  const c = $('count'), cn=$('cnum'), rf=$('rfg'), cl=$('clabel'); c.classList.remove('flash'); c.style.display='flex'; cl.textContent='Look at the camera';
+  const c = $('count'), cn=$('cnum'), cl=$('clabel'); c.classList.remove('flash'); c.style.display='flex'; cl.textContent='Look at the camera';
   for (let n=+$('cd').value; n>0; n--){
     cn.textContent=n; cn.classList.remove('tick'); void cn.offsetWidth; cn.classList.add('tick');
-    rf.classList.remove('run'); void rf.getBoundingClientRect(); rf.classList.add('run');
     if (n===1) cl.textContent='Smile!';
     await wait(1000);
   }
-  rf.classList.remove('run'); cn.textContent=''; cl.textContent=''; c.classList.add('flash');
-  try { await applyExposure(); await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
-  const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm();
+  cn.textContent=''; cl.textContent=''; c.classList.add('flash');
+  if (isDemo()) log('Demo mode: shutter skipped');
+  else try { await applyExposure(); await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
+  if (!isDemo()) { const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm(); }
   await wait(800); c.style.display='none';
+  if (!isDemo()) setTimeout(()=>send(CMD.STATUS).catch(()=>{}), 4000);
   await afterShot();
   $('shoot').disabled=false;
+  if (!isDemo()) checkFilmScreen();
 }
 
 // keep the screen awake if the browser allows it
@@ -385,7 +487,8 @@ $('connect').onclick = ()=>{ stayAwake(); connect(); };
 $('shoot').onclick = shoot;
 $('gear').onclick = ()=>{ $('panel').style.display='flex'; };
 $('close').onclick = ()=>{ $('panel').style.display='none'; showFilm(); };
-$('newpack').onclick = ()=>{ store.set('shots',8); showFilm(); };
+$('newpack').onclick = ()=>{ store.set('shots',8); cam.film=null; showFilm(); };
+$('fDone').onclick = ()=>{ store.set('shots',8); cam.film=null; $('filmScreen').classList.remove('show'); runFilmSteps(false); showFilm(); if(rx) send(CMD.STATUS).catch(()=>{}); };
 $('test').onclick = async ()=>{ if(!rx){ setStatus('Not connected'); return; } lastRx=0; await send(CMD.STATUS).catch(e=>log('Test failed: '+e)); setStatus(await gotReplyWithin(1500)?'Camera ready — it answered':'Camera did not answer', true); };
 $('repair').onclick = ()=> pair().catch(e=>log('Pair failed: '+e));
 $('copy').onclick = ()=>{ try{ navigator.clipboard.writeText($('log').textContent); }catch(e){} };
@@ -399,6 +502,13 @@ document.querySelectorAll('.seg').forEach(seg=>{
   seg.paint=paint; paint();
 });
 refreshManual();
+function applyDemo(){
+  if (isDemo()) { $('connect').style.display='none'; $('shoot').style.display=''; $('shoot').disabled=false; setStatus('Demo mode — camera won\'t fire', true); }
+  else if (!rx) { $('shoot').style.display='none'; $('connect').style.display=''; setStatus('Camera not connected'); }
+  else setStatus('Camera ready', true);
+}
+document.querySelector('.seg[data-for=demo]').addEventListener('click', applyDemo); applyDemo();
+$('previewFilm').onclick = ()=>{ $('panel').style.display='none'; $('filmScreen').classList.add('show'); runFilmSteps(true); };
 const syncCd=()=>$('cdText').textContent=$('cd').value; syncCd(); document.querySelector('.seg[data-for=cd]').addEventListener('click',syncCd);
 $('minus').onclick=()=>{ store.set('shots',Math.max(0,+store.get('shots',8)-1)); showFilm(); };
 $('plus').onclick=()=>{ store.set('shots',Math.min(8,+store.get('shots',8)+1)); showFilm(); };
