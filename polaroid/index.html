@@ -28,10 +28,37 @@
   #dot { display:inline-block; width:.6em; height:.6em; border-radius:50%; background:var(--soft); opacity:.5; margin-right:.4em; vertical-align:middle; }
   #dot.on { background:#7ee08a; opacity:1; }
   #gear { position:fixed; top:0; right:0; width:90px; height:90px; background:transparent; color:transparent; }
-  #panel { position:fixed; inset:0; background:var(--cream); color:var(--charcoal); display:none; flex-direction:column; padding:24px; gap:14px; z-index:10; font-family:-apple-system,Helvetica,sans-serif; font-size:17px; }
-  #panel .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  #panel button, #panel select, #panel input { font-size:17px; padding:10px 16px; border-radius:10px; background:#fff; border:1px solid #ccc; color:var(--charcoal); }
-  #log { flex:1; overflow:auto; background:#fff; border:1px solid #ddd; border-radius:10px; padding:10px; font:13px/1.4 Menlo,monospace; white-space:pre-wrap; user-select:text; -webkit-user-select:text; }
+  #panel { position:fixed; inset:0; background:var(--cream); color:var(--charcoal); display:none; flex-direction:column; gap:20px;
+    padding:28px 32px; overflow:auto; z-index:10; font-family:"Source Sans 3",-apple-system,Helvetica,sans-serif; user-select:none; }
+  .ph { display:flex; justify-content:space-between; align-items:flex-end; }
+  .eyebrow { color:var(--bg); font-weight:700; letter-spacing:.12em; text-transform:uppercase; font-size:14px; }
+  .ph h2 { font-family:"Caprasimo",Georgia,serif; font-weight:400; font-size:44px; margin:2px 0 0; color:var(--charcoal); }
+  .cards { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .card { background:#fff; border-radius:22px; padding:22px 24px; box-shadow:0 1px 0 rgba(0,0,0,.04), 0 8px 24px rgba(53,50,48,.06); }
+  .card.wide { grid-column:1 / -1; }
+  .card h3 { margin:0 0 14px; font-size:15px; letter-spacing:.1em; text-transform:uppercase; color:#a0938a; }
+  .card label { display:block; font-weight:600; font-size:16px; margin:16px 0 8px; }
+  .seg { display:flex; background:#f3ebe0; border-radius:14px; padding:4px; gap:4px; flex-wrap:wrap; }
+  .seg button { flex:1; min-width:64px; padding:12px 10px; border-radius:11px; background:transparent; color:var(--charcoal); font:600 17px "Source Sans 3",sans-serif; }
+  .seg button.on { background:var(--bg); color:#fff; box-shadow:0 2px 8px rgba(241,88,38,.35); }
+  .seg.big button { padding:16px; font-size:20px; }
+  .btns { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; align-items:center; }
+  .btns button, .film button, .ph .primary { padding:13px 20px; border-radius:12px; background:#f3ebe0; color:var(--charcoal); font:600 17px "Source Sans 3",sans-serif; }
+  .btns button.accent { background:var(--bg); color:#fff; }
+  .ph .primary { background:var(--charcoal); color:#fff; padding:14px 30px; font-size:19px; }
+  .conn { display:flex; align-items:center; gap:10px; font-size:20px; font-weight:600; }
+  .pdot { width:12px; height:12px; border-radius:50%; background:#d9cfc4; }
+  .pdot.on { background:#3aa55d; box-shadow:0 0 0 4px rgba(58,165,93,.18); }
+  .film { display:flex; align-items:center; gap:12px; }
+  .film #minus, .film #plus { width:52px; height:52px; padding:0; font-size:26px; }
+  #shotsBig { font-family:"Caprasimo",Georgia,serif; font-size:40px; min-width:44px; text-align:center; color:var(--bg); }
+  .film #newpack { margin-left:auto; }
+  .hint { color:#a0938a; margin:14px 0 0; font-size:16px; }
+  .diag { background:#fff; border-radius:22px; padding:16px 24px; }
+  .diag summary { font-weight:600; color:#a0938a; cursor:pointer; }
+  .fmt { color:#a0938a; } .fmt select { font-size:16px; padding:8px; border-radius:10px; border:1px solid #e5dccf; background:#fff; }
+  #log { margin-top:14px; max-height:260px; overflow:auto; background:#faf6f0; border-radius:12px; padding:12px; font:13px/1.45 Menlo,monospace; white-space:pre-wrap; user-select:text; -webkit-user-select:text; }
+  @media (max-width:760px){ .cards { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -46,38 +73,49 @@
 <button id="gear" aria-label="Settings">settings</button>
 
 <div id="panel">
-  <div class="row"><strong>Setup</strong> <span style="color:#888">(tap top-right corner to open)</span></div>
-  <div class="row">
-    Countdown <select id="cd"><option>3</option><option selected>5</option><option>10</option></select>
-    Wait after shot (sec) <select id="cool"><option>10</option><option selected>20</option><option>30</option></select>
+  <header class="ph">
+    <div><div class="eyebrow">Mike &amp; Xan</div><h2>Booth setup</h2></div>
+    <button id="close" class="primary">Done</button>
+  </header>
+  <div class="cards">
+    <section class="card">
+      <h3>Camera</h3>
+      <div class="conn"><span id="pdot" class="pdot"></span><span id="pconn">Not connected</span></div>
+      <div class="btns">
+        <button id="test">Check connection</button>
+        <button id="repair">Re-pair</button>
+      </div>
+    </section>
+    <section class="card">
+      <h3>Guest flow</h3>
+      <label>Countdown</label><div class="seg" data-for="cd" data-opts="3:3s,5:5s,10:10s"></div>
+      <label>Lock after each photo</label><div class="seg" data-for="cool" data-opts="10:10s,20:20s,30:30s"></div>
+      <label>Film</label>
+      <div class="film"><button id="minus" aria-label="minus">−</button><span id="shotsBig">8</span><button id="plus" aria-label="plus">+</button><button id="newpack">New pack</button></div>
+    </section>
+    <section class="card wide">
+      <h3>Exposure</h3>
+      <div class="seg big" data-for="xmode" data-opts="auto:Auto,manual:Manual"></div>
+      <div id="manualBox">
+        <label>Shutter</label><div class="seg" data-for="xshut" data-opts="5:1/200,8:1/125,17:1/60,33:1/30,67:1/15,125:1/8"></div>
+        <label>Aperture</label><div class="seg" data-for="xap" data-opts="7:f/11,6:f/13,5:f/16,4:f/22,3:f/32,2:f/64"></div>
+        <label>Built-in flash</label><div class="seg" data-for="xfl" data-opts="0:Off,2:⅙,3:¼,9:½,20:¾,100:Full"></div>
+        <label>Lens</label><div class="seg" data-for="xlens" data-opts="2:Auto,0:Close-up,1:Far"></div>
+        <div class="btns"><button id="xsend" class="accent">Send to camera</button><button id="xread">Read camera</button></div>
+      </div>
+      <p class="hint" id="autoHint">Camera meters and fires its own flash.</p>
+    </section>
   </div>
-  <div class="row">
-    Shots left in pack <input id="shots" type="number" min="0" max="8" style="width:80px">
-    <button id="newpack">New pack (8)</button>
-  </div>
-  <div class="row"><strong>Exposure</strong></div>
-  <div class="row">
-    <select id="xmode"><option value="auto">Auto (booth leaves camera alone)</option><option value="manual">Manual (locked)</option></select>
-    Shutter <select id="xshut">
-      <option value="5">1/200</option><option value="8" selected>1/125</option><option value="17">1/60</option><option value="33">1/30</option>
-      <option value="67">1/15</option><option value="125">1/8</option><option value="250">1/4</option><option value="500">1/2</option><option value="1000">1"</option>
-    </select>
-    Aperture <select id="xap"><option value="7">f/11</option><option value="6">f/13</option><option value="5">f/16</option><option value="4" selected>f/22</option><option value="3">f/32</option><option value="2">f/64</option></select>
-    Built-in flash <select id="xfl"><option value="0">Off</option><option value="2">⅙</option><option value="3">¼</option><option value="9" selected>½</option><option value="20">¾</option><option value="100">Full</option></select>
-    Lens <select id="xlens"><option value="2" selected>Camera picks</option><option value="0">Close-up</option><option value="1">Far</option></select>
-  </div>
-  <div class="row">
-    <button id="xsend">Send settings to camera</button>
-    <button id="xread">Read camera's current settings</button>
-  </div>
-  <div class="row">
-    <button id="test">Test: ask camera status (no photo)</button>
-    <button id="repair">Re-pair</button>
-    Format <select id="fmt"><option value="auto">Auto</option><option value="A">A (checksum)</option><option value="B">B (plain)</option></select>
-    <button id="copy">Copy log</button>
-  </div>
-  <div id="log"></div>
-  <div class="row"><button id="close" style="background:#2a2420;color:#fff">Done</button></div>
+  <details class="diag">
+    <summary>Diagnostics</summary>
+    <div class="btns"><button id="copy">Copy log</button>
+      <span class="fmt">Format <select id="fmt"><option value="auto">Auto</option><option value="B">B</option><option value="A">A</option></select></span></div>
+    <div id="log"></div>
+  </details>
+  <!-- hidden stores for settings -->
+  <input type="hidden" id="cd" value="5"><input type="hidden" id="cool" value="20"><input type="hidden" id="shots">
+  <input type="hidden" id="xmode" value="auto"><input type="hidden" id="xshut" value="8"><input type="hidden" id="xap" value="4">
+  <input type="hidden" id="xfl" value="9"><input type="hidden" id="xlens" value="2">
 </div>
 
 <script>
@@ -109,7 +147,7 @@ const store = { get:(k,d)=>{ try{ const v=localStorage.getItem(k); return v===nu
 
 function log(msg){ const t=new Date().toTimeString().slice(0,8); $('log').textContent += t+'  '+msg+'\n'; $('log').scrollTop=1e9; }
 const hex = a => Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join(' ');
-function setStatus(text, on){ $('statusText').textContent=text; $('dot').classList.toggle('on',!!on); }
+function setStatus(text, on){ $('statusText').textContent=text; $('dot').classList.toggle('on',!!on); $('pconn').textContent=text; $('pdot').classList.toggle('on',!!on); }
 
 // Format A: [1, size+1, type, ...payload, checksum]  (two's-complement sum)
 // Format B: [1, type, size, ...payload]
@@ -165,14 +203,14 @@ async function gotReplyWithin(ms){ const start=Date.now(); while(Date.now()-star
 
 async function pair(){
   const choice = $('fmt').value;
-  const tries = choice==='auto' ? ['A','B'] : [choice];
+  const tries = choice==='auto' ? ['B','A'] : [choice];
   for (const f of tries){
     const t0 = Date.now(); lastRx = 0;
     await send(CMD.PAIR, PAIR_PAYLOAD, f);
     if (await gotReplyWithin(1500)) { format = f; log('Camera answered. Using format '+f+'.'); store.set('fmt',f); return true; }
     log('No answer with format '+f+'.');
   }
-  format = choice==='auto' ? (store.get('fmt','A')) : choice;
+  format = choice==='auto' ? (store.get('fmt','B')) : choice;
   log('No pairing answer. Will still try format '+format+'.');
   return false;
 }
@@ -215,7 +253,7 @@ async function onDisconnect(){
   $('shoot').style.display='none'; $('connect').style.display='';
 }
 
-function showFilm(){ const n=+store.get('shots',8); $('film').textContent = n>0 ? n+' photo'+(n===1?'':'s')+' left in this pack' : 'Out of film — time for a new pack'; $('shots').value=n; }
+function showFilm(){ const n=+store.get('shots',8); $('film').textContent = n>0 ? n+' photo'+(n===1?'':'s')+' left in this pack' : 'Out of film — time for a new pack'; $('shots').value=n; $('shotsBig').textContent=n; }
 
 async function shoot(){
   if (!rx) return;
@@ -242,15 +280,26 @@ setInterval(()=>{ if(rx && !$('shoot').disabled) send(CMD.STATUS).catch(()=>{});
 $('connect').onclick = ()=>{ stayAwake(); connect(); };
 $('shoot').onclick = shoot;
 $('gear').onclick = ()=>{ $('panel').style.display='flex'; };
-$('close').onclick = ()=>{ $('panel').style.display='none'; store.set('cd',$('cd').value); store.set('cool',$('cool').value); store.set('shots',$('shots').value); showFilm(); };
+$('close').onclick = ()=>{ $('panel').style.display='none'; showFilm(); };
 $('newpack').onclick = ()=>{ store.set('shots',8); showFilm(); };
-$('test').onclick = ()=> send(CMD.STATUS).catch(e=>log('Test failed: '+e));
+$('test').onclick = async ()=>{ if(!rx){ setStatus('Not connected'); return; } lastRx=0; await send(CMD.STATUS).catch(e=>log('Test failed: '+e)); setStatus(await gotReplyWithin(1500)?'Camera ready — it answered':'Camera did not answer', true); };
 $('repair').onclick = ()=> pair().catch(e=>log('Pair failed: '+e));
 $('copy').onclick = ()=>{ try{ navigator.clipboard.writeText($('log').textContent); }catch(e){} };
-for (const id of ['xmode','xshut','xap','xfl','xlens']){ const v=store.get(id,null); if(v!==null) $(id).value=v; $(id).onchange=()=>store.set(id,$(id).value); }
+for (const id of ['cd','cool','xmode','xshut','xap','xfl','xlens']){ const v=store.get(id,null); if(v!==null) $(id).value=v; }
+function refreshManual(){ const m=$('xmode').value==='manual'; $('manualBox').style.display=m?'':'none'; $('autoHint').style.display=m?'none':''; }
+document.querySelectorAll('.seg').forEach(seg=>{
+  const id=seg.dataset.for;
+  seg.dataset.opts.split(',').forEach(o=>{ const [v,l]=o.split(':'); const b=document.createElement('button'); b.textContent=l; b.dataset.v=v;
+    b.onclick=()=>{ $(id).value=v; store.set(id,v); paint(); if(id==='xmode') refreshManual(); }; seg.appendChild(b); });
+  const paint=()=>seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.v===String($(id).value)));
+  seg.paint=paint; paint();
+});
+refreshManual();
+$('minus').onclick=()=>{ store.set('shots',Math.max(0,+store.get('shots',8)-1)); showFilm(); };
+$('plus').onclick=()=>{ store.set('shots',Math.min(8,+store.get('shots',8)+1)); showFilm(); };
 $('xsend').onclick = ()=>{ const m=$('xmode').value; if(m!=='manual'){ log('Exposure is on Auto, nothing sent.'); return; } applyExposure().catch(e=>log('Send failed: '+e)); };
 $('xread').onclick = ()=> send(CMD.MODE_GET).catch(e=>log('Read failed: '+e));
-$('cd').value = store.get('cd','5'); $('cool').value = store.get('cool','20');
+
 showFilm();
 log('Ready. '+(navigator.bluetooth?'Bluetooth available.':'No Bluetooth in this browser.'));
 </script>
