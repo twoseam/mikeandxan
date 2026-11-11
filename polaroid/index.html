@@ -278,7 +278,7 @@
       </div>
       <p class="hint" id="autoHint">Camera meters and fires its own flash.</p>
       <label>Brightness (exposure compensation)</label><div class="evrow"><span class="evend">Darker</span><input type="range" id="evSlider" min="-6" max="6" step="1" value="0"><span class="evend">Brighter</span><output id="evOut">0</output></div>
-      <div class="btns"><button id="xread">Read camera (changes nothing)</button><button id="xcheck">Check &amp; fix camera mode</button><button id="xmeter">Test light meter (no photo)</button></div>
+      <div class="btns"><button id="xread">Read camera (changes nothing)</button><button id="xcheck">Check &amp; fix camera mode</button><button id="xmeter">Test brightness (no photo)</button></div>
       <p class="result" id="xresult"></p>
       <p class="hint" id="camReport">Camera reports: not checked yet</p>
     </section>
@@ -296,7 +296,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '67';
+const BOOTH_VERSION = '68';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -371,7 +371,7 @@ function onData(e){
   const type = format==='B'?tB:tA;
   if (type===12 || type===10) { lastExposure=Date.now(); }
   if (type===12 && v.length>=15){ const ms=v[11]|(v[12]<<8)|(v[13]<<16)|(v[14]<<24); const lens={0:'close-up',1:'far'}[v[6]]??('code '+v[6]); log('   camera used: aperture '+(AP[v[8]]||('code '+v[8]))+', shutter '+ms+' (likely ms), lens '+lens+', photo #'+(v[3]|(v[4]<<8))); }
-  if ((type===32 || type===35) && v.length>=8){ const ms=v[3]|(v[4]<<8)|(v[5]<<16)|(v[6]<<24); lastMeter={ms, ap:v[7], at:Date.now()}; log('   camera would use: shutter '+ms+'ms, aperture '+(AP[v[7]]||('code '+v[7]))); }
+  if ((type===32 || type===35) && v.length>=7){ const nums=[]; for(let i=3;i+3<v.length;i+=4) nums.push(v[i]|(v[i+1]<<8)|(v[i+2]<<16)|(v[i+3]<<24)); lastMeter={nums, at:Date.now()}; log('   meter numbers: '+nums.join(', ')); }
   if (type===4 || type===33) parseStatus(v);
   if (type===6) { lastUpdate={ ok: v[3]===1, at:Date.now() }; log('   camera says: '+(v[3]===1?'SUCCESS':'FAILURE')); }
   if (type===8 || type===34){ const pl = format==='B' ? v.slice(3) : v.slice(3, v.length-1); camMode={raw:Array.from(pl), at:Date.now()}; const d=describeMode(pl); log('   camera settings: '+d); $('camReport').textContent='Camera reports: '+d; }
@@ -754,13 +754,18 @@ async function meterTest(){
   const r=$('xresult');
   if (isDemo()) { r.className='result bad'; r.textContent='Demo mode is on.'; return; }
   if (!rx) { r.className='result bad'; r.textContent='Camera not connected.'; return; }
-  r.className='result busy'; r.textContent='Asking the camera…';
-  await ensureMode(); lastMeter=null; const t=Date.now();
-  await send(CMD.METER).catch(()=>{});
-  while (!lastMeter && Date.now()-t<1500) await wait(50);
-  const ev=$('evOut').textContent;
-  if (!lastMeter) { r.className='result bad'; r.textContent='Camera gave no meter reading.'; return; }
-  r.className='result ok'; r.textContent='At brightness '+ev+': camera would use shutter '+lastMeter.ms+' ms, aperture '+(AP[lastMeter.ap]||('code '+lastMeter.ap))+'. Change brightness and test again to compare.';
+  const keep=$('xev').value;
+  const readAt=async ev=>{ $('xev').value=ev; await ensureMode(); lastMeter=null; const t=Date.now(); await send(CMD.METER).catch(()=>{}); while(!lastMeter && Date.now()-t<2000) await wait(50); return lastMeter ? lastMeter.nums.filter(n=>n>0) : null; };
+  try {
+    r.className='result busy'; r.textContent='Reading meter at 0, then +2. Keep the camera still…';
+    const a=await readAt(0), b=await readAt(200);
+    $('xev').value=keep; await ensureMode();
+    log('Meter test: at 0 → '+(a||[]).join(', ')+' · at +2 → '+(b||[]).join(', '));
+    if (!a || !b || !a.length || !b.length) { r.className='result bad'; r.textContent='Meter gave empty readings. Point the camera at a normally lit spot (not a window) and try again.'; return; }
+    const ratio = b.reduce((x,y)=>x+y,0) / a.reduce((x,y)=>x+y,0);
+    r.className = ratio>1.5 ? 'result ok' : 'result bad';
+    r.textContent = 'At 0: '+a.join(', ')+' · At +2: '+b.join(', ')+' → '+(ratio>1.5 ? '✓ Brightness changes the meter ('+ratio.toFixed(1)+'× longer).' : '✗ No real change ('+ratio.toFixed(2)+'×). Camera may ignore brightness.');
+  } catch(e){ $('xev').value=keep; r.className='result bad'; r.textContent='Test failed: '+e.message; }
 }
 async function withResult(btn, label, fn){
   const r=$('xresult'), b=$(btn), old=b.textContent;
