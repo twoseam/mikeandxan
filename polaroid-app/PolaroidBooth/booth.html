@@ -291,7 +291,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '54';
+const BOOTH_VERSION = '55';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -620,7 +620,7 @@ async function shoot(){
   // Learn the real lag from the camera's "photo taken" message, if it sends one.
   if (!isDemo() && sentAt) {
     const t0=sentAt; while (Date.now()-t0<2500 && !(lastExposure>=t0)) await wait(15);
-    if (lastExposure>=t0) { const m=lastExposure-t0, prev=+store.get('lagMeasured',600), next=Math.round(prev*0.5+m*0.5);
+    if (lastExposure>=t0) { const m=lastExposure-t0, hasReal=store.get('lagReal','')==='1', prev=+store.get('lagMeasured',600), next=hasReal ? Math.round(prev*0.5+m*0.5) : m; store.set('lagReal','1');
       store.set('lagMeasured', next); log('Camera exposed '+m+'ms after fire command. Auto lag now '+next+'ms'); }
     else log('No exposure message from camera, so auto lag stays '+lag+'ms');
   }
