@@ -291,7 +291,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '56';
+const BOOTH_VERSION = '57';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -363,6 +363,7 @@ function onData(e){
   log('← '+hex(v)+'  ('+name+')');
   const type = format==='B'?tB:tA;
   if (type===12 || type===10) { lastExposure=Date.now(); }
+  if (type===12 && v.length>=15){ const ms=v[11]|(v[12]<<8)|(v[13]<<16)|(v[14]<<24); const lens={0:'close-up',1:'far'}[v[6]]??('code '+v[6]); log('   camera used: aperture '+(AP[v[8]]||('code '+v[8]))+', shutter '+ms+' (likely ms), lens '+lens+', photo #'+(v[3]|(v[4]<<8))); }
   if (type===4 || type===33) parseStatus(v);
   if (type===6) { lastUpdate={ ok: v[3]===1, at:Date.now() }; log('   camera says: '+(v[3]===1?'SUCCESS':'FAILURE')); }
   if (type===8 || type===34){ const pl = format==='B' ? v.slice(3) : v.slice(3, v.length-1); camMode={raw:Array.from(pl), at:Date.now()}; const d=describeMode(pl); log('   camera settings: '+d); $('camReport').textContent='Camera reports: '+d; }
