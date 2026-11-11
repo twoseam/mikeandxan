@@ -312,7 +312,7 @@ const LENS = ['close-up','far','camera picks'];
 const PAIR_PAYLOAD = [0,0,0,0,0,0,0,1];
 const RESPONSES = {1:'pairing reply',4:'camera status',6:'mode updated',8:'mode data',10:'film ejected',12:'exposure done',14:'command reply',33:'status (auto)',34:'mode (auto)'};
 
-let device, rx, format = null, lastRx = 0;
+let device, rx, format = null, lastRx = 0, lastRxType = -1;
 const $ = id => document.getElementById(id);
 const store = { get:(k,d)=>{ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } },
                 set:(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} } };
@@ -332,17 +332,30 @@ function packet([type,size], payload=[], fmt=format||'A'){
   return new Uint8Array([...body, (256-sum)&255]);
 }
 
-async function send(cmd, payload, fmt){
-  if (!rx) throw new Error('not connected');
-  const p = packet(cmd, payload, fmt);
-  log('→ '+hex(p));
-  if (rx.writeValueWithoutResponse) await rx.writeValueWithoutResponse(p);
-  else await rx.writeValue(p);
+// One command at a time: the camera drops requests sent back to back.
+// Wait for its reply (or a short timeout), then a small gap, before the next command.
+const REPLY_FOR = {0:1, 3:4, 7:8, 5:6};
+let sendChain = Promise.resolve();
+function send(cmd, payload, fmt){
+  const job = sendChain.then(async ()=>{
+    if (!rx) throw new Error('not connected');
+    const p = packet(cmd, payload, fmt);
+    const before = Date.now();
+    log('→ '+hex(p));
+    if (rx.writeValueWithoutResponse) await rx.writeValueWithoutResponse(p);
+    else await rx.writeValue(p);
+    const want = REPLY_FOR[cmd[0]];
+    if (want!==undefined) { while (Date.now()-before < 900 && !(lastRxType===want && lastRx>=before)) await wait(10); }
+    else await wait(250);
+    await wait(60);
+  });
+  sendChain = job.catch(()=>{});
+  return job;
 }
 
 function onData(e){
   const v = new Uint8Array(e.target.value.buffer);
-  lastRx = Date.now();
+  lastRx = Date.now(); lastRxType = (format==='B' ? v[1] : v[2]);
   const tA = v[2], tB = v[1];
   const name = RESPONSES[format==='B'?tB:tA] || RESPONSES[tA] || RESPONSES[tB] || '?';
   log('← '+hex(v)+'  ('+name+')');
