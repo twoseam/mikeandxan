@@ -391,17 +391,32 @@ function matches(want, got){ if(!got) return false;
   if (want[0]===0) return got[0]===0;            // auto: only the mode matters
   return [0,4,6,7,8,9,10,11].every(i=>want[i]===got[i]); }
 // Make sure the camera is in the mode the booth is set to. Returns true if confirmed.
+// The camera accepts one change at a time, so we step from its current settings.
+let modeProblem='';
 async function ensureMode(){
+  modeProblem='';
   if (!rx || isDemo()) return true;
-  const want = $('xmode').value==='manual' ? manualPayload() : autoPayload();
-  let got = await readMode();
-  if (matches(want, got)) { log('Mode confirmed: '+describeMode(got)); return true; }
-  log('Camera mode is wrong. Setting: '+describeMode(want));
-  const acc = await sendMode(want); if (acc===false) log('Camera rejected the settings.');
-  got = await readMode();
-  const ok = matches(want, got);
-  log(ok ? 'Mode confirmed after fix.' : 'Camera still not in the right mode!');
-  if (!ok) setStatus('Check camera mode in setup', true);
+  const manual = $('xmode').value==='manual';
+  let cur = await readMode(); if (!cur) { modeProblem='camera did not answer'; return false; }
+  const want = manual ? manualPayload() : null;
+  const steps = manual ? [
+    ['mode',     x=>{ x[0]=1; x[1]=2; }],
+    ['shutter',  x=>{ for (let i=8;i<12;i++) x[i]=want[i]; }],
+    ['aperture', x=>{ x[7]=want[7]; }],
+    ['flash',    x=>{ x[2]=want[2]; x[4]=want[4]; }],
+    ['lens',     x=>{ x[6]=want[6]; }],
+  ] : [ ['mode', x=>{ x[0]=0; x[1]=0; }] ];
+  const bad=[];
+  for (const [name, change] of steps){
+    const next=cur.slice(); change(next);
+    if (next.every((b,i)=>b===cur[i])) continue;           // already right
+    const ok = await sendMode(next);
+    if (ok) cur=next; else { bad.push(name); log('Camera rejected '+name+' change'); }
+  }
+  const got = await readMode();
+  const ok = manual ? (got && [0,2,4,6,7,8,9,10,11].every(i=>got[i]===want[i])) : (got && got[0]===0);
+  if (!ok) { modeProblem = bad.length ? 'camera rejected: '+bad.join(', ') : 'settings did not stick'; setStatus('Check camera mode in setup', true); }
+  log(ok ? 'Mode confirmed: '+describeMode(got) : 'Mode NOT confirmed ('+modeProblem+')');
   return ok;
 }
 async function applyExposure(){ return ensureMode(); }
@@ -573,7 +588,7 @@ async function withResult(btn, label, fn){
   try { const ok=await fn();
     const d = camMode ? describeMode(camMode.raw) : 'no reply';
     r.className = ok ? 'result ok' : 'result bad';
-    r.textContent = ok ? '✓ Camera confirmed: '+d : '✗ Camera did not confirm. It reports: '+d;
+    r.textContent = ok ? '✓ Camera confirmed: '+d : '✗ Not confirmed'+(modeProblem?' ('+modeProblem+')':'')+'. Camera reports: '+d;
   } catch(e){ r.className='result bad'; r.textContent='✗ '+e.message; }
   b.disabled=false; b.textContent=old;
 }
