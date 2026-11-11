@@ -71,6 +71,13 @@
     font-size:clamp(40px,min(5.5vw,8vh),76px); line-height:1.2; padding-top:.08em; text-shadow:0 4px 18px rgba(0,0,0,.18);
     opacity:0; transform:scale(.9); transition:opacity .5s ease, transform .5s cubic-bezier(.2,.9,.3,1.3); }
   .afinal.in { opacity:1; transform:none; }
+  #filmScreen { position:fixed; inset:0; z-index:7; background:var(--bg); display:none; flex-direction:column; align-items:center; justify-content:center; gap:3.5vh; padding:5vh 5vw; text-align:center; }
+  #filmScreen.show { display:flex; }
+  .fhead { margin:0; font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:#f9eed5;
+    font-size:clamp(40px,min(5.5vw,8vh),76px); line-height:1.2; padding-top:.08em; text-shadow:0 4px 18px rgba(0,0,0,.18); }
+  .fsteps li { font-size:clamp(20px,min(2.4vw,3.6vh),30px); padding:1.8vh 26px; }
+  .fstat { margin:0; color:#ffd9c9; font-weight:600; font-size:clamp(18px,min(2vw,3vh),24px); }
+  #fDone { padding:14px 28px; border-radius:999px; background:rgba(255,255,255,.16); color:#fff; font:600 18px "Source Sans 3",sans-serif; }
   #count { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:var(--bg); z-index:5; }
   #cnum { font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:#f9eed5; line-height:1;
     font-size:min(40vw,52vh); position:relative; top:.225em; text-shadow:0 6px 24px rgba(0,0,0,.18); display:inline-block; }
@@ -145,6 +152,17 @@
     </ol>
     <p class="afinal" id="aFinal">Ready in 10–15 minutes!</p>
   </div>
+</div>
+<div id="filmScreen">
+  <h2 class="fhead">Time for new film!</h2>
+  <ol class="alist fsteps">
+    <li class="in"><b>1</b><span>Press the film door button and pull the door open</span></li>
+    <li class="in"><b>2</b><span>Pull the empty pack out by its tab</span></li>
+    <li class="in"><b>3</b><span>Slide in a new pack, black side up, tab toward you, until it clicks</span></li>
+    <li class="in"><b>4</b><span>Close the door. Take out the black sheet that pops out</span></li>
+  </ol>
+  <p class="fstat" id="fStat">Waiting for new film…</p>
+  <button id="fDone">New film is in</button>
 </div>
 <button id="gear" aria-label="Settings">settings</button>
 
@@ -248,8 +266,34 @@ function onData(e){
   const name = RESPONSES[format==='B'?tB:tA] || RESPONSES[tA] || RESPONSES[tB] || '?';
   log('← '+hex(v)+'  ('+name+')');
   const type = format==='B'?tB:tA;
+  if (type===4 || type===33) parseStatus(v);
   if (type===8 || type===34){ const pl = format==='B' ? v.slice(3) : v.slice(3, v.length-1); log('   camera settings: '+describeMode(pl)); }
 }
+
+// Camera status (from Polaroid's app), byte positions in the full reply:
+// [3] battery, [6] film door (1 closed), [7] film pack (1 present), [8] film counter
+// (0 empty, 1 last, 2-8 shots left, 9 dark slide), [10] busy
+let cam = { film:null, pack:null, door:null };
+function parseStatus(v){
+  if (v.length < 13) return;
+  const f=v[8];
+  cam.door = v[6]===1 ? 'closed' : 'open';
+  cam.pack = v[7]===1;
+  cam.film = !cam.pack ? 0 : (f===0 ? 0 : f===1 ? 1 : (f>=2 && f<=8) ? f : f===9 ? 'slide' : null);
+  log('   camera: film '+(cam.film===null?'unknown':cam.film)+', pack '+(cam.pack?'in':'out')+', door '+cam.door+', battery '+(v[3]&0x80?'charging':'on battery'));
+  if (typeof cam.film==='number') store.set('shots', cam.film);
+  showFilm(); checkFilmScreen();
+}
+function outOfFilm(){ return cam.film===0 || (cam.film===null && +store.get('shots',8)<=0); }
+function checkFilmScreen(){
+  const scr=$('filmScreen');
+  if (outOfFilm()) { scr.classList.add('show'); $('fStat').textContent = cam.door==='open' ? 'Door is open. Swap the pack.' : 'Waiting for new film…'; }
+  else if (scr.classList.contains('show')) {
+    if (cam.film==='slide') { $('fStat').textContent='Almost! Take out the black sheet.'; }
+    else { scr.classList.remove('show'); }
+  }
+}
+setInterval(()=>{ if (rx && $('filmScreen').classList.contains('show')) send(CMD.STATUS).catch(()=>{}); }, 4000);
 
 // Mode settings layout (16 bytes), from Polaroid's app:
 // [mode, camMode, flashMode, curtain, flashPower, eject, lens, aperture, shutterMs(4, little-endian), EV(2), 0, 0]
@@ -328,7 +372,13 @@ async function onDisconnect(){
   $('shoot').style.display='none'; $('connect').style.display='';
 }
 
-function showFilm(){ const n=+store.get('shots',8); $('film').textContent = n>0 ? n+' left in pack' : 'Out of film'; $('shots').value=n; $('shotsBig').textContent=n; }
+function showFilm(){
+  let n=+store.get('shots',8);
+  let txt = n>1 ? n+' left in pack' : n===1 ? 'Last photo in pack' : 'Out of film';
+  if (cam.film==='slide') txt='New pack loading';
+  if (cam.film===null && cam.pack===false) txt='No film pack';
+  $('film').textContent=txt; $('shots').value=n; $('shotsBig').textContent=n;
+}
 
 async function afterShot(){
   const scr=$('afterScreen'), num=$('aNum'), ring=$('arfg'), items=[...document.querySelectorAll('#aList li')], fin=$('aFinal');
@@ -345,6 +395,7 @@ async function afterShot(){
 
 async function shoot(){
   if (!rx) return;
+  if (outOfFilm()) { checkFilmScreen(); return; }
   $('shoot').disabled = true;
   const c = $('count'), cn=$('cnum'), cl=$('clabel'); c.classList.remove('flash'); c.style.display='flex'; cl.textContent='Look at the camera';
   for (let n=+$('cd').value; n>0; n--){
@@ -356,8 +407,10 @@ async function shoot(){
   try { await applyExposure(); await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
   const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm();
   await wait(800); c.style.display='none';
+  setTimeout(()=>send(CMD.STATUS).catch(()=>{}), 4000);
   await afterShot();
   $('shoot').disabled=false;
+  checkFilmScreen();
 }
 
 // keep the screen awake if the browser allows it
@@ -371,7 +424,8 @@ $('connect').onclick = ()=>{ stayAwake(); connect(); };
 $('shoot').onclick = shoot;
 $('gear').onclick = ()=>{ $('panel').style.display='flex'; };
 $('close').onclick = ()=>{ $('panel').style.display='none'; showFilm(); };
-$('newpack').onclick = ()=>{ store.set('shots',8); showFilm(); };
+$('newpack').onclick = ()=>{ store.set('shots',8); cam.film=null; showFilm(); };
+$('fDone').onclick = ()=>{ store.set('shots',8); cam.film=null; $('filmScreen').classList.remove('show'); showFilm(); if(rx) send(CMD.STATUS).catch(()=>{}); };
 $('test').onclick = async ()=>{ if(!rx){ setStatus('Not connected'); return; } lastRx=0; await send(CMD.STATUS).catch(e=>log('Test failed: '+e)); setStatus(await gotReplyWithin(1500)?'Camera ready — it answered':'Camera did not answer', true); };
 $('repair').onclick = ()=> pair().catch(e=>log('Pair failed: '+e));
 $('copy').onclick = ()=>{ try{ navigator.clipboard.writeText($('log').textContent); }catch(e){} };
