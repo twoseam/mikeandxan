@@ -291,7 +291,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '59';
+const BOOTH_VERSION = '60';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -315,8 +315,8 @@ const RESPONSES = {1:'pairing reply',4:'camera status',6:'mode updated',8:'mode 
 let device, rx, format = null, lastRx = 0, lastRxType = -1;
 const $ = id => document.getElementById(id);
 const store = { get:(k,d)=>{ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } },
-if (store.get('lagCal','')!=='759'){ store.set('lagCal','759'); store.set('lagMeasured',759); store.set('lagLocked','1'); store.set('lagReal','1'); store.set('sdelay','auto'); }
                 set:(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} } };
+if (store.get('lagCal','')!=='759'){ store.set('lagCal','759'); store.set('lagMeasured',759); store.set('lagLocked','1'); store.set('lagReal','1'); store.set('sdelay','auto'); }
 
 function log(msg){ const t=new Date().toTimeString().slice(0,8); const line=t+'  '+msg+'\n'; $('log').textContent += line; $('log').scrollTop=1e9;
   try { let h=localStorage.getItem('logHist')||''; h+=line; if (h.length>60000) h=h.slice(-50000); localStorage.setItem('logHist',h); } catch(e){} }
