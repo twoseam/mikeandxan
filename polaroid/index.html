@@ -75,14 +75,9 @@
   .alist li.done { opacity:.45; }
   .alist li.last { font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:#f9eed5; font-size:clamp(36px,6vw,68px); }
   .alist .aside { font-weight:600; opacity:.75; font-size:.7em; }
-  #count { position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:5vh; background:var(--bg); z-index:5; }
-  .ring { position:relative; width:min(70vw,58vh); aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
-  .ring svg { position:absolute; inset:0; transform:rotate(-90deg); }
-  .rbg { fill:none; stroke:rgba(255,255,255,.18); stroke-width:6; }
-  .rfg { fill:none; stroke:#fffaf2; stroke-width:6; stroke-linecap:round; stroke-dasharray:339.3; stroke-dashoffset:0; }
-  .rfg.run { transition:stroke-dashoffset 1s linear; stroke-dashoffset:339.3; }
+  #count { position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:2vh; background:var(--bg); z-index:5; }
   #cnum { font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:#f9eed5; line-height:1;
-    font-size:min(40vw,34vh); text-shadow:0 4px 18px rgba(0,0,0,.18); display:inline-block; }
+    font-size:min(50vw,62vh); text-shadow:0 6px 24px rgba(0,0,0,.18); display:inline-block; }
   #cnum.tick { animation:tick .5s cubic-bezier(.2,.9,.3,1.4); }
   #clabel { margin:0; color:#fff; font-weight:600; font-size:clamp(26px,4vw,44px); }
   #count.flash { animation:flash .6s ease-out; }
@@ -140,7 +135,7 @@
     </button>
   </div>
 </main>
-<div id="count"><div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" class="rbg"/><circle cx="60" cy="60" r="54" class="rfg" id="rfg"/></svg><span id="cnum">5</span></div><p id="clabel">Look at the camera</p></div>
+<div id="count"><span id="cnum">5</span><p id="clabel">Look at the camera</p></div>
 <div id="afterScreen">
   <div class="aphase" id="aWait">
     <p class="alead">Your photo will be ready in</p>
@@ -358,14 +353,13 @@ async function afterShot(){
 async function shoot(){
   if (!rx) return;
   $('shoot').disabled = true;
-  const c = $('count'), cn=$('cnum'), rf=$('rfg'), cl=$('clabel'); c.classList.remove('flash'); c.style.display='flex'; cl.textContent='Look at the camera';
+  const c = $('count'), cn=$('cnum'), cl=$('clabel'); c.classList.remove('flash'); c.style.display='flex'; cl.textContent='Look at the camera';
   for (let n=+$('cd').value; n>0; n--){
     cn.textContent=n; cn.classList.remove('tick'); void cn.offsetWidth; cn.classList.add('tick');
-    rf.classList.remove('run'); void rf.getBoundingClientRect(); rf.classList.add('run');
     if (n===1) cl.textContent='Smile!';
     await wait(1000);
   }
-  rf.classList.remove('run'); cn.textContent=''; cl.textContent=''; c.classList.add('flash');
+  cn.textContent=''; cl.textContent=''; c.classList.add('flash');
   try { await applyExposure(); await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
   const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm();
   await wait(800); c.style.display='none';
