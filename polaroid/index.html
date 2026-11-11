@@ -241,6 +241,7 @@
     <section class="card">
       <h3>Guest flow</h3>
       <label>Countdown</label><div class="seg" data-for="cd" data-opts="3:3s,5:5s,10:10s"></div>
+      <label>Countdown beeps</label><div class="seg" data-for="snd" data-opts="on:On,off:Off"></div>
       <label>Film</label>
       <div class="film"><button id="minus" aria-label="minus">−</button><span id="shotsBig">8</span><button id="plus" aria-label="plus">+</button><button id="newpack">New pack</button></div>
     </section>
@@ -267,7 +268,7 @@
     <div id="log"></div>
   </details>
   <!-- hidden stores for settings -->
-  <input type="hidden" id="demo" value="off"><input type="hidden" id="cd" value="5"><input type="hidden" id="cool" value="20"><input type="hidden" id="shots">
+  <input type="hidden" id="demo" value="off"><input type="hidden" id="snd" value="on"><input type="hidden" id="cd" value="5"><input type="hidden" id="cool" value="20"><input type="hidden" id="shots">
   <input type="hidden" id="xmode" value="auto"><input type="hidden" id="xshut" value="8"><input type="hidden" id="xap" value="4">
   <input type="hidden" id="xfl" value="9"><input type="hidden" id="xlens" value="2">
 </div>
@@ -503,6 +504,18 @@ async function afterShot(){
 }
 
 const isDemo=()=>$('demo').value==='on';
+let actx=null;
+function beep(freq, ms, vol=0.35){
+  if ($('snd').value!=='on') return;
+  try {
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state==='suspended') actx.resume();
+    const o=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime;
+    o.type='sine'; o.frequency.value=freq; o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+ms/1000);
+    o.start(t); o.stop(t+ms/1000+0.02);
+  } catch(e){}
+}
 async function shoot(){
   if (!rx && !isDemo()) return;
   if (!isDemo() && outOfFilm()) { checkFilmScreen(); return; }
@@ -511,10 +524,12 @@ async function shoot(){
   const c = $('count'), cn=$('cnum'), cl=$('clabel'); c.classList.remove('flash'); c.style.display='flex'; cl.textContent='Look at the camera';
   for (let n=+$('cd').value; n>0; n--){
     cn.textContent=n; cn.classList.remove('tick'); void cn.offsetWidth; cn.classList.add('tick');
+    beep(n===1?1046:784, n===1?220:140);
     if (n===1) cl.textContent='Smile!';
     await wait(1000);
   }
   cn.textContent=''; cl.textContent=''; c.classList.add('flash');
+  beep(1568, 380, 0.45);
   if (isDemo()) log('Demo mode: shutter skipped');
   else try { await modeCheck; await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
   if (!isDemo()) { const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm(); }
@@ -560,7 +575,7 @@ $('probe').onclick = async ()=>{
   const after = await readMode(); log('TEST done. Camera now: '+(after?describeMode(after):'?'));
 };
 $('copy').onclick = ()=>{ try{ navigator.clipboard.writeText($('log').textContent); }catch(e){} };
-for (const id of ['cd','cool','xmode','xshut','xap','xfl','xlens']){ const v=store.get(id,null); if(v!==null) $(id).value=v; }
+for (const id of ['snd','cd','cool','xmode','xshut','xap','xfl','xlens']){ const v=store.get(id,null); if(v!==null) $(id).value=v; }
 function refreshManual(){ const m=$('xmode').value==='manual'; $('manualBox').style.display=m?'':'none'; $('autoHint').style.display=m?'none':''; }
 document.querySelectorAll('.seg').forEach(seg=>{
   const id=seg.dataset.for;
