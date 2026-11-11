@@ -273,6 +273,7 @@
         <div class="btns"><button id="xsend" class="accent">Send to camera</button></div>
       </div>
       <p class="hint" id="autoHint">Camera meters and fires its own flash.</p>
+      <label>Brightness (exposure compensation)</label><div class="seg" data-for="xev" data-opts="-100:−1,-66:−⅔,-33:−⅓,0:0,33:+⅓,66:+⅔,100:+1"></div>
       <div class="btns"><button id="xread">Read camera (changes nothing)</button><button id="xcheck">Check &amp; fix camera mode</button></div>
       <p class="result" id="xresult"></p>
       <p class="hint" id="camReport">Camera reports: not checked yet</p>
@@ -285,13 +286,13 @@
   </details>
   <!-- hidden stores for settings -->
   <input type="hidden" id="demo" value="off"><input type="hidden" id="snd" value="on"><input type="hidden" id="sdelay" value="auto"><input type="hidden" id="cd" value="5"><input type="hidden" id="cool" value="20"><input type="hidden" id="shots">
-  <input type="hidden" id="xmode" value="auto"><input type="hidden" id="xshut" value="8"><input type="hidden" id="xap" value="4">
+  <input type="hidden" id="xev" value="0"><input type="hidden" id="xmode" value="auto"><input type="hidden" id="xshut" value="8"><input type="hidden" id="xap" value="4">
   <input type="hidden" id="xfl" value="9"><input type="hidden" id="xlens" value="2">
 </div>
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '63';
+const BOOTH_VERSION = '64';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -413,12 +414,13 @@ setInterval(()=>{ if (rx && $('filmScreen').classList.contains('show')) send(CMD
 
 // Mode settings layout (16 bytes), from Polaroid's app:
 // [mode, camMode, flashMode, curtain, flashPower, eject, lens, aperture, shutterMs(4, little-endian), EV(2), 0, 0]
+const EVL={'-200':'−2','-166':'−1⅔','-133':'−1⅓','-100':'−1','-66':'−⅔','-33':'−⅓',0:'0',33:'+⅓',66:'+⅔',100:'+1',133:'+1⅓',166:'+1⅔',200:'+2'};
 function describeMode(b){
   if (!b || b.length<14) return '(short: '+hex(b)+')';
   const ms = b[8] | (b[9]<<8) | (b[10]<<16) | (b[11]<<24);
   const ev = ((b[12] | (b[13]<<8)) << 16) >> 16;
   return [MODES[b[0]]||('mode '+b[0]), 'shutter '+(SHUT[ms]||ms+'ms'), 'aperture '+(AP[b[7]]||b[7]),
-          'flash '+(b[2]===0?'off':b[4]===0?'auto':(FL[b[4]]||b[4])), 'lens '+(LENS[b[6]]||b[6]), 'EV '+(ev/100)].join(', ');
+          'flash '+(b[2]===0?'off':b[4]===0?'auto':(FL[b[4]]||b[4])), 'lens '+(LENS[b[6]]||b[6]), 'brightness '+(EVL[ev]||(ev/100))].join(', ');
 }
 function manualPayload(){
   const ms = +$('xshut').value, power = +$('xfl').value;
@@ -457,7 +459,8 @@ async function ensureMode(){
          ['aperture', x=>{ x[7]=6; }],                                         // f/13
          ['shutter',  x=>{ x[8]=0x88; x[9]=0x13; x[10]=0; x[11]=0; }],         // 5000 ms
          ['flash',    x=>{ x[2]=1; x[4]=0; }],                                 // flash auto
-         ['lens',     x=>{ x[6]=2; }] ];                                       // camera picks
+         ['lens',     x=>{ x[6]=2; }],                                       // camera picks
+         ['brightness', x=>{ const e=+$('xev').value; x[12]=e&255; x[13]=(e>>8)&255; }] ];                                       // camera picks
   const bad=[];
   for (const [name, change] of steps){
     const next=cur.slice(); change(next);
@@ -466,7 +469,7 @@ async function ensureMode(){
     if (ok) cur=next; else { bad.push(name); log('Camera rejected '+name+' change'); }
   }
   const got = await readMode();
-  const ok = manual ? (got && [0,2,4,6,7,8,9,10,11].every(i=>got[i]===want[i])) : (got && got[0]===0 && got[7]===6 && got[8]===0x88 && got[9]===0x13 && got[2]===1 && got[4]===0 && got[6]===2);
+  const ok = manual ? (got && [0,2,4,6,7,8,9,10,11].every(i=>got[i]===want[i])) : (got && got[0]===0 && got[7]===6 && got[8]===0x88 && got[9]===0x13 && got[2]===1 && got[4]===0 && got[6]===2 && (((got[12]|(got[13]<<8))<<16)>>16)===+$('xev').value);
   if (!ok) { modeProblem = bad.length ? 'camera rejected: '+bad.join(', ') : 'settings did not stick'; setStatus('Check camera mode in setup', true); }
   log(ok ? 'Mode confirmed: '+describeMode(got) : 'Mode NOT confirmed ('+modeProblem+')');
   return ok;
@@ -678,7 +681,7 @@ $('probe').onclick = async ()=>{
   const after = await readMode(); log('TEST done. Camera now: '+(after?describeMode(after):'?'));
 };
 $('copy').onclick = ()=>{ try{ navigator.clipboard.writeText($('log').textContent); }catch(e){} };
-for (const id of ['sdelay','snd','cd','cool','xmode','xshut','xap','xfl','xlens']){ const v=store.get(id,null); if(v!==null) $(id).value=v; }
+for (const id of ['xev','sdelay','snd','cd','cool','xmode','xshut','xap','xfl','xlens']){ const v=store.get(id,null); if(v!==null) $(id).value=v; }
 $('xmode').value='auto'; store.set('xmode','auto'); $('sdelay').value='auto'; store.set('sdelay','auto');
 if (store.get('totalFix8','')!=='1'){ store.set('totalFix8','1'); store.set('totalShots',8); }
 showTotal();
@@ -686,7 +689,7 @@ function refreshManual(){ const m=$('xmode').value==='manual'; $('manualBox').st
 document.querySelectorAll('.seg').forEach(seg=>{
   const id=seg.dataset.for;
   seg.dataset.opts.split(',').forEach(o=>{ const [v,l]=o.split(':'); const b=document.createElement('button'); b.textContent=l; b.dataset.v=v;
-    b.onclick=()=>{ $(id).value=v; store.set(id,v); paint(); if(id==='xmode') refreshManual(); }; seg.appendChild(b); });
+    b.onclick=()=>{ $(id).value=v; store.set(id,v); paint(); if(id==='xmode') refreshManual(); if(id==='xev' && rx) $('xcheck').click(); }; seg.appendChild(b); });
   const paint=()=>seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.v===String($(id).value)));
   seg.paint=paint; paint();
 });
