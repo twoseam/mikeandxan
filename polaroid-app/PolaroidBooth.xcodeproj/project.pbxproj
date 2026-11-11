@@ -181,6 +181,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Photobooth";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Used once to measure the Polaroid's shutter lag.";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Connects to the Polaroid camera to take photos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -206,6 +207,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Photobooth";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Used once to measure the Polaroid's shutter lag.";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Connects to the Polaroid camera to take photos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -35,6 +35,7 @@ struct BoothWebView: UIViewRepresentable {
         web.scrollView.bounces = false
         web.scrollView.contentInsetAdjustmentBehavior = .never
         web.navigationDelegate = context.coordinator
+        web.uiDelegate = context.coordinator
         bridge.webView = web
 
         var req = URLRequest(url: Self.remoteURL)
@@ -46,7 +47,7 @@ struct BoothWebView: UIViewRepresentable {
 
     func updateUIView(_ uiView: WKWebView, context: Context) {}
 
-    final class Coordinator: NSObject, WKNavigationDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         let bridge = BLEBridge()
         private var usedFallback = false
 
@@ -56,6 +57,13 @@ struct BoothWebView: UIViewRepresentable {
         }
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
             loadBundled(webView)
+        }
+        // Let the booth page use the iPad camera (for the lag test) without a second prompt.
+        @available(iOS 15.0, *)
+        func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+                     initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType,
+                     decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+            decisionHandler(.grant)
         }
         private func loadBundled(_ webView: WKWebView) {
             guard !usedFallback, let file = Bundle.main.url(forResource: "booth", withExtension: "html") else { return }

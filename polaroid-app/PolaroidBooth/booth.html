@@ -113,6 +113,10 @@
   @keyframes sheet { 0%,40% { transform:scaleY(0); opacity:1; } 62% { transform:scaleY(1.6); opacity:1; } 80% { transform:scaleY(1.6) translateY(40px); opacity:0; } 100% { opacity:0; } }
   @keyframes hint { 0%,100% { opacity:0; } 20%,70% { opacity:1; } }
   @media (orientation:portrait){ .fwrap { flex-direction:column; } .cam { width:min(56vw,34vh); } .fsteps { width:min(86vw,620px); } }
+  #lagScreen { position:fixed; inset:0; z-index:20; background:#000; display:none; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:6vh; }
+  #lagScreen.show { display:flex; }
+  #lagVid { position:absolute; top:3vh; right:3vw; width:160px; opacity:.35; border-radius:10px; }
+  #lagMsg { color:#777; font:600 20px "Source Sans 3",sans-serif; margin:0; }
   #count { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:var(--bg); z-index:5; }
   #cnum { font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:#f9eed5; line-height:1;
     font-size:min(40vw,52vh); position:relative; top:.225em; text-shadow:0 6px 24px rgba(0,0,0,.18); display:inline-block; }
@@ -228,6 +232,7 @@
   <p class="fstat" id="fStat">Waiting for new film…</p>
   <button id="fDone">New film is in</button>
 </div>
+<div id="lagScreen"><video id="lagVid" playsinline muted autoplay></video><p id="lagMsg">Getting ready…</p><canvas id="lagCan" width="64" height="48" hidden></canvas></div>
 <button id="gear" aria-label="Settings">settings</button>
 
 <div id="panel">
@@ -244,7 +249,8 @@
         <button id="repair">Re-pair</button>
       </div>
       <label>Demo mode (camera won't fire)</label><div class="seg" data-for="demo" data-opts="off:Off,on:On"></div>
-      <div class="btns"><button id="previewFilm">Preview film-change screen</button></div>
+      <div class="btns"><button id="previewFilm">Preview film-change screen</button><button id="measureLag">Measure camera lag (uses 1 photo)</button></div>
+      <p class="result" id="lagResult"></p>
     </section>
     <section class="card">
       <h3>Guest flow</h3>
@@ -659,6 +665,38 @@ function applyDemo(){
   else setStatus('Camera ready', true);
 }
 document.querySelector('.seg[data-for=demo]').addEventListener('click', applyDemo); applyDemo();
+async function measureLag(){
+  const res=$('lagResult'), scr=$('lagScreen'), msg=$('lagMsg'), vid=$('lagVid'), can=$('lagCan'), ctx=can.getContext('2d',{willReadFrequently:true});
+  const show=(cls,t)=>{ res.className='result '+cls; res.textContent=t; };
+  if (isDemo()) return show('bad','Turn Demo mode off first.');
+  if (!rx) return show('bad','Connect the camera first.');
+  if (outOfFilm()) return show('bad','No film in the camera.');
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user', frameRate:{ ideal:60 }, width:{ ideal:640 } }, audio:false }); }
+  catch(e){ return show('bad','No camera access ('+e.name+'). Rebuild the app from Xcode, then allow camera.'); }
+  $('panel').style.display='none'; scr.classList.add('show'); vid.srcObject=stream; await vid.play().catch(()=>{});
+  const bright=()=>{ ctx.drawImage(vid,0,0,64,48); const d=ctx.getImageData(0,0,64,48).data; let t=0; for(let i=0;i<d.length;i+=4) t+=d[i]+d[i+1]+d[i+2]; return t/(d.length/4*3); };
+  const frame=()=>new Promise(r=> vid.requestVideoFrameCallback ? vid.requestVideoFrameCallback(()=>r(performance.now())) : requestAnimationFrame(()=>r(performance.now())));
+  try {
+    msg.textContent='Hold still. Measuring the room…';
+    await ensureMode();
+    let base=[]; const tb=performance.now(); while (performance.now()-tb<1500){ await frame(); base.push(bright()); }
+    const mean=base.reduce((a,b)=>a+b,0)/base.length, sd=Math.sqrt(base.reduce((a,b)=>a+(b-mean)**2,0)/base.length);
+    const thresh=mean+Math.max(12, sd*6);
+    msg.textContent='Firing…';
+    const sentAt=performance.now(); await send(CMD.SHUTTER);
+    let hitAt=0, peak=0;
+    while (performance.now()-sentAt<3000){ const t=await frame(); const b=bright(); if (b>peak) peak=b; if (!hitAt && b>thresh){ hitAt=t; } if (hitAt && performance.now()-hitAt>300) break; }
+    stream.getTracks().forEach(t=>t.stop()); scr.classList.remove('show'); $('panel').style.display='flex';
+    if (!hitAt) return show('bad','Did not see the flash (room '+mean.toFixed(0)+', peak '+peak.toFixed(0)+'). Try with the room a bit darker.');
+    const lag=Math.round(hitAt-sentAt);
+    log('Lag test: flash seen '+lag+'ms after fire command (room '+mean.toFixed(0)+', flash '+peak.toFixed(0)+')');
+    res.className='result ok'; res.innerHTML='✓ Camera lag: <b>'+lag+' ms</b> (±17ms) <button id="useLag" style="margin-left:12px">Use this</button>';
+    $('useLag').onclick=()=>{ store.set('lagMeasured',lag); $('sdelay').value='auto'; store.set('sdelay','auto'); document.querySelector('.seg[data-for=sdelay]').paint(); res.textContent='✓ Saved. Booth now fires '+lag+' ms early (Auto).'; };
+    setTimeout(()=>send(CMD.STATUS).catch(()=>{}), 3000);
+  } catch(e){ try{ stream.getTracks().forEach(t=>t.stop()); }catch(_){} scr.classList.remove('show'); $('panel').style.display='flex'; show('bad','Test failed: '+e.message); }
+}
+$('measureLag').onclick = measureLag;
 $('previewFilm').onclick = ()=>{ $('panel').style.display='none'; $('filmScreen').classList.add('show'); runFilmSteps(true); };
 const syncCd=()=>$('cdText').textContent=$('cd').value; syncCd(); document.querySelector('.seg[data-for=cd]').addEventListener('click',syncCd);
 $('minus').onclick=()=>{ store.set('shots',Math.max(0,+store.get('shots',8)-1)); showFilm(); };
