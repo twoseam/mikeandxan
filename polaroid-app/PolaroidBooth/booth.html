@@ -76,8 +76,10 @@
     font-size:clamp(40px,min(5.5vw,8vh),76px); line-height:1.2; padding-top:.08em; text-shadow:0 4px 18px rgba(0,0,0,.18);
     opacity:0; transform:scale(.9); transition:opacity .5s ease, transform .5s cubic-bezier(.2,.9,.3,1.3); }
   .afinal.in { opacity:1; transform:none; }
-  #filmScreen { position:fixed; inset:0; z-index:7; background:var(--bg); display:none; flex-direction:column; align-items:center; justify-content:center; gap:3.5vh; padding:5vh 5vw; text-align:center; }
+  #filmScreen { position:fixed; inset:0; z-index:7; background:var(--bg); display:none; flex-direction:column; align-items:center; justify-content:center; gap:2.2vh; padding:3vh 5vw; text-align:center; }
   #filmScreen.show { display:flex; }
+  #fNext { font:inherit; font-weight:700; font-size:clamp(22px,2.6vw,32px); padding:.45em 2em .5em; border:0; border-radius:999px; background:#fffaf2; color:var(--berry); box-shadow:0 6px 0 #e3c9b8; }
+  #fNext:active { transform:translateY(5px); box-shadow:0 1px 0 #e3c9b8; }
   .fhead { margin:0; font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:#f9eed5;
     font-size:clamp(40px,min(5.5vw,8vh),76px); line-height:1.2; padding-top:.08em; text-shadow:0 4px 18px rgba(0,0,0,.18); }
   .fsteps li { font-size:clamp(20px,min(2.4vw,3.6vh),30px); padding:1.8vh 26px; }
@@ -225,10 +227,11 @@
     <ol class="alist fsteps" id="fSteps">
       <li class="in"><b>1</b><span>Press the film door button and pull the door open</span></li>
       <li class="in"><b>2</b><span>Pull the empty pack out by its tab</span></li>
-      <li class="in"><b>3</b><span>Slide in a new pack, black side up, tab toward you, until it clicks</span></li>
+      <li class="in"><b>3</b><span>Slide in the new pack: flat cover sheet up, little tab toward you. Push until it clicks</span></li>
       <li class="in"><b>4</b><span>Close the door. Take out the black sheet that pops out</span></li>
     </ol>
   </div>
+  <button id="fNext">Next</button>
   <p class="fstat" id="fStat">Waiting for new film…</p>
   <button id="fDone">New film is in</button>
 </div>
@@ -291,7 +294,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '60';
+const BOOTH_VERSION = '61';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -395,11 +398,14 @@ let fTimer=null, fStep=1;
 function runFilmSteps(on){
   const art=$('camArt'), items=[...document.querySelectorAll('#fSteps li')];
   const paint=()=>{ art.dataset.step=fStep; items.forEach((li,i)=>li.classList.toggle('cur', i===fStep-1)); };
-  if (on && !fTimer){ fStep=1; paint(); fTimer=setInterval(()=>{ fStep = fStep%4+1; paint(); }, 3400); }
-  if (!on && fTimer){ clearInterval(fTimer); fTimer=null; }
+  const nx=$('fNext');
+  if (on && !fTimer){ fTimer=true; fStep=1; paint(); nx.textContent='Next'; }
+  if (!on){ fTimer=null; }
+  nx.onclick=()=>{ fStep = fStep%4+1; paint(); nx.textContent = fStep===4 ? 'Start over' : 'Next'; };
 }
 function checkFilmScreen(){
   const scr=$('filmScreen');
+  if ($('afterScreen').classList.contains('show')) return;
   if (outOfFilm()) { scr.classList.add('show'); runFilmSteps(true); $('fStat').textContent = cam.door==='open' ? 'Door is open. Swap the pack.' : 'Waiting for new film…'; }
   else if (scr.classList.contains('show')) {
     if (cam.film==='slide') { $('fStat').textContent='Almost! Take out the black sheet.'; }
@@ -555,6 +561,7 @@ async function afterShot(){
   await new Promise(res=>{ const t=setTimeout(res,45000); done.onclick=()=>{ clearTimeout(t); res(); }; });
   done.onclick=null; done.classList.remove('in');
   scr.classList.remove('show','phase2');
+  checkFilmScreen();
 }
 
 const isDemo=()=>$('demo').value==='on';
