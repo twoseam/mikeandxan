@@ -25,6 +25,11 @@
   #connect { padding:28px 56px; font-size:clamp(24px,3vw,36px); border-radius:999px; background:var(--cream); color:var(--bg); font-weight:700; }
   #count { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(241,88,38,.95); font-family:"Caprasimo",Georgia,serif;
     font-size:min(60vw,60vh); line-height:1; color:var(--cream); z-index:5; }
+  .steps { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(4,1fr); gap:14px; width:min(92vw,1000px); }
+  .steps li { display:flex; flex-direction:column; align-items:center; gap:8px; font-size:clamp(16px,2vw,22px); line-height:1.2; color:#fff; }
+  .steps b { width:44px; height:44px; border-radius:50%; background:var(--cream); color:var(--bg); display:flex; align-items:center; justify-content:center;
+    font-family:"Caprasimo",Georgia,serif; font-weight:400; font-size:22px; }
+  .steps em { font-style:normal; }
   #film { color:var(--soft); font-size:clamp(16px,2vw,24px); }
   #dot { display:inline-block; width:.6em; height:.6em; border-radius:50%; background:var(--soft); opacity:.5; margin-right:.4em; vertical-align:middle; }
   #dot.on { background:#7ee08a; opacity:1; }
@@ -66,6 +71,12 @@
 <main>
   <h1 id="title">Say cheese</h1>
   <p class="sub" id="status"><span id="dot"></span><span id="statusText">Camera not connected</span></p>
+  <ol class="steps" id="steps">
+    <li><b>1</b><span>Stand inside the box on the floor</span></li>
+    <li><b>2</b><span>Press the button</span></li>
+    <li><b>3</b><span><em id="cdText">5</em> second countdown</span></li>
+    <li><b>4</b><span>Your photo takes 15 min to develop</span></li>
+  </ol>
   <button id="connect">Connect camera</button>
   <button id="shoot" style="display:none">Take a photo</button>
   <p id="film"></p>
@@ -296,6 +307,7 @@ document.querySelectorAll('.seg').forEach(seg=>{
   seg.paint=paint; paint();
 });
 refreshManual();
+const syncCd=()=>$('cdText').textContent=$('cd').value; syncCd(); document.querySelector('.seg[data-for=cd]').addEventListener('click',syncCd);
 $('minus').onclick=()=>{ store.set('shots',Math.max(0,+store.get('shots',8)-1)); showFilm(); };
 $('plus').onclick=()=>{ store.set('shots',Math.min(8,+store.get('shots',8)+1)); showFilm(); };
 $('xsend').onclick = ()=>{ const m=$('xmode').value; if(m!=='manual'){ log('Exposure is on Auto, nothing sent.'); return; } applyExposure().catch(e=>log('Send failed: '+e)); };
