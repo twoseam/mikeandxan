@@ -178,9 +178,9 @@
     <ol class="alist" id="aList">
       <li><b>1</b><span>Lift the flap, slide the photo out</span></li>
       <li><b>2</b><span>Place it face down</span></li>
-      <li><b>3</b><span>No shaking <small>(sorry, OutKast)</small></span></li>
+      <li><b>3</b><span>Allow to develop for 10–15 min</span></li>
+      <li><b>4</b><span>No shaking <small>(sorry, OutKast)</small></span></li>
     </ol>
-    <p class="afinal" id="aFinal">Ready in 10–15 minutes!</p>
   </div>
 </div>
 <div id="filmScreen">
@@ -442,15 +442,15 @@ function showFilm(){
 }
 
 async function afterShot(){
-  const scr=$('afterScreen'), num=$('aNum'), ring=$('arfg'), items=[...document.querySelectorAll('#aList li')], fin=$('aFinal');
-  items.forEach(li=>li.classList.remove('in')); fin.classList.remove('in');
+  const scr=$('afterScreen'), num=$('aNum'), ring=$('arfg'), items=[...document.querySelectorAll('#aList li')];
+  items.forEach(li=>li.classList.remove('in'));
   scr.classList.remove('phase2'); scr.classList.add('show');
   ring.classList.remove('run'); void ring.getBoundingClientRect();
   requestAnimationFrame(()=>requestAnimationFrame(()=>ring.classList.add('run')));
   for (let n=10;n>0;n--){ num.textContent=n; num.classList.remove('tick'); void num.offsetWidth; num.classList.add('tick'); await wait(1000); }
   scr.classList.add('phase2');
   for (const li of items){ await wait(250); li.classList.add('in'); await wait(2300); }
-  fin.classList.add('in'); await wait(4500);
+  await wait(3500);
   scr.classList.remove('show','phase2');
 }
 
