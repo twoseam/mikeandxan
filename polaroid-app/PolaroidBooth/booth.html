@@ -296,7 +296,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '69';
+const BOOTH_VERSION = '70';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -768,7 +768,8 @@ async function meterTest(){
     if (!a || !b || !a.length || !b.length) { r.className='result bad'; r.textContent='Meter gave empty readings. Point the camera at a normally lit spot (not a window) and try again.'; return; }
     const ratio = b.reduce((x,y)=>x+y,0) / a.reduce((x,y)=>x+y,0);
     r.className = ratio>1.5 ? 'result ok' : 'result bad';
-    r.textContent = 'At 0: '+a.join(', ')+' · At +2: '+b.join(', ')+' → '+(ratio>1.5 ? '✓ Brightness changes the meter ('+ratio.toFixed(1)+'× longer).' : '✗ No real change ('+ratio.toFixed(2)+'×). Camera may ignore brightness.');
+    const stops=Math.log2(ratio);
+    r.textContent = ratio>1.5 ? '✓ Working. At +2 the camera lets in '+ratio.toFixed(1)+'× more light ('+stops.toFixed(1)+' stops brighter) than at 0.' : '✗ Not working. +2 made no real difference, so the camera seems to ignore brightness.';
   } catch(e){ $('xev').value=keep; r.className='result bad'; r.textContent='Test failed: '+e.message; }
 }
 async function withResult(btn, label, fn){
