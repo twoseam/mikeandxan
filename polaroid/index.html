@@ -291,7 +291,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '58';
+const BOOTH_VERSION = '59';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -315,6 +315,7 @@ const RESPONSES = {1:'pairing reply',4:'camera status',6:'mode updated',8:'mode 
 let device, rx, format = null, lastRx = 0, lastRxType = -1;
 const $ = id => document.getElementById(id);
 const store = { get:(k,d)=>{ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } },
+if (store.get('lagCal','')!=='759'){ store.set('lagCal','759'); store.set('lagMeasured',759); store.set('lagLocked','1'); store.set('lagReal','1'); store.set('sdelay','auto'); }
                 set:(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} } };
 
 function log(msg){ const t=new Date().toTimeString().slice(0,8); const line=t+'  '+msg+'\n'; $('log').textContent += line; $('log').scrollTop=1e9;
@@ -621,7 +622,8 @@ async function shoot(){
   // Learn the real lag from the camera's "photo taken" message, if it sends one.
   if (!isDemo() && sentAt) {
     const t0=sentAt; while (Date.now()-t0<2500 && !(lastExposure>=t0)) await wait(15);
-    if (lastExposure>=t0) { const m=lastExposure-t0, hasReal=store.get('lagReal','')==='1', prev=+store.get('lagMeasured',600), next=hasReal ? Math.round(prev*0.5+m*0.5) : m; store.set('lagReal','1');
+    if (lastExposure>=t0 && store.get('lagLocked','')==='1') { log('Camera reported done '+(lastExposure-t0)+'ms after fire command (lag stays '+store.get('lagMeasured',759)+'ms from the iPad test)'); }
+    else if (lastExposure>=t0) { const m=lastExposure-t0, hasReal=store.get('lagReal','')==='1', prev=+store.get('lagMeasured',600), next=hasReal ? Math.round(prev*0.5+m*0.5) : m; store.set('lagReal','1');
       store.set('lagMeasured', next); log('Camera exposed '+m+'ms after fire command. Auto lag now '+next+'ms'); }
     else log('No exposure message from camera, so auto lag stays '+lag+'ms');
   }
@@ -718,7 +720,7 @@ async function measureLag(){
     const lag=Math.round(hitAt-sentAt);
     log('Lag test: flash seen '+lag+'ms after fire command (room '+mean.toFixed(0)+', flash '+peak.toFixed(0)+')');
     res.className='result ok'; res.innerHTML='✓ Camera lag: <b>'+lag+' ms</b> (±17ms) <button id="useLag" style="margin-left:12px">Use this</button>';
-    $('useLag').onclick=()=>{ store.set('lagMeasured',lag); $('sdelay').value='auto'; store.set('sdelay','auto'); document.querySelector('.seg[data-for=sdelay]').paint(); res.textContent='✓ Saved. Booth now fires '+lag+' ms early (Auto).'; };
+    $('useLag').onclick=()=>{ store.set('lagMeasured',lag); store.set('lagLocked','1'); $('sdelay').value='auto'; store.set('sdelay','auto'); document.querySelector('.seg[data-for=sdelay]').paint(); res.textContent='✓ Saved. Booth now fires '+lag+' ms early (Auto).'; };
     setTimeout(()=>send(CMD.STATUS).catch(()=>{}), 3000);
   } catch(e){ try{ stream.getTracks().forEach(t=>t.stop()); }catch(_){} scr.classList.remove('show'); $('panel').style.display='flex'; show('bad','Test failed: '+e.message); }
 }
