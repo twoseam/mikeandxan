@@ -433,7 +433,12 @@ async function connect(){
   } catch(err){ log('Connect failed: '+err); setStatus('Not connected. Tap Connect to try again.'); }
 }
 
+let linking=false;
 async function openLink(){
+  if (linking) return; linking=true;
+  try { return await openLinkInner(); } finally { linking=false; }
+}
+async function openLinkInner(){
   setStatus('Connecting…');
   const gatt = await device.gatt.connect();
   const svc = await gatt.getPrimaryService(SVC);
@@ -523,12 +528,21 @@ $('repair').onclick = ()=> pair().catch(e=>log('Pair failed: '+e));
 $('probe').onclick = async ()=>{
   if (!rx) { log('Connect first.'); return; }
   const cur = await readMode(); if (!cur) return;
+  const base = cur.slice(); base[0]=1; base[1]=2;            // manual, keep the camera's other values
+  const setShut=(x,ms)=>{ x[8]=ms&255; x[9]=(ms>>8)&255; x[10]=0; x[11]=0; return x; };
   const tests = [
-    ['A: send current back', cur.slice()],
-    ['B: mode -> auto', (()=>{ const x=cur.slice(); x[0]=0; x[1]=0; return x; })()],
-    ['C: mode -> manual', (()=>{ const x=cur.slice(); x[0]=1; x[1]=2; return x; })()],
+    ['1 manual base', base.slice()],
+    ['2 shutter 1/125', setShut(base.slice(),8)],
+    ['3 shutter 1/60', setShut(base.slice(),17)],
+    ['4 aperture f/22', (()=>{ const x=base.slice(); x[7]=4; return x; })()],
+    ['5 aperture f/11', (()=>{ const x=base.slice(); x[7]=7; return x; })()],
+    ['6 flash 1/2', (()=>{ const x=base.slice(); x[4]=9; return x; })()],
+    ['7 flash 1/6', (()=>{ const x=base.slice(); x[4]=2; return x; })()],
+    ['8 lens close-up', (()=>{ const x=base.slice(); x[6]=0; return x; })()],
+    ['9 auto, as-is', (()=>{ const x=cur.slice(); x[0]=0; x[1]=0; return x; })()],
   ];
-  for (const [name, pl] of tests){ const r = await sendMode(pl); const after = await readMode(); log('TEST '+name+': '+(r===true?'ACCEPTED':r===false?'REJECTED':'no reply')+' | now: '+(after?describeMode(after):'?')); await wait(300); }
+  for (const [name, pl] of tests){ const r = await sendMode(pl); log('TEST '+name+': '+(r===true?'ACCEPTED':r===false?'REJECTED':'no reply')); await wait(250); }
+  const after = await readMode(); log('TEST done. Camera now: '+(after?describeMode(after):'?'));
 };
 $('copy').onclick = ()=>{ try{ navigator.clipboard.writeText($('log').textContent); }catch(e){} };
 for (const id of ['cd','cool','xmode','xshut','xap','xfl','xlens']){ const v=store.get(id,null); if(v!==null) $(id).value=v; }
