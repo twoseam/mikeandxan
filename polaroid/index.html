@@ -278,7 +278,7 @@
       </div>
       <p class="hint" id="autoHint">Camera meters and fires its own flash.</p>
       <label>Brightness (exposure compensation)</label><div class="evrow"><span class="evend">Darker</span><input type="range" id="evSlider" min="-6" max="6" step="1" value="0"><span class="evend">Brighter</span><output id="evOut">0</output></div>
-      <div class="btns"><button id="xread">Read camera (changes nothing)</button><button id="xcheck">Check &amp; fix camera mode</button></div>
+      <div class="btns"><button id="xread">Read camera (changes nothing)</button><button id="xcheck">Check &amp; fix camera mode</button><button id="xmeter">Test light meter (no photo)</button></div>
       <p class="result" id="xresult"></p>
       <p class="hint" id="camReport">Camera reports: not checked yet</p>
     </section>
@@ -296,7 +296,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '66';
+const BOOTH_VERSION = '67';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -308,6 +308,7 @@ const CMD = {
   SHUTTER: [9, 0],
   MODE_GET:[7, 0],
   MODE_SET:[5, 16],
+  METER:   [31, 0],   // asks what exposure it would use right now (Polaroid app: EXPO_COMBINATION). Does not fire.
 };
 const SHUT = {5:'1/200',8:'1/125',17:'1/60',33:'1/30',67:'1/15',125:'1/8',250:'1/4',500:'1/2',1000:'1"',2000:'2"',4000:'4"',8000:'8"',15000:'15"',30000:'30"'};
 const AP = {7:'f/11',6:'f/13',5:'f/16',4:'f/22',3:'f/32',2:'f/64'};
@@ -315,7 +316,7 @@ const FL = {0:'off',2:'1/6',3:'1/4',9:'1/2',20:'3/4',100:'full'};
 const MODES = ['auto','manual','self-timer','portrait','double exp','light painting','color painting','tripod','aperture priority','program'];
 const LENS = ['close-up','far','camera picks'];
 const PAIR_PAYLOAD = [0,0,0,0,0,0,0,1];
-const RESPONSES = {1:'pairing reply',4:'camera status',6:'mode updated',8:'mode data',10:'film ejected',12:'exposure done',14:'command reply',33:'status (auto)',34:'mode (auto)'};
+const RESPONSES = {1:'pairing reply',4:'camera status',6:'mode updated',8:'mode data',10:'film ejected',12:'exposure done',14:'command reply',33:'status (auto)',34:'mode (auto)',32:'meter reading',35:'meter reading (auto)'};
 
 let device, rx, format = null, lastRx = 0, lastRxType = -1;
 const $ = id => document.getElementById(id);
@@ -341,7 +342,7 @@ function packet([type,size], payload=[], fmt){
 
 // One command at a time: the camera drops requests sent back to back.
 // Wait for its reply (or a short timeout), then a small gap, before the next command.
-const REPLY_FOR = {0:1, 3:4, 7:8, 5:6};
+const REPLY_FOR = {0:1, 3:4, 7:8, 5:6, 31:32};
 let sendChain = Promise.resolve();
 function send(cmd, payload, fmt){
   const job = sendChain.then(async ()=>{
@@ -370,6 +371,7 @@ function onData(e){
   const type = format==='B'?tB:tA;
   if (type===12 || type===10) { lastExposure=Date.now(); }
   if (type===12 && v.length>=15){ const ms=v[11]|(v[12]<<8)|(v[13]<<16)|(v[14]<<24); const lens={0:'close-up',1:'far'}[v[6]]??('code '+v[6]); log('   camera used: aperture '+(AP[v[8]]||('code '+v[8]))+', shutter '+ms+' (likely ms), lens '+lens+', photo #'+(v[3]|(v[4]<<8))); }
+  if ((type===32 || type===35) && v.length>=8){ const ms=v[3]|(v[4]<<8)|(v[5]<<16)|(v[6]<<24); lastMeter={ms, ap:v[7], at:Date.now()}; log('   camera would use: shutter '+ms+'ms, aperture '+(AP[v[7]]||('code '+v[7]))); }
   if (type===4 || type===33) parseStatus(v);
   if (type===6) { lastUpdate={ ok: v[3]===1, at:Date.now() }; log('   camera says: '+(v[3]===1?'SUCCESS':'FAILURE')); }
   if (type===8 || type===34){ const pl = format==='B' ? v.slice(3) : v.slice(3, v.length-1); camMode={raw:Array.from(pl), at:Date.now()}; const d=describeMode(pl); log('   camera settings: '+d); $('camReport').textContent='Camera reports: '+d; }
@@ -569,7 +571,7 @@ async function afterShot(){
 }
 
 const isDemo=()=>$('demo').value==='on';
-let lastExposure=0, fireReason='';
+let lastExposure=0, fireReason='', lastMeter=null;
 let actx=null;
 function shutterSound(){
   if ($('snd').value!=='on') return;
@@ -748,6 +750,18 @@ $('previewFilm').onclick = ()=>{ $('panel').style.display='none'; $('filmScreen'
 const syncCd=()=>$('cdText').textContent=$('cd').value; syncCd(); document.querySelector('.seg[data-for=cd]').addEventListener('click',syncCd);
 $('minus').onclick=()=>{ store.set('shots',Math.max(0,+store.get('shots',8)-1)); showFilm(); };
 $('plus').onclick=()=>{ store.set('shots',Math.min(8,+store.get('shots',8)+1)); showFilm(); };
+async function meterTest(){
+  const r=$('xresult');
+  if (isDemo()) { r.className='result bad'; r.textContent='Demo mode is on.'; return; }
+  if (!rx) { r.className='result bad'; r.textContent='Camera not connected.'; return; }
+  r.className='result busy'; r.textContent='Asking the camera…';
+  await ensureMode(); lastMeter=null; const t=Date.now();
+  await send(CMD.METER).catch(()=>{});
+  while (!lastMeter && Date.now()-t<1500) await wait(50);
+  const ev=$('evOut').textContent;
+  if (!lastMeter) { r.className='result bad'; r.textContent='Camera gave no meter reading.'; return; }
+  r.className='result ok'; r.textContent='At brightness '+ev+': camera would use shutter '+lastMeter.ms+' ms, aperture '+(AP[lastMeter.ap]||('code '+lastMeter.ap))+'. Change brightness and test again to compare.';
+}
 async function withResult(btn, label, fn){
   const r=$('xresult'), b=$(btn), old=b.textContent;
   if (isDemo()) { r.className='result bad'; r.textContent='Demo mode is on. Turn it off to talk to the camera.'; return; }
@@ -761,6 +775,7 @@ async function withResult(btn, label, fn){
   b.disabled=false; b.textContent=old;
 }
 $('xsend').onclick = ()=> withResult('xsend','Sending…', ensureMode);
+$('xmeter').onclick = meterTest;
 $('xcheck').onclick = ()=> withResult('xcheck','Checking…', ensureMode);
 $('xread').onclick = ()=> withResult('xread','Reading…', async()=>!!(await readMode()));
 
