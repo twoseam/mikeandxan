@@ -405,7 +405,7 @@ async function ensureMode(){
     ['aperture', x=>{ x[7]=want[7]; }],
     ['flash',    x=>{ x[2]=want[2]; x[4]=want[4]; }],
     ['lens',     x=>{ x[6]=want[6]; }],
-  ] : [ ['mode', x=>{ x[0]=0; x[1]=0; }] ];
+  ] : [ ['mode', x=>{ x[0]=0; x[1]=0; }], ['flash', x=>{ x[2]=1; x[4]=100; }] ];
   const bad=[];
   for (const [name, change] of steps){
     const next=cur.slice(); change(next);
@@ -414,7 +414,7 @@ async function ensureMode(){
     if (ok) cur=next; else { bad.push(name); log('Camera rejected '+name+' change'); }
   }
   const got = await readMode();
-  const ok = manual ? (got && [0,2,4,6,7,8,9,10,11].every(i=>got[i]===want[i])) : (got && got[0]===0);
+  const ok = manual ? (got && [0,2,4,6,7,8,9,10,11].every(i=>got[i]===want[i])) : (got && got[0]===0 && got[2]===1 && got[4]===100);
   if (!ok) { modeProblem = bad.length ? 'camera rejected: '+bad.join(', ') : 'settings did not stick'; setStatus('Check camera mode in setup', true); }
   log(ok ? 'Mode confirmed: '+describeMode(got) : 'Mode NOT confirmed ('+modeProblem+')');
   return ok;
