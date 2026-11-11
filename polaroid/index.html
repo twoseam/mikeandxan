@@ -16,7 +16,7 @@
     font-family: "Source Sans 3",-apple-system,Helvetica,sans-serif; overflow:hidden; }
   h1 { font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-weight:600; font-style:italic; font-feature-settings:"liga" 1,"dlig" 1,"clig" 1,"calt" 1; font-size:clamp(56px,min(9vw,12vh),110px); line-height:1.05; margin:0; letter-spacing:-.01em; color:#f9eed5; text-shadow:0 2px 8px rgba(0,0,0,.18); }
   button { font-family:inherit; border:0; cursor:pointer; }
-  main { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5vh; padding:9vh 4vw 5vh; text-align:center; }
+  main { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7vh; padding:9vh 4vw 6vh; text-align:center; }
   .topbar { position:fixed; top:3vh; left:4vw; right:4vw; width:auto; display:flex; justify-content:space-between; gap:12px; padding-right:70px; }
   .pill { display:inline-flex; align-items:center; gap:.5em; padding:10px 18px; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-weight:600; font-size:clamp(15px,1.8vw,19px); }
   .pill:empty { display:none; }
@@ -24,9 +24,9 @@
   #dot.on { background:#7ee08a; opacity:1; box-shadow:0 0 0 4px rgba(126,224,138,.25); }
   .stage { display:flex; align-items:center; justify-content:center; width:100%; padding-bottom:12px; }
   #shoot { display:inline-flex; align-items:center; justify-content:center; gap:.5em; padding:.55em 1.5em .62em;
-    min-width:min(84vw,700px); border-radius:999px; background:#fffaf2; color:var(--berry);
+    min-width:min(70vw,520px); border-radius:999px; background:#fffaf2; color:var(--berry);
     font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-weight:600; font-style:italic; letter-spacing:-.01em;
-    font-feature-settings:"liga" 1,"dlig" 1,"clig" 1,"calt" 1; font-size:clamp(44px,min(8vw,8vh),96px); line-height:1;
+    font-feature-settings:"liga" 1,"dlig" 1,"clig" 1,"calt" 1; font-size:clamp(36px,min(5.5vw,6.5vh),68px); line-height:1;
     box-shadow:0 12px 0 #e3c9b8, 0 26px 50px rgba(110,30,10,.35); transition:transform .08s, box-shadow .08s;
     animation:breathe 2.6s ease-in-out infinite; }
   #shoot:active { transform:translateY(10px); box-shadow:0 2px 0 #e3c9b8, 0 8px 20px rgba(110,30,10,.3); animation:none; }
@@ -41,7 +41,7 @@
   #connect { padding:28px 56px; font-size:clamp(24px,3vw,36px); border-radius:999px; background:#fffaf2; color:var(--bg); font-weight:700; box-shadow:0 16px 40px rgba(110,30,10,.3); }
   .steps { list-style:none; margin:0; padding:24px 22px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:min(90vw,860px);
     background:rgba(255,255,255,.12); border-radius:24px; }
-  .steps li { display:flex; flex-direction:column; align-items:center; gap:14px; font-weight:600; font-size:clamp(18px,2.4vw,24px); line-height:1.2; color:#fff; padding:0 6px; }
+  .steps li { display:flex; flex-direction:column; align-items:center; gap:14px; font-weight:600; font-size:clamp(20px,min(2.6vw,3.4vh),28px); line-height:1.2; color:#fff; padding:0 6px; }
   .steps li + li { border-left:1px solid rgba(255,255,255,.22); }
   .steps b { width:44px; height:44px; border-radius:50%; background:#fffaf2; color:var(--bg); display:flex; align-items:center; justify-content:center; font-size:21px; font-weight:700; }
   .steps em { font-style:normal; }
@@ -127,7 +127,6 @@
     <span class="pill" id="status"><span id="dot"></span><span id="statusText">Camera not connected</span></span>
     <span class="pill" id="film"></span>
   </div>
-  <h1 id="title">Say cheese</h1>
   <ol class="steps" id="steps">
     <li><b>1</b><span>Press the button</span></li>
     <li><b>2</b><span><em id="cdText">5</em>-second timer</span></li>
