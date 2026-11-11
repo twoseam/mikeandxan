@@ -129,8 +129,8 @@
   </div>
   <h1 id="title">Say cheese</h1>
   <ol class="steps" id="steps">
-    <li><b>1</b><span>Stand in the box on the floor</span></li>
-    <li><b>2</b><span>Tap the button below</span></li>
+    <li><b>1</b><span>Press the button</span></li>
+    <li><b>2</b><span><em id="cdText">5</em>-second timer</span></li>
   </ol>
   <div class="stage">
     <button id="connect">Connect camera</button>
@@ -398,6 +398,7 @@ document.querySelectorAll('.seg').forEach(seg=>{
   seg.paint=paint; paint();
 });
 refreshManual();
+const syncCd=()=>$('cdText').textContent=$('cd').value; syncCd(); document.querySelector('.seg[data-for=cd]').addEventListener('click',syncCd);
 $('minus').onclick=()=>{ store.set('shots',Math.max(0,+store.get('shots',8)-1)); showFilm(); };
 $('plus').onclick=()=>{ store.set('shots',Math.min(8,+store.get('shots',8)+1)); showFilm(); };
 $('xsend').onclick = ()=>{ const m=$('xmode').value; if(m!=='manual'){ log('Exposure is on Auto, nothing sent.'); return; } applyExposure().catch(e=>log('Send failed: '+e)); };
