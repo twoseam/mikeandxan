@@ -317,7 +317,9 @@ const $ = id => document.getElementById(id);
 const store = { get:(k,d)=>{ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } },
                 set:(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} } };
 
-function log(msg){ const t=new Date().toTimeString().slice(0,8); $('log').textContent += t+'  '+msg+'\n'; $('log').scrollTop=1e9; }
+function log(msg){ const t=new Date().toTimeString().slice(0,8); const line=t+'  '+msg+'\n'; $('log').textContent += line; $('log').scrollTop=1e9;
+  try { let h=localStorage.getItem('logHist')||''; h+=line; if (h.length>60000) h=h.slice(-50000); localStorage.setItem('logHist',h); } catch(e){} }
+(function(){ try { const h=localStorage.getItem('logHist'); if (h) $('log').textContent = h + '—— app reopened ——\n'; } catch(e){} })();
 const hex = a => Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join(' ');
 function setStatus(text, on){ $('statusText').textContent=text; $('dot').classList.toggle('on',!!on); $('pconn').textContent=text; $('pdot').classList.toggle('on',!!on); }
 
