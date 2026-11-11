@@ -295,7 +295,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '72';
+const BOOTH_VERSION = '73';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -570,7 +570,7 @@ async function afterShot(){
   // Stay up until a guest taps "Got it!", or 45 seconds pass.
   await new Promise(res=>{ const t=setTimeout(res,45000); done.onclick=()=>{ clearTimeout(t); res(); }; });
   done.onclick=null; done.classList.remove('in');
-  scr.classList.remove('show','phase2');
+  scr.classList.remove('show','phase2'); afterClosedAt=Date.now();
   checkFilmScreen();
 }
 
@@ -610,7 +610,9 @@ function beep(freq, ms, vol=0.35, type='sine'){
     o.start(t); o.stop(t+ms/1000+0.02);
   } catch(e){}
 }
+let afterClosedAt=0;
 async function shoot(){
+  if (Date.now()-afterClosedAt < 2000) { log('Ignored tap right after Finished'); return; }
   if (!rx && !isDemo()) return;
   if (!isDemo() && outOfFilm()) { checkFilmScreen(); return; }
   $('shoot').disabled = true;
