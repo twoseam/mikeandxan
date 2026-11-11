@@ -142,6 +142,10 @@
   #shotsBig { font-family:"Caprasimo",Georgia,serif; font-size:40px; min-width:44px; text-align:center; color:var(--bg); }
   .film #newpack { margin-left:auto; }
   .hint { color:#a0938a; margin:14px 0 0; font-size:16px; }
+  .result { margin:12px 0 0; padding:12px 16px; border-radius:12px; font-weight:600; font-size:16px; display:none; }
+  .result.ok { display:block; background:#e4f4e8; color:#2c7a45; }
+  .result.bad { display:block; background:#fde6e1; color:#b23a1d; }
+  .result.busy { display:block; background:#f3ebe0; color:#7a6e64; }
   .diag { background:#fff; border-radius:22px; padding:16px 24px; }
   .diag summary { font-weight:600; color:#a0938a; cursor:pointer; }
   .fmt { color:#a0938a; } .fmt select { font-size:16px; padding:8px; border-radius:10px; border:1px solid #e5dccf; background:#fff; }
@@ -176,11 +180,11 @@
   </div>
   <div class="asteps">
     <ol class="alist" id="aList">
-      <li><b>1</b><span>Remove photo from camera</span></li>
+      <li><b>1</b><span>Lift the flap, slide the photo out</span></li>
       <li><b>2</b><span>Place it face down</span></li>
-      <li><b>3</b><span>No shaking <small>(sorry, OutKast)</small></span></li>
+      <li><b>3</b><span>Allow to develop for 10–15 min</span></li>
+      <li><b>4</b><span>No shaking <small>(sorry, OutKast)</small></span></li>
     </ol>
-    <p class="afinal" id="aFinal">Ready in 10–15 minutes!</p>
   </div>
 </div>
 <div id="filmScreen">
@@ -237,6 +241,7 @@
     <section class="card">
       <h3>Guest flow</h3>
       <label>Countdown</label><div class="seg" data-for="cd" data-opts="3:3s,5:5s,10:10s"></div>
+      <label>Countdown beeps</label><div class="seg" data-for="snd" data-opts="on:On,off:Off"></div>
       <label>Film</label>
       <div class="film"><button id="minus" aria-label="minus">−</button><span id="shotsBig">8</span><button id="plus" aria-label="plus">+</button><button id="newpack">New pack</button></div>
     </section>
@@ -251,16 +256,19 @@
         <div class="btns"><button id="xsend" class="accent">Send to camera</button><button id="xread">Read camera</button></div>
       </div>
       <p class="hint" id="autoHint">Camera meters and fires its own flash.</p>
+      <div class="btns"><button id="xcheck">Check camera mode</button></div>
+      <p class="result" id="xresult"></p>
+      <p class="hint" id="camReport">Camera reports: not checked yet</p>
     </section>
   </div>
   <details class="diag">
     <summary>Diagnostics</summary>
-    <div class="btns"><button id="copy">Copy log</button>
+    <div class="btns"><button id="copy">Copy log</button><button id="probe">Run mode test</button>
       <span class="fmt">Format <select id="fmt"><option value="auto">Auto</option><option value="B">B</option><option value="A">A</option></select></span></div>
     <div id="log"></div>
   </details>
   <!-- hidden stores for settings -->
-  <input type="hidden" id="demo" value="off"><input type="hidden" id="cd" value="5"><input type="hidden" id="cool" value="20"><input type="hidden" id="shots">
+  <input type="hidden" id="demo" value="off"><input type="hidden" id="snd" value="on"><input type="hidden" id="cd" value="5"><input type="hidden" id="cool" value="20"><input type="hidden" id="shots">
   <input type="hidden" id="xmode" value="auto"><input type="hidden" id="xshut" value="8"><input type="hidden" id="xap" value="4">
   <input type="hidden" id="xfl" value="9"><input type="hidden" id="xlens" value="2">
 </div>
@@ -321,7 +329,8 @@ function onData(e){
   log('← '+hex(v)+'  ('+name+')');
   const type = format==='B'?tB:tA;
   if (type===4 || type===33) parseStatus(v);
-  if (type===8 || type===34){ const pl = format==='B' ? v.slice(3) : v.slice(3, v.length-1); log('   camera settings: '+describeMode(pl)); }
+  if (type===6) { lastUpdate={ ok: v[3]===1, at:Date.now() }; log('   camera says: '+(v[3]===1?'SUCCESS':'FAILURE')); }
+  if (type===8 || type===34){ const pl = format==='B' ? v.slice(3) : v.slice(3, v.length-1); camMode={raw:Array.from(pl), at:Date.now()}; const d=describeMode(pl); log('   camera settings: '+d); $('camReport').textContent='Camera reports: '+d; }
 }
 
 // Camera status (from Polaroid's app), byte positions in the full reply:
@@ -363,20 +372,55 @@ function describeMode(b){
   const ms = b[8] | (b[9]<<8) | (b[10]<<16) | (b[11]<<24);
   const ev = ((b[12] | (b[13]<<8)) << 16) >> 16;
   return [MODES[b[0]]||('mode '+b[0]), 'shutter '+(SHUT[ms]||ms+'ms'), 'aperture '+(AP[b[7]]||b[7]),
-          'flash '+(b[2]===0?'off':(FL[b[4]]||b[4])), 'lens '+(LENS[b[6]]||b[6]), 'EV '+(ev/100)].join(', ');
+          'flash '+(b[2]===0?'off':b[4]===0?'auto':(FL[b[4]]||b[4])), 'lens '+(LENS[b[6]]||b[6]), 'EV '+(ev/100)].join(', ');
 }
 function manualPayload(){
   const ms = +$('xshut').value, power = +$('xfl').value;
   return [1, 2, power?1:0, 0, power, 0, +$('xlens').value, +$('xap').value,
           ms&255, (ms>>8)&255, (ms>>16)&255, (ms>>24)&255, 0, 0, 0, 0];
 }
-async function applyExposure(){
-  if ($('xmode').value!=='manual' || !rx) return;
-  const pl = manualPayload();
-  log('Sending manual settings: '+describeMode(pl));
-  await send(CMD.MODE_SET, pl);
-  await wait(500);
+let camMode=null, lastUpdate=null;
+async function sendMode(pl){ const t=Date.now(); await send(CMD.MODE_SET, pl); while(Date.now()-t<1500){ if(lastUpdate && lastUpdate.at>=t) return lastUpdate.ok; await wait(50);} return null; }
+// Auto: let the camera meter and choose; flash on. (Camera ignores aperture/shutter in auto.)
+function autoPayload(){ return [0, 0, 1, 0, 100, 0, 2, 7, 0,0,0,0, 0,0, 0,0]; }
+async function readMode(){
+  const t=Date.now(); await send(CMD.MODE_GET);
+  while (Date.now()-t < 1500){ if (camMode && camMode.at>=t) return camMode.raw; await wait(50); }
+  log('Camera did not report its mode'); return null;
 }
+function matches(want, got){ if(!got) return false;
+  if (want[0]===0) return got[0]===0;            // auto: only the mode matters
+  return [0,4,6,7,8,9,10,11].every(i=>want[i]===got[i]); }
+// Make sure the camera is in the mode the booth is set to. Returns true if confirmed.
+// The camera accepts one change at a time, so we step from its current settings.
+let modeProblem='';
+async function ensureMode(){
+  modeProblem='';
+  if (!rx || isDemo()) return true;
+  const manual = $('xmode').value==='manual';
+  let cur = await readMode(); if (!cur) { modeProblem='camera did not answer'; return false; }
+  const want = manual ? manualPayload() : null;
+  const steps = manual ? [
+    ['mode',     x=>{ x[0]=1; x[1]=2; }],
+    ['shutter',  x=>{ for (let i=8;i<12;i++) x[i]=want[i]; }],
+    ['aperture', x=>{ x[7]=want[7]; }],
+    ['flash',    x=>{ x[2]=want[2]; x[4]=want[4]; }],
+    ['lens',     x=>{ x[6]=want[6]; }],
+  ] : [ ['mode', x=>{ x[0]=0; x[1]=0; }], ['flash', x=>{ x[2]=1; x[4]=0; }] ];
+  const bad=[];
+  for (const [name, change] of steps){
+    const next=cur.slice(); change(next);
+    if (next.every((b,i)=>b===cur[i])) continue;           // already right
+    const ok = await sendMode(next);
+    if (ok) cur=next; else { bad.push(name); log('Camera rejected '+name+' change'); }
+  }
+  const got = await readMode();
+  const ok = manual ? (got && [0,2,4,6,7,8,9,10,11].every(i=>got[i]===want[i])) : (got && got[0]===0 && got[2]===1 && got[4]===0);
+  if (!ok) { modeProblem = bad.length ? 'camera rejected: '+bad.join(', ') : 'settings did not stick'; setStatus('Check camera mode in setup', true); }
+  log(ok ? 'Mode confirmed: '+describeMode(got) : 'Mode NOT confirmed ('+modeProblem+')');
+  return ok;
+}
+async function applyExposure(){ return ensureMode(); }
 
 const wait = ms => new Promise(r=>setTimeout(r,ms));
 async function gotReplyWithin(ms){ const start=Date.now(); while(Date.now()-start<ms){ if(lastRx>=start) return true; await wait(50);} return false; }
@@ -405,7 +449,12 @@ async function connect(){
   } catch(err){ log('Connect failed: '+err); setStatus('Not connected. Tap Connect to try again.'); }
 }
 
+let linking=false;
 async function openLink(){
+  if (linking) return; linking=true;
+  try { return await openLinkInner(); } finally { linking=false; }
+}
+async function openLinkInner(){
   setStatus('Connecting…');
   const gatt = await device.gatt.connect();
   const svc = await gatt.getPrimaryService(SVC);
@@ -442,32 +491,69 @@ function showFilm(){
 }
 
 async function afterShot(){
-  const scr=$('afterScreen'), num=$('aNum'), ring=$('arfg'), items=[...document.querySelectorAll('#aList li')], fin=$('aFinal');
-  items.forEach(li=>li.classList.remove('in')); fin.classList.remove('in');
+  const scr=$('afterScreen'), num=$('aNum'), ring=$('arfg'), items=[...document.querySelectorAll('#aList li')];
+  items.forEach(li=>li.classList.remove('in'));
   scr.classList.remove('phase2'); scr.classList.add('show');
   ring.classList.remove('run'); void ring.getBoundingClientRect();
   requestAnimationFrame(()=>requestAnimationFrame(()=>ring.classList.add('run')));
   for (let n=10;n>0;n--){ num.textContent=n; num.classList.remove('tick'); void num.offsetWidth; num.classList.add('tick'); await wait(1000); }
   scr.classList.add('phase2');
   for (const li of items){ await wait(250); li.classList.add('in'); await wait(2300); }
-  fin.classList.add('in'); await wait(4500);
+  await wait(3500);
   scr.classList.remove('show','phase2');
 }
 
 const isDemo=()=>$('demo').value==='on';
+let actx=null;
+function shutterSound(){
+  if ($('snd').value!=='on') return;
+  try {
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state==='suspended') actx.resume();
+    const burst=(at, dur, f, vol)=>{
+      const n=Math.floor(actx.sampleRate*dur), buf=actx.createBuffer(1,n,actx.sampleRate), d=buf.getChannelData(0);
+      for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3);
+      const src=actx.createBufferSource(), bp=actx.createBiquadFilter(), g=actx.createGain();
+      src.buffer=buf; bp.type='bandpass'; bp.frequency.value=f; bp.Q.value=1.2; g.gain.value=vol;
+      src.connect(bp); bp.connect(g); g.connect(actx.destination); src.start(actx.currentTime+at);
+    };
+    burst(0, 0.045, 2600, 1.4);      // click (shutter opens)
+    burst(0.09, 0.06, 1500, 1.1);    // clack (shutter closes)
+    burst(0.16, 0.12, 700, 0.5);     // little mechanical tail
+  } catch(e){}
+}
+// Shutter sound lives inside the iPad app (licensed SFX, not on the website).
+function playShutter(){
+  if ($('snd').value!=='on') return;
+  try { if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ble) window.webkit.messageHandlers.ble.postMessage({cmd:'sound', id:0}); } catch(e){}
+}
+function beep(freq, ms, vol=0.35, type='sine'){
+  if ($('snd').value!=='on') return;
+  try {
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state==='suspended') actx.resume();
+    const o=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime;
+    o.type=type; o.frequency.value=freq; o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.01); g.gain.setValueAtTime(vol,t+ms/1000*0.7); g.gain.exponentialRampToValueAtTime(0.0001,t+ms/1000);
+    o.start(t); o.stop(t+ms/1000+0.02);
+  } catch(e){}
+}
 async function shoot(){
   if (!rx && !isDemo()) return;
   if (!isDemo() && outOfFilm()) { checkFilmScreen(); return; }
   $('shoot').disabled = true;
+  const modeCheck = isDemo() ? Promise.resolve(true) : ensureMode().catch(e=>{ log('Mode check failed: '+e); return false; });
   const c = $('count'), cn=$('cnum'), cl=$('clabel'); c.classList.remove('flash'); c.style.display='flex'; cl.textContent='Look at the camera';
   for (let n=+$('cd').value; n>0; n--){
     cn.textContent=n; cn.classList.remove('tick'); void cn.offsetWidth; cn.classList.add('tick');
+    if (n===1) beep(1046, 320, 0.4, 'triangle'); else beep(523, 150, 0.35, 'triangle');
     if (n===1) cl.textContent='Smile!';
     await wait(1000);
   }
   cn.textContent=''; cl.textContent=''; c.classList.add('flash');
+  playShutter();
   if (isDemo()) log('Demo mode: shutter skipped');
-  else try { await applyExposure(); await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
+  else try { await modeCheck; await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
   if (!isDemo()) { const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm(); }
   await wait(800); c.style.display='none';
   if (!isDemo()) setTimeout(()=>send(CMD.STATUS).catch(()=>{}), 4000);
@@ -491,8 +577,27 @@ $('newpack').onclick = ()=>{ store.set('shots',8); cam.film=null; showFilm(); };
 $('fDone').onclick = ()=>{ store.set('shots',8); cam.film=null; $('filmScreen').classList.remove('show'); runFilmSteps(false); showFilm(); if(rx) send(CMD.STATUS).catch(()=>{}); };
 $('test').onclick = async ()=>{ if(!rx){ setStatus('Not connected'); return; } lastRx=0; await send(CMD.STATUS).catch(e=>log('Test failed: '+e)); setStatus(await gotReplyWithin(1500)?'Camera ready — it answered':'Camera did not answer', true); };
 $('repair').onclick = ()=> pair().catch(e=>log('Pair failed: '+e));
+$('probe').onclick = async ()=>{
+  if (!rx) { log('Connect first.'); return; }
+  const cur = await readMode(); if (!cur) return;
+  const base = cur.slice(); base[0]=1; base[1]=2;            // manual, keep the camera's other values
+  const setShut=(x,ms)=>{ x[8]=ms&255; x[9]=(ms>>8)&255; x[10]=0; x[11]=0; return x; };
+  const tests = [
+    ['1 manual base', base.slice()],
+    ['2 shutter 1/125', setShut(base.slice(),8)],
+    ['3 shutter 1/60', setShut(base.slice(),17)],
+    ['4 aperture f/22', (()=>{ const x=base.slice(); x[7]=4; return x; })()],
+    ['5 aperture f/11', (()=>{ const x=base.slice(); x[7]=7; return x; })()],
+    ['6 flash 1/2', (()=>{ const x=base.slice(); x[4]=9; return x; })()],
+    ['7 flash 1/6', (()=>{ const x=base.slice(); x[4]=2; return x; })()],
+    ['8 lens close-up', (()=>{ const x=base.slice(); x[6]=0; return x; })()],
+    ['9 auto, as-is', (()=>{ const x=cur.slice(); x[0]=0; x[1]=0; return x; })()],
+  ];
+  for (const [name, pl] of tests){ const r = await sendMode(pl); log('TEST '+name+': '+(r===true?'ACCEPTED':r===false?'REJECTED':'no reply')); await wait(250); }
+  const after = await readMode(); log('TEST done. Camera now: '+(after?describeMode(after):'?'));
+};
 $('copy').onclick = ()=>{ try{ navigator.clipboard.writeText($('log').textContent); }catch(e){} };
-for (const id of ['cd','cool','xmode','xshut','xap','xfl','xlens']){ const v=store.get(id,null); if(v!==null) $(id).value=v; }
+for (const id of ['snd','cd','cool','xmode','xshut','xap','xfl','xlens']){ const v=store.get(id,null); if(v!==null) $(id).value=v; }
 function refreshManual(){ const m=$('xmode').value==='manual'; $('manualBox').style.display=m?'':'none'; $('autoHint').style.display=m?'none':''; }
 document.querySelectorAll('.seg').forEach(seg=>{
   const id=seg.dataset.for;
@@ -512,8 +617,21 @@ $('previewFilm').onclick = ()=>{ $('panel').style.display='none'; $('filmScreen'
 const syncCd=()=>$('cdText').textContent=$('cd').value; syncCd(); document.querySelector('.seg[data-for=cd]').addEventListener('click',syncCd);
 $('minus').onclick=()=>{ store.set('shots',Math.max(0,+store.get('shots',8)-1)); showFilm(); };
 $('plus').onclick=()=>{ store.set('shots',Math.min(8,+store.get('shots',8)+1)); showFilm(); };
-$('xsend').onclick = ()=>{ const m=$('xmode').value; if(m!=='manual'){ log('Exposure is on Auto, nothing sent.'); return; } applyExposure().catch(e=>log('Send failed: '+e)); };
-$('xread').onclick = ()=> send(CMD.MODE_GET).catch(e=>log('Read failed: '+e));
+async function withResult(btn, label, fn){
+  const r=$('xresult'), b=$(btn), old=b.textContent;
+  if (isDemo()) { r.className='result bad'; r.textContent='Demo mode is on. Turn it off to talk to the camera.'; return; }
+  if (!rx) { r.className='result bad'; r.textContent='Camera not connected.'; return; }
+  b.disabled=true; b.textContent=label; r.className='result busy'; r.textContent='Talking to the camera…';
+  try { const ok=await fn();
+    const d = camMode ? describeMode(camMode.raw) : 'no reply';
+    r.className = ok ? 'result ok' : 'result bad';
+    r.textContent = ok ? '✓ Camera confirmed: '+d : '✗ Not confirmed'+(modeProblem?' ('+modeProblem+')':'')+'. Camera reports: '+d;
+  } catch(e){ r.className='result bad'; r.textContent='✗ '+e.message; }
+  b.disabled=false; b.textContent=old;
+}
+$('xsend').onclick = ()=> withResult('xsend','Sending…', ensureMode);
+$('xcheck').onclick = ()=> withResult('xcheck','Checking…', ensureMode);
+$('xread').onclick = ()=> withResult('xread','Reading…', async()=>!!(await readMode()));
 
 showFilm();
 log('Ready. '+(navigator.bluetooth?'Bluetooth available.':'No Bluetooth in this browser.'));

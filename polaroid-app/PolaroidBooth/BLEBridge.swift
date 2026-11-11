@@ -1,6 +1,7 @@
 import Foundation
 import CoreBluetooth
 import WebKit
+import AVFoundation
 
 /// Gives the booth web page a tiny version of Web Bluetooth (navigator.bluetooth),
 /// backed by Apple's CoreBluetooth. Only what the booth page needs:
@@ -23,6 +24,19 @@ final class BLEBridge: NSObject, WKScriptMessageHandler, CBCentralManagerDelegat
     private var pendingNotify: Int?
     private var waitingForPowerOn: [() -> Void] = []
     private var scanTimer: Timer?
+    private var shutterPlayer: AVAudioPlayer?
+
+    private func playShutter() {
+        if shutterPlayer == nil, let url = Bundle.main.url(forResource: "shutter", withExtension: "m4a") {
+            // Play even if the iPad's silent mode is on.
+            try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
+            try? AVAudioSession.sharedInstance().setActive(true)
+            shutterPlayer = try? AVAudioPlayer(contentsOf: url)
+            shutterPlayer?.prepareToPlay()
+        }
+        shutterPlayer?.currentTime = 0
+        shutterPlayer?.play()
+    }
 
     override init() {
         super.init()
@@ -39,6 +53,7 @@ final class BLEBridge: NSObject, WKScriptMessageHandler, CBCentralManagerDelegat
         case "scan":    whenPoweredOn { self.scan(id) }
         case "connect": whenPoweredOn { self.connect(id) }
         case "notify":  notify(id)
+        case "sound":   playShutter(); reply(id, ok: true, "")
         case "write":
             let bytes = (body["data"] as? [NSNumber])?.map { $0.uint8Value } ?? []
             write(id, Data(bytes))

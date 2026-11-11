@@ -522,6 +522,11 @@ function shutterSound(){
     burst(0.16, 0.12, 700, 0.5);     // little mechanical tail
   } catch(e){}
 }
+// Shutter sound lives inside the iPad app (licensed SFX, not on the website).
+function playShutter(){
+  if ($('snd').value!=='on') return;
+  try { if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ble) window.webkit.messageHandlers.ble.postMessage({cmd:'sound', id:0}); } catch(e){}
+}
 function beep(freq, ms, vol=0.35, type='sine'){
   if ($('snd').value!=='on') return;
   try {
@@ -541,12 +546,12 @@ async function shoot(){
   const c = $('count'), cn=$('cnum'), cl=$('clabel'); c.classList.remove('flash'); c.style.display='flex'; cl.textContent='Look at the camera';
   for (let n=+$('cd').value; n>0; n--){
     cn.textContent=n; cn.classList.remove('tick'); void cn.offsetWidth; cn.classList.add('tick');
-    beep(523, 260, 0.35, 'triangle');
+    if (n===1) beep(1046, 320, 0.4, 'triangle'); else beep(523, 150, 0.35, 'triangle');
     if (n===1) cl.textContent='Smile!';
     await wait(1000);
   }
   cn.textContent=''; cl.textContent=''; c.classList.add('flash');
-  beep(1046, 650, 0.4, 'triangle');
+  playShutter();
   if (isDemo()) log('Demo mode: shutter skipped');
   else try { await modeCheck; await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
   if (!isDemo()) { const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm(); }
