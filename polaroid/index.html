@@ -251,6 +251,8 @@
         <div class="btns"><button id="xsend" class="accent">Send to camera</button><button id="xread">Read camera</button></div>
       </div>
       <p class="hint" id="autoHint">Camera meters and fires its own flash.</p>
+      <div class="btns"><button id="xcheck">Check camera mode</button></div>
+      <p class="hint" id="camReport">Camera reports: not checked yet</p>
     </section>
   </div>
   <details class="diag">
@@ -321,7 +323,7 @@ function onData(e){
   log('← '+hex(v)+'  ('+name+')');
   const type = format==='B'?tB:tA;
   if (type===4 || type===33) parseStatus(v);
-  if (type===8 || type===34){ const pl = format==='B' ? v.slice(3) : v.slice(3, v.length-1); log('   camera settings: '+describeMode(pl)); }
+  if (type===8 || type===34){ const pl = format==='B' ? v.slice(3) : v.slice(3, v.length-1); camMode={raw:Array.from(pl), at:Date.now()}; const d=describeMode(pl); log('   camera settings: '+d); $('camReport').textContent='Camera reports: '+d; }
 }
 
 // Camera status (from Polaroid's app), byte positions in the full reply:
@@ -370,13 +372,32 @@ function manualPayload(){
   return [1, 2, power?1:0, 0, power, 0, +$('xlens').value, +$('xap').value,
           ms&255, (ms>>8)&255, (ms>>16)&255, (ms>>24)&255, 0, 0, 0, 0];
 }
-async function applyExposure(){
-  if ($('xmode').value!=='manual' || !rx) return;
-  const pl = manualPayload();
-  log('Sending manual settings: '+describeMode(pl));
-  await send(CMD.MODE_SET, pl);
-  await wait(500);
+let camMode=null;
+// Auto: let the camera meter and choose; flash on. (Camera ignores aperture/shutter in auto.)
+function autoPayload(){ return [0, 0, 1, 0, 100, 0, 2, 7, 0,0,0,0, 0,0, 0,0]; }
+async function readMode(){
+  const t=Date.now(); await send(CMD.MODE_GET);
+  while (Date.now()-t < 1500){ if (camMode && camMode.at>=t) return camMode.raw; await wait(50); }
+  log('Camera did not report its mode'); return null;
 }
+function matches(want, got){ if(!got) return false;
+  if (want[0]===0) return got[0]===0;            // auto: only the mode matters
+  return [0,4,6,7,8,9,10,11].every(i=>want[i]===got[i]); }
+// Make sure the camera is in the mode the booth is set to. Returns true if confirmed.
+async function ensureMode(){
+  if (!rx || isDemo()) return true;
+  const want = $('xmode').value==='manual' ? manualPayload() : autoPayload();
+  let got = await readMode();
+  if (matches(want, got)) { log('Mode confirmed: '+describeMode(got)); return true; }
+  log('Camera mode is wrong. Setting: '+describeMode(want));
+  await send(CMD.MODE_SET, want); await wait(400);
+  got = await readMode();
+  const ok = matches(want, got);
+  log(ok ? 'Mode confirmed after fix.' : 'Camera still not in the right mode!');
+  if (!ok) setStatus('Check camera mode in setup', true);
+  return ok;
+}
+async function applyExposure(){ return ensureMode(); }
 
 const wait = ms => new Promise(r=>setTimeout(r,ms));
 async function gotReplyWithin(ms){ const start=Date.now(); while(Date.now()-start<ms){ if(lastRx>=start) return true; await wait(50);} return false; }
@@ -459,6 +480,7 @@ async function shoot(){
   if (!rx && !isDemo()) return;
   if (!isDemo() && outOfFilm()) { checkFilmScreen(); return; }
   $('shoot').disabled = true;
+  const modeCheck = isDemo() ? Promise.resolve(true) : ensureMode().catch(e=>{ log('Mode check failed: '+e); return false; });
   const c = $('count'), cn=$('cnum'), cl=$('clabel'); c.classList.remove('flash'); c.style.display='flex'; cl.textContent='Look at the camera';
   for (let n=+$('cd').value; n>0; n--){
     cn.textContent=n; cn.classList.remove('tick'); void cn.offsetWidth; cn.classList.add('tick');
@@ -467,7 +489,7 @@ async function shoot(){
   }
   cn.textContent=''; cl.textContent=''; c.classList.add('flash');
   if (isDemo()) log('Demo mode: shutter skipped');
-  else try { await applyExposure(); await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
+  else try { await modeCheck; await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
   if (!isDemo()) { const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm(); }
   await wait(800); c.style.display='none';
   if (!isDemo()) setTimeout(()=>send(CMD.STATUS).catch(()=>{}), 4000);
@@ -512,8 +534,9 @@ $('previewFilm').onclick = ()=>{ $('panel').style.display='none'; $('filmScreen'
 const syncCd=()=>$('cdText').textContent=$('cd').value; syncCd(); document.querySelector('.seg[data-for=cd]').addEventListener('click',syncCd);
 $('minus').onclick=()=>{ store.set('shots',Math.max(0,+store.get('shots',8)-1)); showFilm(); };
 $('plus').onclick=()=>{ store.set('shots',Math.min(8,+store.get('shots',8)+1)); showFilm(); };
-$('xsend').onclick = ()=>{ const m=$('xmode').value; if(m!=='manual'){ log('Exposure is on Auto, nothing sent.'); return; } applyExposure().catch(e=>log('Send failed: '+e)); };
-$('xread').onclick = ()=> send(CMD.MODE_GET).catch(e=>log('Read failed: '+e));
+$('xsend').onclick = ()=> ensureMode().catch(e=>log('Send failed: '+e));
+$('xcheck').onclick = ()=> ensureMode().catch(e=>log('Check failed: '+e));
+$('xread').onclick = ()=> readMode().catch(e=>log('Read failed: '+e));
 
 showFilm();
 log('Ready. '+(navigator.bluetooth?'Bluetooth available.':'No Bluetooth in this browser.'));
