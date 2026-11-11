@@ -522,14 +522,14 @@ function shutterSound(){
     burst(0.16, 0.12, 700, 0.5);     // little mechanical tail
   } catch(e){}
 }
-function beep(freq, ms, vol=0.35){
+function beep(freq, ms, vol=0.35, type='sine'){
   if ($('snd').value!=='on') return;
   try {
     actx = actx || new (window.AudioContext||window.webkitAudioContext)();
     if (actx.state==='suspended') actx.resume();
     const o=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime;
-    o.type='sine'; o.frequency.value=freq; o.connect(g); g.connect(actx.destination);
-    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+ms/1000);
+    o.type=type; o.frequency.value=freq; o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.01); g.gain.setValueAtTime(vol,t+ms/1000*0.7); g.gain.exponentialRampToValueAtTime(0.0001,t+ms/1000);
     o.start(t); o.stop(t+ms/1000+0.02);
   } catch(e){}
 }
@@ -541,12 +541,12 @@ async function shoot(){
   const c = $('count'), cn=$('cnum'), cl=$('clabel'); c.classList.remove('flash'); c.style.display='flex'; cl.textContent='Look at the camera';
   for (let n=+$('cd').value; n>0; n--){
     cn.textContent=n; cn.classList.remove('tick'); void cn.offsetWidth; cn.classList.add('tick');
-    beep(n===1?1046:784, n===1?220:140);
+    beep(523, 260, 0.35, 'triangle');
     if (n===1) cl.textContent='Smile!';
     await wait(1000);
   }
   cn.textContent=''; cl.textContent=''; c.classList.add('flash');
-  shutterSound();
+  beep(1046, 650, 0.4, 'triangle');
   if (isDemo()) log('Demo mode: shutter skipped');
   else try { await modeCheck; await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
   if (!isDemo()) { const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm(); }
