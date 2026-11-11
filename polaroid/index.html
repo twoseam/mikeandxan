@@ -372,7 +372,7 @@ function describeMode(b){
   const ms = b[8] | (b[9]<<8) | (b[10]<<16) | (b[11]<<24);
   const ev = ((b[12] | (b[13]<<8)) << 16) >> 16;
   return [MODES[b[0]]||('mode '+b[0]), 'shutter '+(SHUT[ms]||ms+'ms'), 'aperture '+(AP[b[7]]||b[7]),
-          'flash '+(b[2]===0?'off':(FL[b[4]]||b[4])), 'lens '+(LENS[b[6]]||b[6]), 'EV '+(ev/100)].join(', ');
+          'flash '+(b[2]===0?'off':b[4]===0?'auto':(FL[b[4]]||b[4])), 'lens '+(LENS[b[6]]||b[6]), 'EV '+(ev/100)].join(', ');
 }
 function manualPayload(){
   const ms = +$('xshut').value, power = +$('xfl').value;
