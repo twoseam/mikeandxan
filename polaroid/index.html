@@ -55,6 +55,21 @@
     Shots left in pack <input id="shots" type="number" min="0" max="8" style="width:80px">
     <button id="newpack">New pack (8)</button>
   </div>
+  <div class="row"><strong>Exposure</strong></div>
+  <div class="row">
+    <select id="xmode"><option value="auto">Auto (booth leaves camera alone)</option><option value="manual">Manual (locked)</option></select>
+    Shutter <select id="xshut">
+      <option value="5">1/200</option><option value="8" selected>1/125</option><option value="17">1/60</option><option value="33">1/30</option>
+      <option value="67">1/15</option><option value="125">1/8</option><option value="250">1/4</option><option value="500">1/2</option><option value="1000">1"</option>
+    </select>
+    Aperture <select id="xap"><option value="7">f/11</option><option value="6">f/13</option><option value="5">f/16</option><option value="4" selected>f/22</option><option value="3">f/32</option><option value="2">f/64</option></select>
+    Built-in flash <select id="xfl"><option value="0">Off</option><option value="2">⅙</option><option value="3">¼</option><option value="9" selected>½</option><option value="20">¾</option><option value="100">Full</option></select>
+    Lens <select id="xlens"><option value="2" selected>Camera picks</option><option value="0">Close-up</option><option value="1">Far</option></select>
+  </div>
+  <div class="row">
+    <button id="xsend">Send settings to camera</button>
+    <button id="xread">Read camera's current settings</button>
+  </div>
   <div class="row">
     <button id="test">Test: ask camera status (no photo)</button>
     <button id="repair">Re-pair</button>
@@ -76,7 +91,14 @@ const CMD = {
   PAIR:    [0, 8],
   STATUS:  [3, 0],
   SHUTTER: [9, 0],
+  MODE_GET:[7, 0],
+  MODE_SET:[5, 16],
 };
+const SHUT = {5:'1/200',8:'1/125',17:'1/60',33:'1/30',67:'1/15',125:'1/8',250:'1/4',500:'1/2',1000:'1"',2000:'2"',4000:'4"',8000:'8"',15000:'15"',30000:'30"'};
+const AP = {7:'f/11',6:'f/13',5:'f/16',4:'f/22',3:'f/32',2:'f/64'};
+const FL = {0:'off',2:'1/6',3:'1/4',9:'1/2',20:'3/4',100:'full'};
+const MODES = ['auto','manual','self-timer','portrait','double exp','light painting','color painting','tripod','aperture priority','program'];
+const LENS = ['close-up','far','camera picks'];
 const PAIR_PAYLOAD = [0,0,0,0,0,0,0,1];
 const RESPONSES = {1:'pairing reply',4:'camera status',6:'mode updated',8:'mode data',10:'film ejected',12:'exposure done',14:'command reply',33:'status (auto)',34:'mode (auto)'};
 
@@ -112,6 +134,30 @@ function onData(e){
   const tA = v[2], tB = v[1];
   const name = RESPONSES[format==='B'?tB:tA] || RESPONSES[tA] || RESPONSES[tB] || '?';
   log('← '+hex(v)+'  ('+name+')');
+  const type = format==='B'?tB:tA;
+  if (type===8 || type===34){ const pl = format==='B' ? v.slice(3) : v.slice(3, v.length-1); log('   camera settings: '+describeMode(pl)); }
+}
+
+// Mode settings layout (16 bytes), from Polaroid's app:
+// [mode, camMode, flashMode, curtain, flashPower, eject, lens, aperture, shutterMs(4, little-endian), EV(2), 0, 0]
+function describeMode(b){
+  if (!b || b.length<14) return '(short: '+hex(b)+')';
+  const ms = b[8] | (b[9]<<8) | (b[10]<<16) | (b[11]<<24);
+  const ev = ((b[12] | (b[13]<<8)) << 16) >> 16;
+  return [MODES[b[0]]||('mode '+b[0]), 'shutter '+(SHUT[ms]||ms+'ms'), 'aperture '+(AP[b[7]]||b[7]),
+          'flash '+(b[2]===0?'off':(FL[b[4]]||b[4])), 'lens '+(LENS[b[6]]||b[6]), 'EV '+(ev/100)].join(', ');
+}
+function manualPayload(){
+  const ms = +$('xshut').value, power = +$('xfl').value;
+  return [1, 2, power?1:0, 0, power, 0, +$('xlens').value, +$('xap').value,
+          ms&255, (ms>>8)&255, (ms>>16)&255, (ms>>24)&255, 0, 0, 0, 0];
+}
+async function applyExposure(){
+  if ($('xmode').value!=='manual' || !rx) return;
+  const pl = manualPayload();
+  log('Sending manual settings: '+describeMode(pl));
+  await send(CMD.MODE_SET, pl);
+  await wait(500);
 }
 
 const wait = ms => new Promise(r=>setTimeout(r,ms));
@@ -152,6 +198,7 @@ async function openLink(){
   log('Connected to '+(device.name||'camera'));
   await pair();
   await send(CMD.STATUS);
+  await applyExposure();
   setStatus('Camera ready', true);
   $('connect').style.display='none'; $('shoot').style.display='';
 }
@@ -176,7 +223,7 @@ async function shoot(){
   const c = $('count'); c.style.display='flex';
   for (let n=+$('cd').value; n>0; n--){ c.textContent=n; await wait(1000); }
   c.textContent='📸';
-  try { await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
+  try { await applyExposure(); await send(CMD.SHUTTER); } catch(e){ log('Shutter failed: '+e); c.style.display='none'; setStatus('Could not reach camera'); $('shoot').disabled=false; return; }
   const left = Math.max(0, +store.get('shots',8)-1); store.set('shots',left); showFilm();
   await wait(800); c.style.display='none';
   $('title').textContent='Your photo is on its way';
@@ -200,6 +247,9 @@ $('newpack').onclick = ()=>{ store.set('shots',8); showFilm(); };
 $('test').onclick = ()=> send(CMD.STATUS).catch(e=>log('Test failed: '+e));
 $('repair').onclick = ()=> pair().catch(e=>log('Pair failed: '+e));
 $('copy').onclick = ()=>{ try{ navigator.clipboard.writeText($('log').textContent); }catch(e){} };
+for (const id of ['xmode','xshut','xap','xfl','xlens']){ const v=store.get(id,null); if(v!==null) $(id).value=v; $(id).onchange=()=>store.set(id,$(id).value); }
+$('xsend').onclick = ()=>{ const m=$('xmode').value; if(m!=='manual'){ log('Exposure is on Auto, nothing sent.'); return; } applyExposure().catch(e=>log('Send failed: '+e)); };
+$('xread').onclick = ()=> send(CMD.MODE_GET).catch(e=>log('Read failed: '+e));
 $('cd').value = store.get('cd','5'); $('cool').value = store.get('cool','20');
 showFilm();
 log('Ready. '+(navigator.bluetooth?'Bluetooth available.':'No Bluetooth in this browser.'));
