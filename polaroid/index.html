@@ -341,6 +341,7 @@ function send(cmd, payload, fmt){
     if (!rx) throw new Error('not connected');
     const p = packet(cmd, payload, fmt);
     const before = Date.now();
+    if (cmd===CMD.SHUTTER) log('FIRE command sent ('+(fireReason||'unknown reason')+')');
     log('→ '+hex(p));
     if (rx.writeValueWithoutResponse) await rx.writeValueWithoutResponse(p);
     else await rx.writeValue(p);
@@ -554,7 +555,7 @@ async function afterShot(){
 }
 
 const isDemo=()=>$('demo').value==='on';
-let lastExposure=0;
+let lastExposure=0, fireReason='';
 let actx=null;
 function shutterSound(){
   if ($('snd').value!=='on') return;
@@ -602,7 +603,7 @@ async function shoot(){
   const fire = (async()=>{
     await wait(Math.max(0, total-lag));
     if (isDemo()) { log('Demo mode: shutter skipped'); return; }
-    try { await modeCheck; sentAt=Date.now(); await send(CMD.SHUTTER); log('Fired '+(start+total-sentAt)+'ms before countdown end (lag setting '+lag+'ms)'); }
+    try { await modeCheck; sentAt=Date.now(); fireReason='Take a photo button'; await send(CMD.SHUTTER); log('Fired '+(start+total-sentAt)+'ms before countdown end (lag setting '+lag+'ms)'); }
     catch(e){ fireErr=e; }
   })();
   for (let n=+$('cd').value; n>0; n--){
@@ -638,7 +639,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState=
 setInterval(()=>{ if(rx && !$('shoot').disabled) send(CMD.STATUS).catch(()=>{}); }, 30000);
 
 $('connect').onclick = ()=>{ stayAwake(); connect(); };
-$('shoot').onclick = shoot;
+$('shoot').onclick = ()=>{ log('Take a photo tapped'); shoot(); };
 $('gear').onclick = ()=>{ $('panel').style.display='flex'; };
 $('close').onclick = ()=>{ $('panel').style.display='none'; showFilm(); };
 $('newpack').onclick = ()=>{ store.set('shots',8); cam.film=null; showFilm(); };
@@ -704,7 +705,7 @@ async function measureLag(){
     const mean=base.reduce((a,b)=>a+b,0)/base.length, sd=Math.sqrt(base.reduce((a,b)=>a+(b-mean)**2,0)/base.length);
     const thresh=mean+Math.max(12, sd*6);
     msg.textContent='Firing…';
-    const sentAt=performance.now(); await send(CMD.SHUTTER);
+    const sentAt=performance.now(); fireReason='lag test'; await send(CMD.SHUTTER);
     let hitAt=0, peak=0;
     while (performance.now()-sentAt<3000){ const t=await frame(); const b=bright(); if (b>peak) peak=b; if (!hitAt && b>thresh){ hitAt=t; } if (hitAt && performance.now()-hitAt>300) break; }
     stream.getTracks().forEach(t=>t.stop()); scr.classList.remove('show'); $('panel').style.display='flex';
