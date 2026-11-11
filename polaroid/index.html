@@ -262,7 +262,7 @@
   </div>
   <details class="diag">
     <summary>Diagnostics</summary>
-    <div class="btns"><button id="copy">Copy log</button>
+    <div class="btns"><button id="copy">Copy log</button><button id="probe">Run mode test</button>
       <span class="fmt">Format <select id="fmt"><option value="auto">Auto</option><option value="B">B</option><option value="A">A</option></select></span></div>
     <div id="log"></div>
   </details>
@@ -328,6 +328,7 @@ function onData(e){
   log('← '+hex(v)+'  ('+name+')');
   const type = format==='B'?tB:tA;
   if (type===4 || type===33) parseStatus(v);
+  if (type===6) { lastUpdate={ ok: v[3]===1, at:Date.now() }; log('   camera says: '+(v[3]===1?'SUCCESS':'FAILURE')); }
   if (type===8 || type===34){ const pl = format==='B' ? v.slice(3) : v.slice(3, v.length-1); camMode={raw:Array.from(pl), at:Date.now()}; const d=describeMode(pl); log('   camera settings: '+d); $('camReport').textContent='Camera reports: '+d; }
 }
 
@@ -377,7 +378,8 @@ function manualPayload(){
   return [1, 2, power?1:0, 0, power, 0, +$('xlens').value, +$('xap').value,
           ms&255, (ms>>8)&255, (ms>>16)&255, (ms>>24)&255, 0, 0, 0, 0];
 }
-let camMode=null;
+let camMode=null, lastUpdate=null;
+async function sendMode(pl){ const t=Date.now(); await send(CMD.MODE_SET, pl); while(Date.now()-t<1500){ if(lastUpdate && lastUpdate.at>=t) return lastUpdate.ok; await wait(50);} return null; }
 // Auto: let the camera meter and choose; flash on. (Camera ignores aperture/shutter in auto.)
 function autoPayload(){ return [0, 0, 1, 0, 100, 0, 2, 7, 0,0,0,0, 0,0, 0,0]; }
 async function readMode(){
@@ -395,7 +397,7 @@ async function ensureMode(){
   let got = await readMode();
   if (matches(want, got)) { log('Mode confirmed: '+describeMode(got)); return true; }
   log('Camera mode is wrong. Setting: '+describeMode(want));
-  await send(CMD.MODE_SET, want); await wait(400);
+  const acc = await sendMode(want); if (acc===false) log('Camera rejected the settings.');
   got = await readMode();
   const ok = matches(want, got);
   log(ok ? 'Mode confirmed after fix.' : 'Camera still not in the right mode!');
@@ -518,6 +520,16 @@ $('newpack').onclick = ()=>{ store.set('shots',8); cam.film=null; showFilm(); };
 $('fDone').onclick = ()=>{ store.set('shots',8); cam.film=null; $('filmScreen').classList.remove('show'); runFilmSteps(false); showFilm(); if(rx) send(CMD.STATUS).catch(()=>{}); };
 $('test').onclick = async ()=>{ if(!rx){ setStatus('Not connected'); return; } lastRx=0; await send(CMD.STATUS).catch(e=>log('Test failed: '+e)); setStatus(await gotReplyWithin(1500)?'Camera ready — it answered':'Camera did not answer', true); };
 $('repair').onclick = ()=> pair().catch(e=>log('Pair failed: '+e));
+$('probe').onclick = async ()=>{
+  if (!rx) { log('Connect first.'); return; }
+  const cur = await readMode(); if (!cur) return;
+  const tests = [
+    ['A: send current back', cur.slice()],
+    ['B: mode -> auto', (()=>{ const x=cur.slice(); x[0]=0; x[1]=0; return x; })()],
+    ['C: mode -> manual', (()=>{ const x=cur.slice(); x[0]=1; x[1]=2; return x; })()],
+  ];
+  for (const [name, pl] of tests){ const r = await sendMode(pl); const after = await readMode(); log('TEST '+name+': '+(r===true?'ACCEPTED':r===false?'REJECTED':'no reply')+' | now: '+(after?describeMode(after):'?')); await wait(300); }
+};
 $('copy').onclick = ()=>{ try{ navigator.clipboard.writeText($('log').textContent); }catch(e){} };
 for (const id of ['cd','cool','xmode','xshut','xap','xfl','xlens']){ const v=store.get(id,null); if(v!==null) $(id).value=v; }
 function refreshManual(){ const m=$('xmode').value==='manual'; $('manualBox').style.display=m?'':'none'; $('autoHint').style.display=m?'none':''; }
