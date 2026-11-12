@@ -78,11 +78,12 @@
   .afinal.in { opacity:1; transform:none; }
   #filmScreen { position:fixed; inset:0; z-index:7; background:var(--bg); display:none; flex-direction:column; align-items:center; justify-content:center; gap:2.2vh; padding:3vh 5vw; text-align:center; }
   #filmScreen.show { display:flex; }
-  #fNext { margin-top:4vh; font:inherit; font-weight:700; font-size:clamp(22px,2.6vw,32px); padding:.45em 2em .5em; border:0; border-radius:999px; background:#fffaf2; color:var(--berry); box-shadow:0 6px 0 #e3c9b8; }
+  #fNext { margin-top:2.5vh; font:inherit; font-weight:700; font-size:clamp(22px,2.6vw,32px); padding:.45em 2em .5em; border:0; border-radius:999px; background:#fffaf2; color:var(--berry); box-shadow:0 6px 0 #e3c9b8; }
   #fNext:active { transform:translateY(5px); box-shadow:0 1px 0 #e3c9b8; }
   .fhead { margin:0; font-family:"new-kansas-extra-swash","Caprasimo",Georgia,serif; font-style:italic; font-weight:600; color:#f9eed5;
     font-size:clamp(40px,min(5.5vw,8vh),76px); line-height:1.2; padding-top:.08em; text-shadow:0 4px 18px rgba(0,0,0,.18); }
-  .fsteps li { font-size:clamp(20px,min(2.4vw,3.6vh),30px); padding:1.8vh 26px; }
+  .fsteps li { font-size:clamp(17px,min(2.2vw,3vh),28px); padding:1.1vh 24px; }
+  .fsteps { gap:1.2vh !important; }
   .fstat { margin:0; color:#ffd9c9; font-weight:600; font-size:clamp(18px,min(2vw,3vh),24px); }
   #fDone { padding:14px 28px; border-radius:999px; background:rgba(255,255,255,.16); color:#fff; font:600 18px "Source Sans 3",sans-serif; }
   .fwrap { display:flex; align-items:center; gap:4vw; }
@@ -228,10 +229,11 @@
       <g class="hint h3"><path d="M200 362v-60" stroke="#fffaf2" stroke-width="6" stroke-linecap="round"/><path d="M188 314l12-14 12 14" fill="none" stroke="#fffaf2" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g>
     </svg>
     <ol class="alist fsteps" id="fSteps">
-      <li class="in"><b>1</b><span>Press the film door button and pull the door open</span></li>
-      <li class="in"><b>2</b><span>Pull the empty pack out by its tab</span></li>
-      <li class="in"><b>3</b><span>Check the new pack for which side goes up, then slide it in until it clicks</span></li>
-      <li class="in"><b>4</b><span>Close the door. Take out the black sheet that pops out</span></li>
+      <li class="in"><b>1</b><span>Grab a new pack of film from the box and open the silver wrapper</span></li>
+      <li class="in"><b>2</b><span>Press the film door button and pull the door open</span></li>
+      <li class="in"><b>3</b><span>Pull the empty pack out by its tab</span></li>
+      <li class="in"><b>4</b><span>Check the new pack for which side goes up, then slide it in until it clicks</span></li>
+      <li class="in"><b>5</b><span>Close the door. Take out the black sheet that pops out</span></li>
     </ol>
   </div>
   <button id="fNext">Next</button>
@@ -295,7 +297,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '75';
+const BOOTH_VERSION = '76';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -400,12 +402,12 @@ function outOfFilm(){ return cam.film===0 || (cam.film===null && +store.get('sho
 let fTimer=null, fStep=1;
 function runFilmSteps(on){
   const art=$('camArt'), items=[...document.querySelectorAll('#fSteps li')];
-  const paint=()=>{ art.dataset.step=fStep; items.forEach((li,i)=>li.classList.toggle('cur', i===fStep-1)); };
+  const paint=()=>{ art.dataset.step=fStep-1; items.forEach((li,i)=>li.classList.toggle('cur', i===fStep-1)); };
   const nx=$('fNext');
   if (on && !fTimer){ fTimer=true; fStep=1; paint(); nx.textContent='Next'; }
   if (!on){ fTimer=null; }
   const st=$('fStat'); st.style.visibility='hidden';
-  nx.onclick=()=>{ if (fStep===4) { $('fDone').click(); return; } fStep++; paint(); nx.textContent = fStep===4 ? 'New film is in' : 'Next'; st.style.visibility='hidden'; };
+  nx.onclick=()=>{ if (fStep===5) { $('fDone').click(); return; } fStep++; paint(); nx.textContent = fStep===5 ? 'New film is in' : 'Next'; st.style.visibility='hidden'; };
 }
 function checkFilmScreen(){
   const scr=$('filmScreen');
