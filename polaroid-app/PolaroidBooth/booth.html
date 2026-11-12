@@ -32,6 +32,7 @@
   #shoot:active { transform:translateY(10px); box-shadow:0 2px 0 #e3c9b8, 0 8px 20px rgba(110,30,10,.3); animation:none; }
   #shoot .cam { width:.85em; height:.85em; flex:none; color:var(--bg); }
   #shootLabel, #winText { position:relative; top:.12em; }
+  #shootLabel { top:.22em; }
   #winText { font-variant-numeric:tabular-nums; }
   #winText:empty { display:none; }
   #shoot:disabled { background:rgba(255,250,242,.55); color:#b7816f; box-shadow:0 12px 0 rgba(227,201,184,.5); animation:none; }
@@ -297,7 +298,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '77';
+const BOOTH_VERSION = '78';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
