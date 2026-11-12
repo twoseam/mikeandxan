@@ -297,7 +297,7 @@
 
 <script>
 // Nordic UART Service, as found on the Polaroid Now+ (and in Polaroid's app).
-const BOOTH_VERSION = '76';
+const BOOTH_VERSION = '77';
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // we write here
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // camera talks back here
@@ -409,8 +409,10 @@ function runFilmSteps(on){
   const st=$('fStat'); st.style.visibility='hidden';
   nx.onclick=()=>{ if (fStep===5) { $('fDone').click(); return; } fStep++; paint(); nx.textContent = fStep===5 ? 'New film is in' : 'Next'; st.style.visibility='hidden'; };
 }
+let filmPreview=false;
 function checkFilmScreen(){
   const scr=$('filmScreen');
+  if (filmPreview) return;
   if ($('afterScreen').classList.contains('show')) return;
   if (outOfFilm()) { scr.classList.add('show'); runFilmSteps(true); $('fStat').textContent = cam.door==='open' ? 'Door is open. Swap the pack.' : 'Waiting for new film…'; }
   else if (scr.classList.contains('show')) {
@@ -673,7 +675,7 @@ $('totalReset').onclick = ()=>{ const b=$('totalReset');
   if (Date.now()-resetArm<3000){ store.set('totalShots',0); showTotal(); b.textContent='Reset'; resetArm=0; log('Photo total reset'); }
   else { resetArm=Date.now(); b.textContent='Tap again to reset'; setTimeout(()=>{ if(Date.now()-resetArm>=3000) b.textContent='Reset'; },3100); } };
 showTotal();
-$('fDone').onclick = ()=>{ store.set('shots',8); cam.film=null; $('filmScreen').classList.remove('show'); runFilmSteps(false); showFilm(); if(rx) send(CMD.STATUS).catch(()=>{}); };
+$('fDone').onclick = ()=>{ if (filmPreview) { filmPreview=false; $('filmScreen').classList.remove('show'); runFilmSteps(false); return; } store.set('shots',8); cam.film=null; $('filmScreen').classList.remove('show'); runFilmSteps(false); showFilm(); if(rx) send(CMD.STATUS).catch(()=>{}); };
 $('test').onclick = async ()=>{ if(!rx){ setStatus('Not connected'); return; } lastRx=0; await send(CMD.STATUS).catch(e=>log('Test failed: '+e)); setStatus(await gotReplyWithin(1500)?'Camera ready — it answered':'Camera did not answer', true); };
 $('repair').onclick = ()=> pair().catch(e=>log('Pair failed: '+e));
 $('probe').onclick = async ()=>{
@@ -756,7 +758,7 @@ async function measureLag(){
   } catch(e){ try{ stream.getTracks().forEach(t=>t.stop()); }catch(_){} scr.classList.remove('show'); $('panel').style.display='flex'; show('bad','Test failed: '+e.message); }
 }
 $('measureLag').onclick = measureLag;
-$('previewFilm').onclick = ()=>{ $('panel').style.display='none'; $('filmScreen').classList.add('show'); runFilmSteps(true); };
+$('previewFilm').onclick = ()=>{ filmPreview=true; $('panel').style.display='none'; $('filmScreen').classList.add('show'); runFilmSteps(true); };
 const syncCd=()=>$('cdText').textContent=$('cd').value; syncCd(); document.querySelector('.seg[data-for=cd]').addEventListener('click',syncCd);
 $('minus').onclick=()=>{ store.set('shots',Math.max(0,+store.get('shots',8)-1)); showFilm(); };
 $('plus').onclick=()=>{ store.set('shots',Math.min(8,+store.get('shots',8)+1)); showFilm(); };
