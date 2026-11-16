@@ -73,9 +73,11 @@
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
 }
 
+.ph-item-meta { flex-wrap: wrap; row-gap: 0.3rem; }
 .ph-who {
-  margin-right: auto;
-  align-self: center;
+  flex: 0 0 100%;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
   color: #fff;
   font-size: 0.78rem;
   font-weight: 700;
@@ -327,3 +329,8 @@
 .ph-name-label { margin-left: 0; font-size: 0.85rem; }
 .ph-name-go { margin-top: 1rem; }
 .ph-name-skip { display: block; margin: 0.25rem auto 0; }
+
+@media (max-width: 500px) {
+  .ph-item-meta { gap: 0.25rem; padding: 0.35rem 0.3rem; }
+  .ph-hide-btn, .ph-del-btn { font-size: 0.68rem; padding: 0.1rem 0.45rem; }
+}
