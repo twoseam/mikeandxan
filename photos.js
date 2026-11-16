@@ -18,6 +18,18 @@
   const CHUNK_SIZE = 50 * 1024 * 1024;
   const CHUNKED_MAX = 1024 * 1024 * 1024;
   const POLL_MS = 20000;
+  const NAME_KEY = 'mx_uploader_name';
+
+  // Ask a guest their name once (first upload), then remember it on this
+  // phone so they're never asked again. Admins see it on each tile.
+  function uploaderName() {
+    let name = '';
+    try { name = localStorage.getItem(NAME_KEY) || ''; } catch (e) { /* ignore */ }
+    if (name) return name;
+    name = (window.prompt('What\u2019s your name? (So we know who shared these.)') || '').trim().slice(0, 80);
+    if (name) { try { localStorage.setItem(NAME_KEY, name); } catch (e) { /* ignore */ } }
+    return name;
+  }
 
   const fileInput = document.getElementById('ph-file');
   const pickBtn = document.getElementById('ph-pick');
@@ -92,6 +104,7 @@
     clearPreparing();
     const files = Array.from(fileInput.files || []);
     fileInput.value = '';
+    if (files.length) uploaderName();
     files.forEach(uploadFile);
   });
 
@@ -197,7 +210,7 @@
 
       let key = null;
       if (file.size <= SINGLE_MAX) {
-        const res = await xhrSend('POST', WORKER_URL + '/upload', file, file.type, (loaded, total) => {
+        const res = await xhrSend('POST', WORKER_URL + '/upload?' + new URLSearchParams({ name: uploaderName() }), file, file.type, (loaded, total) => {
           row.progress(Math.round((loaded / total) * 100));
         });
         key = res.key || null;
@@ -251,7 +264,7 @@
     }
 
     await xhrSend('POST', WORKER_URL + '/upload-complete',
-      JSON.stringify({ key: init.key, uploadId: init.uploadId, type: file.type, parts }),
+      JSON.stringify({ key: init.key, uploadId: init.uploadId, type: file.type, parts, name: uploaderName() }),
       'application/json');
     return init.key;
   }
@@ -457,6 +470,11 @@
     if (isAdmin) {
       const meta = document.createElement('figcaption');
       meta.className = 'ph-item-meta';
+
+      const who = document.createElement('span');
+      who.className = 'ph-who';
+      who.textContent = item.senderName || 'Unknown';
+      meta.appendChild(who);
 
       const hideBtn = document.createElement('button');
       hideBtn.type = 'button';
