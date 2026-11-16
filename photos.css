@@ -262,6 +262,15 @@
   text-align: center;
 }
 
+.ph-name-label {
+  display: block;
+  text-align: left;
+  font-family: "new-kansas", Georgia, serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0 0 0.4rem 0.15rem;
+}
+
 .ph-name-input {
   display: block;
   width: 100%;
