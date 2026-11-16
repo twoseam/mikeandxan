@@ -1,8 +1,8 @@
 /* Share the Day — pure photo/video feed, edge-to-edge, floating add button */
 
 .ph-body {
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--color-cream);
+  color: var(--color-charcoal);
   min-height: 100vh;
 }
 
@@ -14,7 +14,7 @@
 
 .ph-feed {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 4px;
 }
 @media (min-width: 700px)  { .ph-feed { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
@@ -54,7 +54,7 @@
 .ph-empty {
   text-align: center;
   font-family: "new-kansas", Georgia, serif;
-  color: var(--color-muted);
+  color: rgba(53, 50, 48, 0.6);
   padding: 40vh 1.5rem 0;
   font-size: 1.1rem;
 }
@@ -118,8 +118,8 @@
   font-family: "new-kansas", Georgia, serif;
   font-weight: 700;
   font-size: 1.1rem;
-  color: var(--color-bg);
-  background: #fff;
+  color: #fff;
+  background: var(--color-bg);
   border: none;
   border-radius: 999px;
   padding: 0.95rem 1.6rem;
@@ -333,9 +333,4 @@
 @media (max-width: 500px) {
   .ph-item-meta { gap: 0.25rem; padding: 0.35rem 0.3rem; }
   .ph-hide-btn, .ph-del-btn { font-size: 0.68rem; padding: 0.1rem 0.45rem; }
-}
-
-/* Admin view: two wide on phones so names + buttons have room */
-@media (max-width: 699px) {
-  .ph-feed.is-admin { grid-template-columns: repeat(2, 1fr); }
 }
