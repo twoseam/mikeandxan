@@ -20,15 +20,35 @@
   const POLL_MS = 20000;
   const NAME_KEY = 'mx_uploader_name';
 
-  // Ask a guest their name once (first upload), then remember it on this
-  // phone so they're never asked again. Admins see it on each tile.
+  // Ask a guest their name once (branded pop-up, first upload), then
+  // remember it on this phone so they're never asked again. Admins see it
+  // on each tile.
   function uploaderName() {
-    let name = '';
-    try { name = localStorage.getItem(NAME_KEY) || ''; } catch (e) { /* ignore */ }
-    if (name) return name;
-    name = (window.prompt('What\u2019s your name? (So we know who shared these.)') || '').trim().slice(0, 80);
-    if (name) { try { localStorage.setItem(NAME_KEY, name); } catch (e) { /* ignore */ } }
-    return name;
+    try { return localStorage.getItem(NAME_KEY) || ''; } catch (e) { return ''; }
+  }
+
+  function askName() {
+    if (uploaderName()) return Promise.resolve();
+    const modal = document.getElementById('ph-name');
+    const form = document.getElementById('ph-name-form');
+    const input = document.getElementById('ph-name-input');
+    const skip = document.getElementById('ph-name-skip');
+    return new Promise((resolve) => {
+      function close(save) {
+        const name = save ? input.value.trim().slice(0, 80) : '';
+        if (name) { try { localStorage.setItem(NAME_KEY, name); } catch (e) { /* ignore */ } }
+        modal.hidden = true;
+        form.removeEventListener('submit', onSubmit);
+        skip.removeEventListener('click', onSkip);
+        resolve();
+      }
+      function onSubmit(e) { e.preventDefault(); close(true); }
+      function onSkip() { close(false); }
+      form.addEventListener('submit', onSubmit);
+      skip.addEventListener('click', onSkip);
+      modal.hidden = false;
+      setTimeout(() => input.focus(), 50);
+    });
   }
 
   const fileInput = document.getElementById('ph-file');
@@ -99,12 +119,12 @@
     clearPreparing();
   });
 
-  fileInput.addEventListener('change', () => {
+  fileInput.addEventListener('change', async () => {
     pickerOpen = false;
     clearPreparing();
     const files = Array.from(fileInput.files || []);
     fileInput.value = '';
-    if (files.length) uploaderName();
+    if (files.length) await askName();
     files.forEach(uploadFile);
   });
 

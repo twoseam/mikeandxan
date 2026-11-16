@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="photos.css?v=6" />
+  <link rel="stylesheet" href="photos.css?v=7" />
   <link rel="stylesheet" href="admin-nav.css?v=5" />
   <script src="admin-nav.js?v=4" defer></script>
 </head>
@@ -25,11 +25,21 @@
   <input type="file" id="ph-file" accept="image/*,video/*" multiple hidden />
   <button type="button" id="ph-pick" class="ph-fab">+ Add Photos &amp; Videos</button>
 
+  <div id="ph-name" class="ph-name" hidden>
+    <form id="ph-name-form" class="ph-name-card">
+      <input id="ph-name-input" class="ph-name-input" type="text" placeholder="Name"
+             autocomplete="name" autocapitalize="words" maxlength="80" required />
+      <p class="ph-name-copy">Let us know who sent us these photos &amp; videos.</p>
+      <button type="submit" class="ph-name-go">Share</button>
+      <button type="button" id="ph-name-skip" class="ph-name-skip">Skip</button>
+    </form>
+  </div>
+
   <div id="ph-lightbox" class="ph-lightbox" hidden>
     <button type="button" class="ph-lb-close" aria-label="Close">&times;</button>
     <div id="ph-pager" class="ph-pager"></div>
   </div>
 
-  <script src="photos.js?v=11"></script>
+  <script src="photos.js?v=12"></script>
 </body>
 </html>

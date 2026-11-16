@@ -237,3 +237,77 @@
   cursor: pointer;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
 }
+
+/* ── Name pop-up (first upload only) ── */
+
+.ph-name {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.55);
+}
+.ph-name[hidden] { display: none; }
+
+.ph-name-card {
+  width: min(100%, 360px);
+  background: var(--color-cream);
+  color: var(--color-charcoal);
+  border-radius: 18px;
+  padding: 1.6rem 1.4rem 1.1rem;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4);
+  text-align: center;
+}
+
+.ph-name-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-display);
+  font-size: 1.6rem; /* 16px+ keeps iPhone from zooming in */
+  color: var(--color-bg);
+  text-align: center;
+  background: #fff;
+  border: 2px solid var(--color-bg);
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+  outline: none;
+}
+.ph-name-input::placeholder { color: rgba(var(--color-bg-rgb), 0.6); }
+
+.ph-name-copy {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.35;
+  margin: 0.8rem 0 1.2rem;
+}
+
+.ph-name-go {
+  display: block;
+  width: 100%;
+  font-family: "new-kansas", Georgia, serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #fff;
+  background: var(--color-bg);
+  border: none;
+  border-radius: 999px;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+}
+.ph-name-go:active { transform: scale(0.98); }
+
+.ph-name-skip {
+  margin-top: 0.5rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--color-charcoal);
+  opacity: 0.6;
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
