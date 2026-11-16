@@ -320,3 +320,10 @@
   padding: 0.5rem 1rem;
   cursor: pointer;
 }
+
+.ph-name-card { text-align: left; padding: 1.5rem 1.4rem 0.75rem; }
+.ph-name-title { font-family: var(--font-display); color: var(--color-bg); font-size: 1.6rem; line-height: 1.1; margin: 0 0 0.35rem; }
+.ph-name-copy { margin: 0 0 1.2rem; font-size: 0.95rem; }
+.ph-name-label { margin-left: 0; font-size: 0.85rem; }
+.ph-name-go { margin-top: 1rem; }
+.ph-name-skip { display: block; margin: 0.25rem auto 0; }
