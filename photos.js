@@ -557,6 +557,7 @@
     feedEl.textContent = '';
     renderedIds = new Set();
     const isAdmin = !!token;
+    feedEl.classList.toggle("is-admin", isAdmin);
     items.forEach(item => {
       feedEl.appendChild(tileHtml(item, isAdmin));
       renderedIds.add(item.id);

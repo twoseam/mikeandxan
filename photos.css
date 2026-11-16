@@ -334,3 +334,8 @@
   .ph-item-meta { gap: 0.25rem; padding: 0.35rem 0.3rem; }
   .ph-hide-btn, .ph-del-btn { font-size: 0.68rem; padding: 0.1rem 0.45rem; }
 }
+
+/* Admin view: two wide on phones so names + buttons have room */
+@media (max-width: 699px) {
+  .ph-feed.is-admin { grid-template-columns: repeat(2, 1fr); }
+}
