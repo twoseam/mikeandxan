@@ -9,11 +9,25 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="photos.css?v=13" />
+  <link rel="stylesheet" href="photos.css?v=14" />
   <link rel="stylesheet" href="admin-nav.css?v=5" />
-  <script src="admin-nav.js?v=4" defer></script>
+  <script src="admin-nav.js?v=5" defer></script>
 </head>
 <body class="ph-body">
+
+  <!-- Filters: who took it, who's in it, select & download -->
+  <div id="ph-bar" class="ph-bar">
+    <div class="ph-seg" role="group" aria-label="Show">
+      <button type="button" class="ph-seg-btn is-on" data-source="all">All</button>
+      <button type="button" class="ph-seg-btn" data-source="pro">Photographer</button>
+      <button type="button" class="ph-seg-btn" data-source="guest">Guests</button>
+    </div>
+    <button type="button" id="ph-who-btn" class="ph-chip" hidden>Find someone</button>
+    <span id="ph-who-on" class="ph-chip ph-chip-on" hidden><span id="ph-who-name"></span>
+      <button type="button" id="ph-who-clear" aria-label="Show everyone">&times;</button></span>
+    <button type="button" id="ph-select-btn" class="ph-chip">Select</button>
+    <button type="button" id="ph-pro-btn" class="ph-chip ph-admin-only" hidden>+ Photographer photos</button>
+  </div>
 
   <main class="ph-main">
     <div id="ph-feed" class="ph-feed"></div>
@@ -23,7 +37,36 @@
   <div id="ph-queue" class="ph-queue" hidden></div>
 
   <input type="file" id="ph-file" accept="image/*,video/*" multiple hidden />
+  <input type="file" id="ph-pro-file" accept="image/*" multiple hidden />
   <button type="button" id="ph-pick" class="ph-fab">+ Add Photos &amp; Videos</button>
+
+  <!-- Select mode bar (replaces the add button while selecting) -->
+  <div id="ph-selbar" class="ph-selbar" hidden>
+    <button type="button" id="ph-sel-cancel" class="ph-sel-text">Cancel</button>
+    <button type="button" id="ph-sel-all" class="ph-sel-text">Select all</button>
+    <button type="button" id="ph-sel-go" class="ph-sel-go" disabled>Download</button>
+  </div>
+
+  <!-- Name picker -->
+  <div id="ph-people" class="ph-name" hidden>
+    <div class="ph-name-card ph-people-card">
+      <h2 class="ph-name-title">Find someone</h2>
+      <input id="ph-people-input" class="ph-name-input" type="search" placeholder="Type a name" autocomplete="off" autocapitalize="words" />
+      <ul id="ph-people-list" class="ph-people-list"></ul>
+      <button type="button" id="ph-people-close" class="ph-name-skip">Close</button>
+    </div>
+  </div>
+
+  <!-- Download progress / "save" step -->
+  <div id="ph-dl" class="ph-name" hidden>
+    <div class="ph-name-card">
+      <h2 id="ph-dl-title" class="ph-name-title">Getting your photos&hellip;</h2>
+      <p id="ph-dl-copy" class="ph-name-copy"></p>
+      <div class="ph-q-bar"><i id="ph-dl-bar"></i></div>
+      <button type="button" id="ph-dl-save" class="ph-name-go" hidden>Save</button>
+      <button type="button" id="ph-dl-close" class="ph-name-skip">Close</button>
+    </div>
+  </div>
 
   <div id="ph-name" class="ph-name" hidden>
     <form id="ph-name-form" class="ph-name-card">
@@ -42,6 +85,6 @@
     <div id="ph-pager" class="ph-pager"></div>
   </div>
 
-  <script src="photos.js?v=13"></script>
+  <script src="photos.js?v=14"></script>
 </body>
 </html>

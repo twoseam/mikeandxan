@@ -334,3 +334,128 @@
   .ph-item-meta { gap: 0.25rem; padding: 0.35rem 0.3rem; }
   .ph-hide-btn, .ph-del-btn { font-size: 0.68rem; padding: 0.1rem 0.45rem; }
 }
+
+/* ── Filter bar: source, who's in it, select ── */
+
+.ph-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  background: rgba(250, 240, 224, 0.94);
+  backdrop-filter: saturate(160%) blur(8px);
+}
+.ph-seg {
+  display: flex;
+  background: rgba(0, 0, 0, 0.07);
+  border-radius: 999px;
+  padding: 3px;
+}
+.ph-seg-btn,
+.ph-chip {
+  font-family: "new-kansas", Georgia, serif;
+  font-size: 0.9rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 12px;
+  cursor: pointer;
+  color: var(--color-charcoal);
+  background: transparent;
+}
+.ph-seg-btn.is-on { background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+.ph-chip { background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+.ph-chip-on { background: var(--color-bg); color: #fff; display: inline-flex; align-items: center; gap: 6px; }
+.ph-chip-on[hidden] { display: none; }
+.ph-chip-on button { font-size: 1.1rem; line-height: 1; border: 0; background: none; color: #fff; cursor: pointer; padding: 0 2px; }
+.ph-chip.is-on { background: var(--color-charcoal); color: #fff; }
+
+/* ── Select mode ── */
+
+.ph-feed.is-selecting .ph-item::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.ph-feed.is-selecting .ph-item.is-selected::after {
+  background: var(--color-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center / 70% no-repeat;
+}
+.ph-feed.is-selecting .ph-item.is-selected img,
+.ph-feed.is-selecting .ph-item.is-selected video { opacity: 0.75; }
+.ph-feed.is-selecting .ph-item-meta { display: none; }
+
+.ph-selbar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 6px 6px 18px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+}
+.ph-selbar[hidden] { display: none; }
+.ph-sel-text {
+  font-family: "new-kansas", Georgia, serif;
+  font-size: 0.95rem;
+  border: 0;
+  background: none;
+  color: var(--color-charcoal);
+  cursor: pointer;
+  padding: 6px 0;
+}
+.ph-sel-go {
+  font-family: "new-kansas", Georgia, serif;
+  font-size: 1rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 11px 18px;
+  background: var(--color-bg);
+  color: #fff;
+  cursor: pointer;
+}
+.ph-sel-go:disabled { opacity: 0.5; cursor: default; }
+
+/* ── Name picker ── */
+
+.ph-people-card { max-height: 80vh; display: flex; flex-direction: column; }
+.ph-people-list {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 120px;
+}
+.ph-people-list button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  font-family: "new-kansas", Georgia, serif;
+  font-size: 1.05rem;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 12px 4px;
+  color: var(--color-charcoal);
+  cursor: pointer;
+}
+.ph-people-list small { color: rgba(53, 50, 48, 0.55); }
+.ph-people-list .ph-people-none { padding: 12px 4px; color: rgba(53, 50, 48, 0.6); }

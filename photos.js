@@ -218,7 +218,8 @@
     });
   }
 
-  async function uploadFile(file) {
+  async function uploadFile(file, opts) {
+    const pro = !!(opts && opts.pro);
     const row = queueRow(file);
 
     if (!/^(image|video)\//.test(file.type)) { row.fail('Not a photo or video'); return; }
@@ -230,7 +231,10 @@
 
       let key = null;
       if (file.size <= SINGLE_MAX) {
-        const res = await xhrSend('POST', WORKER_URL + '/upload?' + new URLSearchParams({ name: uploaderName() }), file, file.type, (loaded, total) => {
+        const params = pro
+          ? { name: 'Photographer', source: 'pro', token: adminToken() }
+          : { name: uploaderName() };
+        const res = await xhrSend('POST', WORKER_URL + '/upload?' + new URLSearchParams(params), file, file.type, (loaded, total) => {
           row.progress(Math.round((loaded / total) * 100));
         });
         key = res.key || null;
@@ -546,23 +550,239 @@
       const res = await fetch(WORKER_URL + '/?action=feed' + (token ? '&token=' + encodeURIComponent(token) : ''));
       data = await res.json();
     } catch (e) { return; }
-    const items = data.items || [];
+    allItems = data.items || [];
+    allPeople = data.people || [];
+    isAdminView = !!token;
+    renderFeed();
+  }
 
-    emptyEl.hidden = items.length > 0;
+  // ── Filters: source (all / photographer / guests) + who's in it ──
+
+  let allItems = [];
+  let allPeople = [];
+  let isAdminView = false;
+  const filter = { source: 'all', person: null };
+  let lastSignature = '';
+
+  function filteredItems() {
+    return allItems.filter((i) => {
+      if (filter.source === 'pro' && i.source !== 'pro') return false;
+      if (filter.source === 'guest' && i.source === 'pro') return false;
+      if (filter.person && !(i.people || []).includes(filter.person.id)) return false;
+      return true;
+    });
+  }
+
+  function renderFeed(force) {
+    const items = filteredItems();
     feedItems = items;
 
-    const knownAll = items.every(i => renderedIds.has(i.id));
-    if (knownAll && renderedIds.size === items.length) return;
+    const filtered = filter.source !== 'all' || filter.person;
+    emptyEl.textContent = filtered ? 'No photos here yet.' : 'Nothing here yet — be the first!';
+    emptyEl.hidden = items.length > 0;
+
+    // Name picker only once people are tagged.
+    document.getElementById('ph-who-btn').hidden = !allPeople.length || !!filter.person;
+    document.getElementById('ph-pro-btn').hidden = !isAdminView;
+
+    const sig = isAdminView + '|' + items.map(i => i.id + (i.hidden ? 'h' : '')).join(',');
+    if (!force && sig === lastSignature) return;
+    lastSignature = sig;
 
     feedEl.textContent = '';
     renderedIds = new Set();
-    const isAdmin = !!token;
-    feedEl.classList.toggle("is-admin", isAdmin);
+    feedEl.classList.toggle('is-admin', isAdminView);
     items.forEach(item => {
-      feedEl.appendChild(tileHtml(item, isAdmin));
+      const tile = tileHtml(item, isAdminView);
+      if (selected.has(item.id)) tile.classList.add('is-selected');
+      feedEl.appendChild(tile);
       renderedIds.add(item.id);
     });
   }
+
+  document.querySelectorAll('.ph-seg-btn').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.ph-seg-btn').forEach((x) => x.classList.toggle('is-on', x === b));
+    filter.source = b.dataset.source;
+    renderFeed();
+    window.scrollTo({ top: 0 });
+  }));
+
+  // Name picker
+  const peopleSheet = document.getElementById('ph-people');
+  const peopleInput = document.getElementById('ph-people-input');
+  const peopleList = document.getElementById('ph-people-list');
+  const escHtml = (s) => String(s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function renderPeopleList() {
+    const q = peopleInput.value.trim().toLowerCase();
+    const list = allPeople.filter((p) => !q || p.name.toLowerCase().includes(q));
+    peopleList.innerHTML = list.length
+      ? list.map((p) => `<li><button type="button" data-id="${p.id}"><span>${escHtml(p.name)}</span><small>${p.photos}</small></button></li>`).join('')
+      : '<li class="ph-people-none">No one by that name yet.</li>';
+  }
+  document.getElementById('ph-who-btn').addEventListener('click', () => {
+    peopleInput.value = '';
+    renderPeopleList();
+    peopleSheet.hidden = false;
+    setTimeout(() => peopleInput.focus(), 50);
+  });
+  peopleInput.addEventListener('input', renderPeopleList);
+  document.getElementById('ph-people-close').addEventListener('click', () => { peopleSheet.hidden = true; });
+  peopleList.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-id]');
+    if (!b) return;
+    const p = allPeople.find((x) => x.id === Number(b.dataset.id));
+    if (!p) return;
+    filter.person = p;
+    document.getElementById('ph-who-name').textContent = p.name;
+    document.getElementById('ph-who-on').hidden = false;
+    peopleSheet.hidden = true;
+    renderFeed();
+    window.scrollTo({ top: 0 });
+  });
+  document.getElementById('ph-who-clear').addEventListener('click', () => {
+    filter.person = null;
+    document.getElementById('ph-who-on').hidden = true;
+    renderFeed();
+  });
+
+  // ── Select & download ──
+
+  const selected = new Set();
+  let selecting = false;
+  const selBar = document.getElementById('ph-selbar');
+  const selGo = document.getElementById('ph-sel-go');
+  const selectBtn = document.getElementById('ph-select-btn');
+
+  function updateSelBar() {
+    selGo.disabled = !selected.size;
+    selGo.textContent = selected.size ? 'Download ' + selected.size : 'Download';
+    const allOn = feedItems.length && feedItems.every((i) => selected.has(i.id));
+    document.getElementById('ph-sel-all').textContent = allOn ? 'Select none' : 'Select all';
+  }
+  function setSelecting(on) {
+    selecting = on;
+    if (!on) selected.clear();
+    feedEl.classList.toggle('is-selecting', on);
+    feedEl.querySelectorAll('.ph-item.is-selected').forEach((t) => { if (!on) t.classList.remove('is-selected'); });
+    selBar.hidden = !on;
+    pickBtn.hidden = on;
+    selectBtn.classList.toggle('is-on', on);
+    updateSelBar();
+  }
+  selectBtn.addEventListener('click', () => setSelecting(!selecting));
+  document.getElementById('ph-sel-cancel').addEventListener('click', () => setSelecting(false));
+  document.getElementById('ph-sel-all').addEventListener('click', () => {
+    const allOn = feedItems.every((i) => selected.has(i.id));
+    feedItems.forEach((i) => { if (allOn) selected.delete(i.id); else selected.add(i.id); });
+    feedEl.querySelectorAll('.ph-item').forEach((t) => t.classList.toggle('is-selected', selected.has(Number(t.dataset.id))));
+    updateSelBar();
+  });
+  // Tile taps toggle selection while selecting (capture phase beats the viewer).
+  feedEl.addEventListener('click', (e) => {
+    if (!selecting) return;
+    const tile = e.target.closest('.ph-item');
+    if (!tile) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const id = Number(tile.dataset.id);
+    if (selected.has(id)) selected.delete(id); else selected.add(id);
+    tile.classList.toggle('is-selected', selected.has(id));
+    updateSelBar();
+  }, true);
+
+  selGo.addEventListener('click', () => {
+    const items = allItems.filter((i) => selected.has(i.id));
+    if (items.length) downloadItems(items);
+  });
+
+  const dl = {
+    sheet: document.getElementById('ph-dl'),
+    title: document.getElementById('ph-dl-title'),
+    copy: document.getElementById('ph-dl-copy'),
+    bar: document.getElementById('ph-dl-bar'),
+    save: document.getElementById('ph-dl-save'),
+    cancelled: false
+  };
+  document.getElementById('ph-dl-close').addEventListener('click', () => { dl.cancelled = true; dl.sheet.hidden = true; });
+
+  function fileName(item, n) {
+    const ext = (item.mediaPath.match(/\.[a-z0-9]+$/i) || [''])[0] || (item.contentType.startsWith('video/') ? '.mp4' : '.jpg');
+    const who = filter.person ? '-' + filter.person.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() : '';
+    return 'mike-and-xan' + who + '-' + String(n + 1).padStart(3, '0') + ext;
+  }
+
+  // Phones: hand the files to the share sheet ("Save to Photos").
+  // Computers (or big batches): one zip file.
+  async function downloadItems(items) {
+    const isPhone = /iPhone|iPad|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent));
+    const useShare = isPhone && items.length <= 20 && navigator.canShare;
+    dl.cancelled = false;
+    dl.save.hidden = true;
+    dl.title.textContent = 'Getting ' + items.length + (items.length === 1 ? ' file' : ' files') + '…';
+    dl.copy.textContent = useShare ? '' : 'They’ll download as one zip file.';
+    dl.bar.style.width = '0%';
+    dl.sheet.hidden = false;
+
+    try {
+      if (useShare) {
+        const files = [];
+        for (let n = 0; n < items.length; n++) {
+          if (dl.cancelled) return;
+          const res = await fetch(WORKER_URL + items[n].mediaPath);
+          const blob = await res.blob();
+          files.push(new File([blob], fileName(items[n], n), { type: items[n].contentType }));
+          dl.bar.style.width = Math.round(((n + 1) / items.length) * 100) + '%';
+        }
+        if (navigator.canShare({ files })) {
+          // Sharing needs a fresh tap — downloading took too long to count as one.
+          dl.title.textContent = 'Ready!';
+          dl.copy.textContent = 'Tap Save, then “Save Images” or “Save Video”.';
+          dl.save.hidden = false;
+          dl.save.onclick = async () => {
+            try { await navigator.share({ files }); dl.sheet.hidden = true; setSelecting(false); } catch (e) { /* closed the sheet */ }
+          };
+          return;
+        }
+      }
+      const { downloadZip } = await import('https://cdn.jsdelivr.net/npm/client-zip@2.4.6/index.js');
+      let done = 0;
+      const total = items.length;
+      async function* files() {
+        for (let n = 0; n < items.length; n++) {
+          if (dl.cancelled) return;
+          const res = await fetch(WORKER_URL + items[n].mediaPath);
+          yield { name: fileName(items[n], n), input: res };
+          done++;
+          dl.bar.style.width = Math.round((done / total) * 100) + '%';
+        }
+      }
+      const blob = await downloadZip(files()).blob();
+      if (dl.cancelled) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mike-and-xan' + (filter.person ? '-' + filter.person.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() : '') + '-photos.zip';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      dl.title.textContent = 'Downloaded!';
+      dl.copy.textContent = 'Check your Downloads folder.';
+      setSelecting(false);
+    } catch (e) {
+      dl.title.textContent = 'That didn’t work';
+      dl.copy.textContent = 'Try fewer at a time.';
+    }
+  }
+
+  // Admin: photographer uploads (marked as "Photographer" in the filter).
+  const proInput = document.getElementById('ph-pro-file');
+  document.getElementById('ph-pro-btn').addEventListener('click', () => proInput.click());
+  proInput.addEventListener('change', () => {
+    const files = Array.from(proInput.files || []);
+    proInput.value = '';
+    files.forEach((f) => uploadFile(f, { pro: true }));
+  });
 
   // ── Viewer: full-screen vertical pager (swipe up/down = next/prev) ──
   // Native scroll + snap does the gesture work, so it inherits the OS's

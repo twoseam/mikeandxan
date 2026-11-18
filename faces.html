@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Faces — M &amp; A</title>
+
+  <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="faces.css?v=1" />
+  <link rel="stylesheet" href="admin-nav.css?v=5" />
+  <script src="admin-nav.js?v=5" defer></script>
+</head>
+<body class="fc-body">
+
+  <div id="gate" class="fc-gate">
+    <p>Log in on the <a href="admin.html">Guests page</a> first.</p>
+  </div>
+
+  <div id="app" hidden>
+    <header class="fc-header">
+      <h1 class="fc-title">Faces</h1>
+      <div class="fc-switch" role="tablist">
+        <button type="button" class="fc-switch-btn is-on" data-view="todo">To do <span id="todo-count"></span></button>
+        <button type="button" class="fc-switch-btn" data-view="people">People</button>
+      </div>
+    </header>
+
+    <p id="helper" class="fc-helper"></p>
+
+    <!-- To do: one face at a time -->
+    <main id="view-todo" class="fc-main">
+      <section id="card" class="fc-card" hidden>
+        <p id="card-q" class="fc-q"></p>
+        <div class="fc-pair">
+          <figure class="fc-fig">
+            <img id="card-face" alt="" />
+            <button type="button" id="card-photo" class="fc-link">See photo</button>
+          </figure>
+          <figure id="card-ref-wrap" class="fc-fig" hidden>
+            <img id="card-ref" alt="" />
+            <figcaption id="card-ref-name"></figcaption>
+          </figure>
+        </div>
+
+        <div id="ask-actions" class="fc-actions" hidden>
+          <button type="button" id="btn-yes" class="fc-btn fc-yes">Yes</button>
+          <button type="button" id="btn-no" class="fc-btn fc-no">No</button>
+        </div>
+
+        <div id="name-box" class="fc-name" hidden>
+          <input id="name-input" type="search" placeholder="Type a name&hellip;" autocomplete="off" autocapitalize="words" />
+          <ul id="name-list" class="fc-list"></ul>
+        </div>
+
+        <div class="fc-actions fc-actions-small">
+          <button type="button" id="btn-other" class="fc-btn-text" hidden>Someone else</button>
+          <button type="button" id="btn-ignore" class="fc-btn-text">Ignore this face</button>
+          <button type="button" id="btn-skip" class="fc-btn-text">Skip for now</button>
+        </div>
+      </section>
+
+      <section id="done" class="fc-done" hidden>
+        <p class="fc-done-big">All caught up.</p>
+        <p id="done-sub"></p>
+      </section>
+
+      <p id="toast" class="fc-toast" hidden></p>
+    </main>
+
+    <!-- People: everyone tagged so far -->
+    <main id="view-people" class="fc-main" hidden>
+      <ul id="people" class="fc-people"></ul>
+
+      <section id="person" class="fc-person" hidden>
+        <button type="button" id="person-back" class="fc-link">&larr; All people</button>
+        <h2 id="person-name"></h2>
+        <button type="button" id="person-rename" class="fc-btn-text">Rename</button>
+        <p class="fc-hint">Tap a face that isn&rsquo;t them to remove the tag. Dotted border = tagged automatically.</p>
+        <div id="person-faces" class="fc-grid"></div>
+      </section>
+
+      <details class="fc-tools">
+        <summary>Tools</summary>
+        <p><button type="button" id="btn-rescan" class="fc-btn-text">Re-scan every photo</button>
+          Keeps your tags. Use after the scanner changes.</p>
+        <p><button type="button" id="btn-clear" class="fc-btn-text fc-danger">Delete all face fingerprints</button>
+          Privacy step for when tagging is done. Tags stay. New photos after this can&rsquo;t be auto-matched.</p>
+      </details>
+    </main>
+  </div>
+
+  <!-- Photo viewer with the face outlined -->
+  <div id="viewer" class="fc-viewer" hidden>
+    <div class="fc-viewer-inner">
+      <img id="viewer-img" alt="" />
+      <div id="viewer-box" class="fc-viewer-box"></div>
+    </div>
+    <button type="button" id="viewer-close" class="fc-viewer-close" aria-label="Close">&times;</button>
+  </div>
+
+  <script src="faces.js?v=1"></script>
+</body>
+</html>

@@ -36,7 +36,7 @@ const human = new Human({
   segmentation: { enabled: false },
   face: {
     enabled: true,
-    detector: { maxDetected: 50, rotation: true, minConfidence: 0.3, skipFrames: 0, skipTime: 0 },
+    detector: { maxDetected: 50, rotation: true, minConfidence: 0.4, skipFrames: 0, skipTime: 0 },
     mesh: { enabled: true },
     iris: { enabled: false },
     emotion: { enabled: false },
@@ -145,7 +145,7 @@ async function findFaces(source, w, h, light) {
       if (!f.embedding || !f.embedding.length) continue;
       const [bx, by, bw, bh] = f.box;
       if (Math.min(bw, bh) < MIN_FACE) continue;
-      hits.push({ box: [bx + x, by + y, bw, bh], score: f.faceScore || f.score || 0, emb: Array.from(f.embedding) });
+      hits.push({ box: [bx + x, by + y, bw, bh], score: f.boxScore || f.score || 0, emb: Array.from(f.embedding) });
     }
   }
 
