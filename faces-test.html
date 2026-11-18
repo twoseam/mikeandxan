@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Face Test — M &amp; A</title>
+  <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
+  <style>
+    :root { --red: #f15826; --pink: #f5a0b5; --cream: #faf0e0; --ink: #353230; --berry: #a82a52; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--cream); color: var(--ink); font-family: "new-kansas", Georgia, serif; }
+    header { background: var(--red); color: #fff; padding: 20px 24px; }
+    h1 { margin: 0 0 4px; font-size: 1.6rem; }
+    header p { margin: 0; opacity: .9; }
+    main { padding: 20px 24px 80px; max-width: 1400px; margin: 0 auto; }
+    .bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
+    button { font: inherit; background: var(--red); color: #fff; border: 0; border-radius: 999px; padding: 10px 20px; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: default; }
+    select { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid #ccc; }
+    #status { font-size: .95rem; }
+    #progress { width: 100%; height: 8px; background: #eadfcf; border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
+    #progress div { height: 100%; width: 0; background: var(--red); transition: width .2s; }
+    .summary { background: #fff; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; }
+    .group { background: #fff; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
+    .group h3 { margin: 0 0 8px; font-size: 1rem; }
+    .group h3 span { color: #888; font-weight: 400; }
+    .faces { display: flex; flex-wrap: wrap; gap: 6px; }
+    .faces img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; cursor: pointer; }
+    .single h3 { color: #888; }
+    .login { background: #fff; padding: 20px; border-radius: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Face matching test</h1>
+    <p>Scans the guest uploads and groups faces it thinks are the same person. Nothing is saved.</p>
+  </header>
+  <main>
+    <div id="login" class="login" hidden>
+      Log in on the <a href="admin.html">admin page</a> first, then come back here.
+    </div>
+    <div id="app" hidden>
+      <div class="bar">
+        <button id="go" disabled>Loading face tool&hellip;</button>
+        <label>Match strictness
+          <select id="thresh">
+            <option value="0.45">Loose (0.45)</option>
+            <option value="0.50">Medium-loose (0.50)</option>
+            <option value="0.55" selected>Medium (0.55)</option>
+            <option value="0.60">Medium-strict (0.60)</option>
+            <option value="0.65">Strict (0.65)</option>
+          </select>
+        </label>
+        <span id="status"></span>
+      </div>
+      <div id="progress"><div></div></div>
+      <div id="summary" class="summary" hidden></div>
+      <div id="groups"></div>
+    </div>
+  </main>
+  <script type="module" src="faces-test.js?v=1"></script>
+</body>
+</html>
