@@ -459,3 +459,18 @@
 }
 .ph-people-list small { color: rgba(53, 50, 48, 0.55); }
 .ph-people-list .ph-people-none { padding: 12px 4px; color: rgba(53, 50, 48, 0.6); }
+
+/* Albums */
+.ph-seg[hidden] { display: none; }
+.ph-seg { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.ph-seg::-webkit-scrollbar { display: none; }
+.ph-seg-btn { white-space: nowrap; flex: 0 0 auto; }
+.ph-album-sel {
+  font: inherit;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  border: 0;
+  padding: 3px 6px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-charcoal);
+}

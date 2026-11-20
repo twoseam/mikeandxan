@@ -219,7 +219,7 @@
   }
 
   async function uploadFile(file, opts) {
-    const pro = !!(opts && opts.pro);
+    const albumId = opts && opts.album;
     const row = queueRow(file);
 
     if (!/^(image|video)\//.test(file.type)) { row.fail('Not a photo or video'); return; }
@@ -227,19 +227,19 @@
     try {
       // For videos, build tile assets locally while the upload runs:
       // a poster frame + a ~2.5s muted low-res looping preview clip.
-      const assetsPromise = file.type.startsWith('video/') ? makeVideoAssets(file) : null;
+      const assetsPromise = file.type.startsWith('video/') ? makeVideoAssets(file) : makePhotoThumb(file);
 
       let key = null;
       if (file.size <= SINGLE_MAX) {
-        const params = pro
-          ? { name: 'Photographer', source: 'pro', token: adminToken() }
+        const params = albumId
+          ? { name: (opts.albumName || 'Michael'), album: String(albumId), token: adminToken() }
           : { name: uploaderName() };
         const res = await xhrSend('POST', WORKER_URL + '/upload?' + new URLSearchParams(params), file, file.type, (loaded, total) => {
           row.progress(Math.round((loaded / total) * 100));
         });
         key = res.key || null;
       } else if (file.type.startsWith('video/') && file.size <= CHUNKED_MAX) {
-        key = await uploadChunked(file, row);
+        key = await uploadChunked(file, row, opts);
       } else {
         row.fail(file.type.startsWith('video/') ? 'Too big (1 GB max)' : 'Too big (95 MB max)');
         return;
@@ -268,7 +268,24 @@
     }
   }
 
-  async function uploadChunked(file, row) {
+  // Small tile image for a photo (800px JPEG, phone rotation applied) so the
+  // gallery doesn't download every full-size photo. Null if the browser
+  // can't decode it — the Mac Studio scanner fills those in later.
+  async function makePhotoThumb(file) {
+    try {
+      const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      const s = Math.min(1, 800 / Math.max(bmp.width, bmp.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(bmp.width * s);
+      canvas.height = Math.round(bmp.height * s);
+      canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+      bmp.close && bmp.close();
+      const thumb = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.8));
+      return thumb ? { thumb, preview: null } : null;
+    } catch (e) { return null; }
+  }
+
+  async function uploadChunked(file, row, opts) {
     const init = await xhrSend('POST',
       WORKER_URL + '/upload-init?' + new URLSearchParams({ type: file.type, size: String(file.size) }));
 
@@ -288,7 +305,10 @@
     }
 
     await xhrSend('POST', WORKER_URL + '/upload-complete',
-      JSON.stringify({ key: init.key, uploadId: init.uploadId, type: file.type, parts, name: uploaderName() }),
+      JSON.stringify(Object.assign(
+        { key: init.key, uploadId: init.uploadId, type: file.type, parts, name: uploaderName() },
+        opts && opts.album ? { album: opts.album, token: adminToken(), name: opts.albumName || 'Michael' } : {}
+      )),
       'application/json');
     return init.key;
   }
@@ -479,8 +499,11 @@
     } else {
       media = document.createElement('img');
       media.loading = 'lazy';
+      media.decoding = 'async';
       media.alt = 'Guest photo';
-      media.src = src;
+      // Small tile image when there is one (fast); full photo otherwise.
+      media.src = item.thumbPath ? WORKER_URL + item.thumbPath : src;
+      if (item.thumbPath) media.addEventListener('error', () => { media.src = src; }, { once: true });
       if (media.complete && media.naturalWidth) focusOnFace(media);
       else media.addEventListener('load', () => focusOnFace(media));
     }
@@ -518,6 +541,17 @@
       });
       meta.appendChild(delBtn);
 
+      if (allAlbums.length > 1) {
+        const albumSel = document.createElement('select');
+        albumSel.className = 'ph-album-sel';
+        albumSel.setAttribute('aria-label', 'Album');
+        albumSel.innerHTML = allAlbums.map((a) =>
+          `<option value="${a.id}"${a.id === item.albumId ? ' selected' : ''}>${escHtml(a.name)}</option>`).join('');
+        albumSel.addEventListener('click', (e) => e.stopPropagation());
+        albumSel.addEventListener('change', () => moveToAlbum(item.id, Number(albumSel.value)));
+        meta.appendChild(albumSel);
+      }
+
       el.appendChild(meta);
     }
     return el;
@@ -553,21 +587,42 @@
     allItems = data.items || [];
     allPeople = data.people || [];
     isAdminView = !!token;
+    renderAlbums(data.albums || []);
     renderFeed();
   }
 
-  // ── Filters: source (all / photographer / guests) + who's in it ──
+  // ── Filters: album + who's in it ──
 
   let allItems = [];
   let allPeople = [];
+  let allAlbums = [];
   let isAdminView = false;
-  const filter = { source: 'all', person: null };
+  const filter = { album: 'all', person: null };
   let lastSignature = '';
+  let albumSig = '';
+
+  // Album buttons: All + every album that has something in it (admins see
+  // empty ones too, so there's somewhere to upload into).
+  function renderAlbums(albums) {
+    allAlbums = albums;
+    const counts = {};
+    allItems.forEach((i) => { counts[i.albumId] = (counts[i.albumId] || 0) + 1; });
+    const shown = albums.filter((a) => isAdminView || counts[a.id]);
+    const sig = shown.map((a) => a.id + ':' + a.name).join('|');
+    if (sig === albumSig) return;
+    albumSig = sig;
+    const wrap = document.getElementById('ph-albums');
+    wrap.innerHTML = '<button type="button" class="ph-seg-btn" data-album="all">All</button>' +
+      shown.map((a) => `<button type="button" class="ph-seg-btn" data-album="${a.id}">${escHtml(a.name)}</button>`).join('');
+    if (filter.album !== 'all' && !shown.some((a) => a.id === filter.album)) filter.album = 'all';
+    wrap.querySelectorAll('.ph-seg-btn').forEach((b) => b.classList.toggle('is-on', String(filter.album) === b.dataset.album));
+    // Only one album → no point showing the switcher.
+    wrap.hidden = shown.length < 2;
+  }
 
   function filteredItems() {
     return allItems.filter((i) => {
-      if (filter.source === 'pro' && i.source !== 'pro') return false;
-      if (filter.source === 'guest' && i.source === 'pro') return false;
+      if (filter.album !== 'all' && i.albumId !== filter.album) return false;
       if (filter.person && !(i.people || []).includes(filter.person.id)) return false;
       return true;
     });
@@ -577,7 +632,7 @@
     const items = filteredItems();
     feedItems = items;
 
-    const filtered = filter.source !== 'all' || filter.person;
+    const filtered = filter.album !== 'all' || filter.person;
     emptyEl.textContent = filtered ? 'No photos here yet.' : 'Nothing here yet — be the first!';
     emptyEl.hidden = items.length > 0;
 
@@ -600,12 +655,14 @@
     });
   }
 
-  document.querySelectorAll('.ph-seg-btn').forEach((b) => b.addEventListener('click', () => {
-    document.querySelectorAll('.ph-seg-btn').forEach((x) => x.classList.toggle('is-on', x === b));
-    filter.source = b.dataset.source;
+  document.getElementById('ph-albums').addEventListener('click', (e) => {
+    const b = e.target.closest('.ph-seg-btn');
+    if (!b) return;
+    document.querySelectorAll('#ph-albums .ph-seg-btn').forEach((x) => x.classList.toggle('is-on', x === b));
+    filter.album = b.dataset.album === 'all' ? 'all' : Number(b.dataset.album);
     renderFeed();
     window.scrollTo({ top: 0 });
-  }));
+  });
 
   // Name picker
   const peopleSheet = document.getElementById('ph-people');
@@ -775,14 +832,38 @@
     }
   }
 
-  // Admin: photographer uploads (marked as "Photographer" in the filter).
+  // Admin: upload into a chosen album.
   const proInput = document.getElementById('ph-pro-file');
-  document.getElementById('ph-pro-btn').addEventListener('click', () => proInput.click());
+  const albumSheet = document.getElementById('ph-album-pick');
+  let uploadAlbumId = null;
+  document.getElementById('ph-pro-btn').addEventListener('click', () => {
+    document.getElementById('ph-album-list').innerHTML = allAlbums.map((a) =>
+      `<li><button type="button" data-id="${a.id}"><span>${escHtml(a.name)}</span></button></li>`).join('');
+    albumSheet.hidden = false;
+  });
+  document.getElementById('ph-album-close').addEventListener('click', () => { albumSheet.hidden = true; });
+  document.getElementById('ph-album-list').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-id]');
+    if (!b) return;
+    uploadAlbumId = Number(b.dataset.id);
+    albumSheet.hidden = true;
+    proInput.click();
+  });
   proInput.addEventListener('change', () => {
     const files = Array.from(proInput.files || []);
     proInput.value = '';
-    files.forEach((f) => uploadFile(f, { pro: true }));
+    const album = allAlbums.find((a) => a.id === uploadAlbumId);
+    files.forEach((f) => uploadFile(f, { album: uploadAlbumId, albumName: album ? album.name : '' }));
   });
+
+  async function moveToAlbum(itemId, albumId) {
+    await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'setItemAlbum', token: adminToken(), payload: { itemId, albumId } })
+    });
+    refreshFeed();
+  }
 
   // ── Viewer: full-screen vertical pager (swipe up/down = next/prev) ──
   // Native scroll + snap does the gesture work, so it inherits the OS's
@@ -821,9 +902,17 @@
       if (item.thumbPath) media.poster = WORKER_URL + item.thumbPath;
       media.src = src;
     } else {
+      // Show the small tile image instantly, swap in the full photo when it lands.
       media = document.createElement('img');
-      media.src = src;
       media.alt = 'Guest photo';
+      if (item.thumbPath) {
+        media.src = WORKER_URL + item.thumbPath;
+        const full = new Image();
+        full.onload = () => { media.src = src; };
+        full.src = src;
+      } else {
+        media.src = src;
+      }
     }
     slide.appendChild(media);
   }

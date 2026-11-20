@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="photos.css?v=14" />
+  <link rel="stylesheet" href="photos.css?v=15" />
   <link rel="stylesheet" href="admin-nav.css?v=5" />
   <script src="admin-nav.js?v=5" defer></script>
 </head>
@@ -17,16 +17,14 @@
 
   <!-- Filters: who took it, who's in it, select & download -->
   <div id="ph-bar" class="ph-bar">
-    <div class="ph-seg" role="group" aria-label="Show">
-      <button type="button" class="ph-seg-btn is-on" data-source="all">All</button>
-      <button type="button" class="ph-seg-btn" data-source="pro">Photographer</button>
-      <button type="button" class="ph-seg-btn" data-source="guest">Guests</button>
+    <div id="ph-albums" class="ph-seg" role="group" aria-label="Albums">
+      <button type="button" class="ph-seg-btn is-on" data-album="all">All</button>
     </div>
     <button type="button" id="ph-who-btn" class="ph-chip" hidden>Find someone</button>
     <span id="ph-who-on" class="ph-chip ph-chip-on" hidden><span id="ph-who-name"></span>
       <button type="button" id="ph-who-clear" aria-label="Show everyone">&times;</button></span>
     <button type="button" id="ph-select-btn" class="ph-chip">Select</button>
-    <button type="button" id="ph-pro-btn" class="ph-chip ph-admin-only" hidden>+ Photographer photos</button>
+    <button type="button" id="ph-pro-btn" class="ph-chip ph-admin-only" hidden>+ Add to album</button>
   </div>
 
   <main class="ph-main">
@@ -37,7 +35,16 @@
   <div id="ph-queue" class="ph-queue" hidden></div>
 
   <input type="file" id="ph-file" accept="image/*,video/*" multiple hidden />
-  <input type="file" id="ph-pro-file" accept="image/*" multiple hidden />
+  <input type="file" id="ph-pro-file" accept="image/*,video/*" multiple hidden />
+
+  <!-- Admin: pick which album an upload goes to -->
+  <div id="ph-album-pick" class="ph-name" hidden>
+    <div class="ph-name-card">
+      <h2 class="ph-name-title">Add to which album?</h2>
+      <ul id="ph-album-list" class="ph-people-list"></ul>
+      <button type="button" id="ph-album-close" class="ph-name-skip">Cancel</button>
+    </div>
+  </div>
   <button type="button" id="ph-pick" class="ph-fab">+ Add Photos &amp; Videos</button>
 
   <!-- Select mode bar (replaces the add button while selecting) -->
@@ -85,6 +92,6 @@
     <div id="ph-pager" class="ph-pager"></div>
   </div>
 
-  <script src="photos.js?v=14"></script>
+  <script src="photos.js?v=15"></script>
 </body>
 </html>
