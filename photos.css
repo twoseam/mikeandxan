@@ -1061,3 +1061,50 @@
 .ph-sel-all { color: var(--color-charcoal); font-size: 1rem; flex: 0 0 auto; }
 .ph-sel-all[hidden] { display: none; }
 @media (max-width: 699px) { .ph-sel-all { order: 2; margin-left: auto; padding: 0 4px; font-size: 0.95rem; } }
+
+/* Download all beside the albums; on phones one row: albums scroll, icon button pinned right */
+.ph-dl-all {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  font-family: "new-kansas", Georgia, serif; font-size: 1.05rem;
+  padding: 0.55rem 1.1rem;
+  border: 1.5px solid var(--color-bg); border-radius: 999px;
+  background: transparent; color: var(--color-bg); cursor: pointer; white-space: nowrap;
+}
+.ph-dl-all:hover { background: var(--color-bg); color: #fff; }
+.ph-dl-all[hidden] { display: none; }
+.ph-dl-all svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 699px) {
+  .ph-tools { flex-wrap: nowrap; gap: 8px; }
+  .ph-main .ph-tools .ph-seg { flex: 1 1 auto; min-width: 0; order: 0; }
+  .ph-dl-all { order: 1; width: 40px; height: 40px; padding: 0; justify-content: center; }
+  .ph-dl-all span { display: none; }
+}
+
+/* v5.1: back to square previews (Michael, Nov 21), rounded, wide */
+.ph-feed { display: grid; columns: auto; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+@media (min-width: 700px)  { .ph-feed { grid-template-columns: repeat(4, 1fr); gap: 10px; } }
+@media (min-width: 1300px) { .ph-feed { grid-template-columns: repeat(5, 1fr); } }
+.ph-item { aspect-ratio: 1 / 1; margin: 0; break-inside: auto; border-radius: 8px; }
+@media (min-width: 700px) { .ph-item { margin: 0; border-radius: 12px; } }
+.ph-item img, .ph-item video { height: 100%; min-height: 0; object-fit: cover; }
+
+/* Strip of small photos in the viewer on phones too (Michael, Nov 21) */
+@media (max-width: 899px) {
+  .ph-pager { bottom: calc(70px + env(safe-area-inset-bottom)); }
+  .ph-slide { padding-bottom: 0.4rem; }
+  .ph-strip {
+    display: flex; gap: 5px;
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 66;
+    height: calc(70px + env(safe-area-inset-bottom));
+    padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .ph-strip::-webkit-scrollbar { display: none; }
+  .ph-strip button {
+    flex: 0 0 auto; width: 50px; height: 50px; padding: 0; border: 2px solid transparent;
+    border-radius: 7px; overflow: hidden; background: rgba(255, 255, 255, 0.1); opacity: 0.5;
+  }
+  .ph-strip button.is-on { opacity: 1; border-color: #fff; }
+  .ph-strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}

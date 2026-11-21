@@ -835,13 +835,9 @@
   const selected = new Set();
   const dlBtn = document.getElementById('ph-dl-btn');
   const dlClear = document.getElementById('ph-dl-clear');
-  const selAll = document.getElementById('ph-sel-all');
-  selAll.addEventListener('click', () => {
-    const allOn = feedItems.length && feedItems.every((i) => selected.has(i.id));
-    feedItems.forEach((i) => { if (allOn) selected.delete(i.id); else selected.add(i.id); });
-    feedEl.querySelectorAll('.ph-item').forEach((t) => t.classList.toggle('is-selected', selected.has(Number(t.dataset.id))));
-    updateSelBar();
-  });
+  // "Download all" beside the albums: everything in the current view.
+  const dlAll = document.getElementById('ph-dl-all');
+  dlAll.addEventListener('click', () => askSize(feedItems));
 
   function fmtBytes(n) {
     if (!n) return '';
@@ -859,9 +855,7 @@
     dlBtn.querySelector('span').textContent = 'Download ' + n + (n === 1 ? ' photo' : ' photos');
     dlBtn.hidden = !n;
     dlClear.hidden = !n;
-    const allOn = feedItems.length && n === feedItems.length;
-    selAll.textContent = allOn ? 'Select none' : 'Select all';
-    selAll.hidden = !feedItems.length;
+    dlAll.hidden = !feedItems.length;
     feedEl.classList.toggle('has-selection', n > 0);
   }
   function toggleSelect(id, tile) {
