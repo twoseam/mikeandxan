@@ -903,14 +903,23 @@
     if (tile) tile.classList.toggle('is-selected', selected.has(id));
     updateSelBar();
   }
-  // Keep the viewer's Select buttons and strip checks in step with the picks.
+  // Pin a slide's select dot to the top-left corner of the photo itself.
+  function placeSlideDot(inner) {
+    const m = inner.querySelector('img, video'), d = inner.querySelector('.ph-slide-sel');
+    if (!m || !d || !m.offsetWidth) return;
+    const a = m.getBoundingClientRect(), b = inner.getBoundingClientRect();
+    d.style.left = (a.left - b.left + 10) + 'px';
+    d.style.top = (a.top - b.top + 10) + 'px';
+    d.hidden = false;
+  }
+  window.addEventListener('resize', () => lightbox.querySelectorAll('.ph-slide-inner').forEach(placeSlideDot));
+  // Keep the viewer's select dots and strip checks in step with the picks.
   function syncViewerSel() {
     if (lightbox.hidden) return;
     lightbox.querySelectorAll('.ph-slide-sel').forEach((b) => {
       const on = selected.has(Number(b.dataset.id));
       b.classList.toggle('is-on', on);
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
-      b.querySelector('.ph-slide-sel-text').textContent = on ? 'Selected' : 'Select';
     });
     Array.from(strip.children).forEach((b, i) => {
       const it = feedItems[i];
@@ -1145,22 +1154,23 @@
     dlb.className = 'ph-slide-dl';
     dlb.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download';
     dlb.addEventListener('click', (e) => { e.stopPropagation(); askSize([item]); });
-    // Pick this photo for a multi-download without leaving the viewer.
+    inner.appendChild(dlb);
+    // Select dot in the photo's top-left corner, same as the grid.
     const selb = document.createElement('button');
     selb.type = 'button';
     selb.className = 'ph-slide-sel';
     selb.dataset.id = item.id;
-    selb.innerHTML = '<span class="ph-slide-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></span><span class="ph-slide-sel-text"></span>';
+    selb.setAttribute('aria-label', 'Select');
+    selb.hidden = true;
     selb.addEventListener('click', (e) => {
       e.stopPropagation();
       const tile = feedEl.querySelector('.ph-item[data-id="' + item.id + '"]');
       toggleSelect(item.id, tile);
     });
-    const row = document.createElement('div');
-    row.className = 'ph-slide-actions';
-    row.appendChild(selb);
-    row.appendChild(dlb);
-    inner.appendChild(row);
+    inner.appendChild(selb);
+    const place = () => placeSlideDot(inner);
+    media.addEventListener(media.tagName === 'VIDEO' ? 'loadedmetadata' : 'load', place);
+    requestAnimationFrame(place);
     slide.appendChild(inner);
     syncViewerSel();
   }
@@ -1289,6 +1299,8 @@
     if (!b) return;
     strip.querySelectorAll('.is-on').forEach((x) => x.classList.remove('is-on'));
     b.classList.add('is-on');
+    const cur = pager.children[i] && pager.children[i].querySelector('.ph-slide-inner');
+    if (cur) placeSlideDot(cur);
     strip.scrollTo({ left: b.offsetLeft - strip.clientWidth / 2 + b.offsetWidth / 2, behavior: 'smooth' });
   }
   let stripTick = null;
