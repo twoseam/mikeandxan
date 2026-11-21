@@ -249,6 +249,13 @@
 
     if (!/^(image|video)\//.test(file.type)) { row.fail('Not a photo or video'); return; }
 
+    // Photos: re-save as a high-quality JPEG at full size (~45% smaller on
+    // Michael's Fuji files, so ~2x faster) before sending. Falls back to the
+    // original if the browser can't, or if it wouldn't be smaller.
+    if (file.type.startsWith('image/') && file.type !== 'image/gif') {
+      file = await compressPhoto(file);
+    }
+
     try {
       // For videos, build tile assets locally while the upload runs:
       // a poster frame + a ~2.5s muted low-res looping preview clip.
@@ -291,6 +298,26 @@
     } catch (err) {
       row.fail(err.message || 'Upload failed — try again');
     }
+  }
+
+  async function compressPhoto(file) {
+    if (file.size < 1.5 * 1024 * 1024) return file;
+    try {
+      const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      // Phones cap canvas size (~16.7 MP on iPhone) — send big ones as-is there.
+      const isPhone = /iPhone|iPad|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent));
+      if (isPhone && bmp.width * bmp.height > 16000000) { bmp.close && bmp.close(); return file; }
+      const canvas = document.createElement('canvas');
+      canvas.width = bmp.width;
+      canvas.height = bmp.height;
+      canvas.getContext('2d').drawImage(bmp, 0, 0);
+      bmp.close && bmp.close();
+      const blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.85));
+      canvas.width = canvas.height = 0; // free memory now
+      if (!blob || blob.size >= file.size * 0.9) return file;
+      const name = (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg';
+      return new File([blob], name, { type: 'image/jpeg', lastModified: file.lastModified });
+    } catch (e) { return file; }
   }
 
   // Small tile image for a photo (800px JPEG, phone rotation applied) so the

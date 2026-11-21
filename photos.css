@@ -736,3 +736,60 @@
   .ph-seg { order: 3; flex: 1 0 100%; overflow-x: auto; gap: 1.2rem; }
   .ph-seg-btn { font-size: 1.05rem; }
 }
+
+/* ═════════ v3 (Nov 21): one slim bar like the main site ═════════
+   Michael: the giant wordmark was unreadable ("fat" only works small),
+   the red block was too heavy, edges didn't line up. Now: the site's own
+   "m & a" mark at its normal size, tabs, search + Download — one row,
+   aligned to the photo grid's edges. */
+.ph-body { --ph-max: 1120px; }
+.ph-bar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(241, 88, 38, 0.97);
+  border-bottom: 1px solid #fff;
+  box-shadow: none;
+}
+.ph-bar-inner {
+  max-width: var(--ph-max);
+  margin: 0 auto;
+  padding: 0 var(--ph-gap);
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  grid-template-areas: "brand tabs search actions";
+  align-items: center;
+  column-gap: 1.75rem;
+}
+.ph-brand { grid-area: brand; transform: translateY(3px); line-height: 1; }
+.ph-seg { grid-area: tabs; align-self: stretch; align-items: stretch; flex: none; margin: 0; }
+.ph-seg-btn { display: flex; align-items: center; padding: 0; border-bottom-width: 3px; margin-bottom: -1px; }
+.ph-search { grid-area: search; width: 300px; max-width: none; flex: none; padding: 0; }
+.ph-search input { padding-top: 0.62rem; padding-bottom: 0.62rem; font-size: 1.05rem; }
+.ph-actions { grid-area: actions; padding: 0; }
+.ph-chip { background: #fff; color: var(--color-bg); border: 2px solid #fff; font-weight: 700; padding: 0.6rem 1.15rem; }
+.ph-chip:hover { background: var(--color-bg-alt); border-color: var(--color-bg-alt); color: #fff; }
+.ph-chip.is-on { background: var(--color-charcoal); border-color: var(--color-charcoal); color: #fff; }
+
+.ph-main { padding-top: 1.25rem; padding-left: var(--ph-gap); padding-right: var(--ph-gap); }
+.ph-who-on { padding: 1.1rem var(--ph-gap) 0.2rem; max-width: var(--ph-max); margin: 0 auto; }
+.ph-bar .ph-who-on { background: var(--color-cream); max-width: none; padding-left: max(var(--ph-gap), calc((100% - var(--ph-max)) / 2 + var(--ph-gap))); padding-right: max(var(--ph-gap), calc((100% - var(--ph-max)) / 2 + var(--ph-gap))); padding-bottom: 0.9rem; border-bottom: 1px solid rgba(53, 50, 48, 0.1); }
+
+@media (min-width: 700px) { .ph-body { --ph-gap: 8px; } .ph-bar-inner { padding: 0 1rem; } .ph-main { padding-left: 1rem; padding-right: 1rem; } }
+
+/* Narrower screens: brand + Download, then search, then tabs */
+@media (max-width: 899px) {
+  .ph-bar-inner {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "brand actions" "search search" "tabs tabs";
+    row-gap: 0.6rem;
+    padding-top: 0.6rem;
+    min-height: 0;
+  }
+  .ph-search { width: auto; }
+  .ph-seg { overflow-x: auto; gap: 1.3rem; }
+  .ph-seg-btn { padding: 0.35rem 0 0.6rem; font-size: 1.05rem; }
+}
+@media (max-width: 699px) {
+  .ph-bar-inner { padding: 0.65rem 12px 0; }
+  .ph-main { padding-left: 6px; padding-right: 6px; padding-top: 8px; }
+}
