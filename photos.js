@@ -1184,9 +1184,26 @@
   // Side to side: arrows, arrow keys, and a strip of small photos below.
   const strip = document.getElementById('ph-strip');
   const currentIndex = () => Math.round(pager.scrollLeft / Math.max(1, pager.clientWidth));
+  // Arrows/keys: a quick 180ms slide (the browser's smooth scroll felt slow).
+  let slideAnim = null;
   function goTo(i, smooth) {
     i = Math.max(0, Math.min(feedItems.length - 1, i));
-    pager.scrollTo({ left: i * pager.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+    const to = i * pager.clientWidth;
+    cancelAnimationFrame(slideAnim);
+    if (!smooth || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      pager.scrollLeft = to;
+      return;
+    }
+    const from = pager.scrollLeft, start = performance.now(), dur = 180;
+    pager.style.scrollSnapType = 'none';
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / dur);
+      const e = 1 - Math.pow(1 - t, 3);
+      pager.scrollLeft = from + (to - from) * e;
+      if (t < 1) slideAnim = requestAnimationFrame(step);
+      else pager.style.scrollSnapType = '';
+    };
+    slideAnim = requestAnimationFrame(step);
   }
   function buildStrip(active) {
     strip.innerHTML = feedItems.map((it, i) =>
