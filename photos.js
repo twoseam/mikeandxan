@@ -681,13 +681,14 @@
     const counts = {};
     allItems.forEach((i) => { counts[i.albumId] = (counts[i.albumId] || 0) + 1; });
     const shown = albums;  // always show every album as a filter (Michael, Nov 21)
-    const sig = shown.map((a) => a.id + ':' + a.name).join('|');
+    const sig = allItems.length + '|' + shown.map((a) => a.id + ':' + a.name + ':' + (counts[a.id] || 0)).join('|');
     if (sig === albumSig) return;
     albumSig = sig;
     const wrap = document.getElementById('ph-albums');
-    wrap.innerHTML = '<button type="button" class="ph-seg-btn" data-album="all">All</button>' +
-      shown.map((a) => `<button type="button" class="ph-seg-btn" data-album="${a.id}">${escHtml(a.name)}</button>`).join('');
+    wrap.innerHTML = `<button type="button" class="ph-seg-btn" data-album="all">All photos<small>${allItems.length}</small></button>` +
+      shown.map((a) => `<button type="button" class="ph-seg-btn" data-album="${a.id}">${escHtml(a.name)}<small>${counts[a.id] || 0}</small></button>`).join('');
     if (filter.album !== 'all' && !shown.some((a) => a.id === filter.album)) filter.album = 'all';
+    setAlbumLabel();
     wrap.querySelectorAll('.ph-seg-btn').forEach((b) => b.classList.toggle('is-on', String(filter.album) === b.dataset.album));
     wrap.querySelectorAll('.ph-seg-btn[data-album]').forEach((b) => {
       const n = b.dataset.album === 'all' ? allItems.length : (counts[Number(b.dataset.album)] || 0);
@@ -731,11 +732,27 @@
     updateSelBar();
   }
 
-  document.getElementById('ph-albums').addEventListener('click', (e) => {
+  // Album picker: one "All photos ▾" button that opens a short list.
+  const albumMenu = document.getElementById('ph-albums');
+  const albumToggle = document.getElementById('ph-album-toggle');
+  function setAlbumLabel() {
+    const a = allAlbums.find((x) => x.id === filter.album);
+    document.getElementById('ph-album-label').textContent = a ? a.name : 'All photos';
+  }
+  function showAlbumMenu(open) {
+    albumMenu.hidden = !open;
+    albumToggle.setAttribute('aria-expanded', String(open));
+  }
+  albumToggle.addEventListener('click', (e) => { e.stopPropagation(); showAlbumMenu(albumMenu.hidden); });
+  document.addEventListener('click', (e) => { if (!albumMenu.hidden && !e.target.closest('.ph-album-pick')) showAlbumMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !albumMenu.hidden) showAlbumMenu(false); });
+  albumMenu.addEventListener('click', (e) => {
     const b = e.target.closest('.ph-seg-btn');
     if (!b) return;
-    document.querySelectorAll('#ph-albums .ph-seg-btn').forEach((x) => x.classList.toggle('is-on', x === b));
+    albumMenu.querySelectorAll('.ph-seg-btn').forEach((x) => x.classList.toggle('is-on', x === b));
     filter.album = b.dataset.album === 'all' ? 'all' : Number(b.dataset.album);
+    setAlbumLabel();
+    showAlbumMenu(false);
     renderFeed();
     window.scrollTo({ top: 0 });
   });
@@ -852,9 +869,9 @@
   function updateSelBar() {
     const n = feedItems.filter((i) => selected.has(i.id)).length;
     // Floating Download shows only once something is picked (Michael, Nov 21).
-    dlBtn.querySelector('span').textContent = 'Download ' + n + (n === 1 ? ' photo' : ' photos');
-    dlBtn.hidden = !n;
-    dlClear.hidden = !n;
+    document.getElementById('ph-sel-count').textContent = n + ' selected';
+    document.getElementById('ph-selbar').hidden = !n;
+    document.body.classList.toggle('ph-has-selbar', n > 0);
     dlAll.hidden = !feedItems.length;
     feedEl.classList.toggle('has-selection', n > 0);
   }

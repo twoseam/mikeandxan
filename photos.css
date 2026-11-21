@@ -1112,3 +1112,85 @@
 @media (max-width: 699px) { .ph-feed { grid-template-columns: repeat(2, 1fr); gap: 6px; } }
 /* 4 across on computers, same full width (Michael, Nov 21) */
 @media (min-width: 1300px) { .ph-feed { grid-template-columns: repeat(4, 1fr); gap: 12px; } }
+
+/* ═════════ v6 (Nov 21) Option A: everything tidy in the header ═════════ */
+.ph-fab { display: none; }
+
+/* + Add photos: white button in the red bar */
+.ph-add {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-family: "new-kansas", Georgia, serif; font-weight: 700; font-size: 1rem;
+  height: 42px; padding: 0 1.1rem 0 0.9rem;
+  border: 0; border-radius: 999px;
+  background: #fff; color: var(--color-bg); cursor: pointer; white-space: nowrap;
+}
+.ph-add:hover { background: var(--color-bg-alt); color: #fff; }
+.ph-add svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.8; stroke-linecap: round; }
+.ph-search input { height: 42px; padding-top: 0; padding-bottom: 0; }
+@media (max-width: 899px) {
+  .ph-add { width: 42px; padding: 0; justify-content: center; }
+  .ph-add span { display: none; }
+}
+
+/* Line under the bar: album picker left, Download all right */
+.ph-tools { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 0.35rem 0 0.9rem; padding: 0; flex-wrap: nowrap; }
+@media (max-width: 699px) { .ph-tools { margin: 0.6rem 4px 0.6rem; } }
+.ph-album-pick { position: relative; }
+.ph-album-toggle {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-family: "new-kansas", Georgia, serif; font-weight: 700; font-size: 1.2rem;
+  padding: 0.35rem 0; border: 0; background: none; color: var(--color-charcoal); cursor: pointer;
+}
+.ph-album-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.15s; }
+.ph-album-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.ph-album-menu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 45;
+  min-width: 240px; padding: 6px;
+  background: #fff; border-radius: 14px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  display: flex; flex-direction: column;
+}
+.ph-album-menu[hidden] { display: none; }
+.ph-album-menu .ph-seg-btn {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 1.5rem;
+  width: 100%; margin: 0; padding: 0.7rem 0.8rem;
+  font-family: "new-kansas", Georgia, serif; font-size: 1.08rem; text-align: left;
+  border: 0; border-radius: 10px; background: none; color: var(--color-charcoal);
+}
+.ph-album-menu .ph-seg-btn:hover { background: var(--color-cream); }
+.ph-album-menu .ph-seg-btn.is-on { background: var(--color-cream); color: var(--color-bg); font-weight: 700; border: 0; }
+.ph-album-menu .ph-seg-btn small { color: rgba(53, 50, 48, 0.5); font-size: 0.85rem; font-weight: 400; }
+
+.ph-dl-all {
+  border: 0; background: none; padding: 0.35rem 0; width: auto; height: auto;
+  font-family: "new-kansas", Georgia, serif; font-size: 1.05rem; font-weight: 400;
+  color: var(--color-bg); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.ph-dl-all:hover { background: none; color: var(--color-berry); }
+@media (max-width: 699px) { .ph-dl-all { width: auto; height: auto; } .ph-dl-all span { display: inline; } }
+
+/* Selection bar: one bar, slides up when photos are picked */
+.ph-selbar2 {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem max(1rem, calc((100% - var(--ph-max)) / 2 + 1rem)) calc(0.75rem + env(safe-area-inset-bottom));
+  background: var(--color-charcoal); color: #fff;
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.2);
+  animation: ph-up 0.18s ease-out;
+}
+.ph-selbar2[hidden] { display: none; }
+@keyframes ph-up { from { transform: translateY(100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ph-selbar2 { animation: none; } }
+.ph-sel-clear {
+  width: 38px; height: 38px; border-radius: 50%; border: 0; flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.14); color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer;
+}
+.ph-sel-count { font-family: "new-kansas", Georgia, serif; font-size: 1.1rem; flex: 1 1 auto; }
+.ph-sel-dl {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  font-family: "new-kansas", Georgia, serif; font-weight: 700; font-size: 1.05rem;
+  padding: 0.65rem 1.3rem; border: 0; border-radius: 999px;
+  background: var(--color-bg); color: #fff; cursor: pointer;
+}
+.ph-sel-dl svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+body.ph-has-selbar .ph-main { padding-bottom: 110px; }
+.ph-main { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }

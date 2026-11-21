@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="photos.css?v=27" />
+  <link rel="stylesheet" href="photos.css?v=28" />
   <link rel="stylesheet" href="admin-nav.css?v=5" />
   <script src="admin-nav.js?v=5" defer></script>
 </head>
@@ -26,6 +26,7 @@
       </div>
       <div class="ph-actions">
         <button type="button" id="ph-pro-btn" class="ph-chip ph-admin-only" hidden>Add to album</button>
+        <button type="button" id="ph-pick" class="ph-add" aria-label="Add your photos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add photos</span></button>
       </div>
     </div>
     <div id="ph-who-on" class="ph-who-on" hidden>
@@ -36,12 +37,16 @@
 
   <main class="ph-main">
     <div class="ph-tools">
-      <nav id="ph-albums" class="ph-seg" aria-label="Albums">
-        <button type="button" class="ph-seg-btn is-on" data-album="all">All</button>
-      </nav>
-      <button type="button" id="ph-dl-all" class="ph-dl-all" hidden aria-label="Download all photos in this view">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Download all</span>
-      </button>
+      <div class="ph-album-pick">
+        <button type="button" id="ph-album-toggle" class="ph-album-toggle" aria-haspopup="true" aria-expanded="false">
+          <span id="ph-album-label">All photos</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <nav id="ph-albums" class="ph-album-menu" aria-label="Albums" hidden>
+          <button type="button" class="ph-seg-btn is-on" data-album="all">All photos</button>
+        </nav>
+      </div>
+      <button type="button" id="ph-dl-all" class="ph-dl-all" hidden>Download all</button>
     </div>
     <div id="ph-feed" class="ph-feed"></div>
     <p id="ph-empty" class="ph-empty" hidden>Nothing here yet &mdash; be the first!</p>
@@ -60,14 +65,15 @@
       <button type="button" id="ph-album-close" class="ph-name-skip">Cancel</button>
     </div>
   </div>
-  <!-- Floating download (stays visible while scrolling) -->
-  <div class="ph-dl-wrap">
-    <button type="button" id="ph-dl-btn" class="ph-dl-btn" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Download all</span>
+  <!-- Selection bar: slides up once photos are picked -->
+  <div id="ph-selbar" class="ph-selbar2" hidden>
+    <button type="button" id="ph-dl-clear" class="ph-sel-clear" aria-label="Clear selection">&times;</button>
+    <span id="ph-sel-count" class="ph-sel-count">0 selected</span>
+    <button type="button" id="ph-dl-btn" class="ph-sel-dl">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Download</span>
     </button>
-    <button type="button" id="ph-dl-clear" class="ph-dl-clear" aria-label="Clear selection" hidden>&times;</button>
   </div>
-  <button type="button" id="ph-pick" class="ph-fab" aria-label="Add your photos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add your photos</span></button>
+
 
   <!-- Name picker -->
   <div id="ph-people" class="ph-name" hidden>
@@ -114,6 +120,6 @@
     <div id="ph-strip" class="ph-strip" aria-label="All photos"></div>
   </div>
 
-  <script src="photos.js?v=28"></script>
+  <script src="photos.js?v=29"></script>
 </body>
 </html>
