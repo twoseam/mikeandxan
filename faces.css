@@ -110,6 +110,7 @@
 .fc-ut-sheet { position: fixed; inset: 0; z-index: 2147483000; background: rgba(20,14,10,.72); display: flex; align-items: center; justify-content: center; padding: 20px; }
 .fc-ut-card { background: #fff; border-radius: 18px; overflow: hidden; display: flex; width: min(1100px, 100%); max-height: calc(100vh - 40px); }
 .fc-ut-photo { flex: 1 1 auto; background: #111; display: flex; align-items: center; justify-content: center; min-width: 0; }
+.fc-ut-frame { position: relative; display: inline-block; line-height: 0; max-width: 100%; }
 .fc-ut-photo img { max-width: 100%; max-height: calc(100vh - 40px); display: block; object-fit: contain; }
 .fc-ut-side { flex: 0 0 340px; padding: 16px 18px 20px; overflow-y: auto; display: flex; flex-direction: column; }
 .fc-ut-top { display: flex; align-items: center; gap: 6px; }
@@ -127,5 +128,17 @@
   .fc-ut-card { flex-direction: column; border-radius: 0; max-height: none; height: 100%; }
   .fc-ut-photo { flex: 0 0 auto; max-height: 46vh; }
   .fc-ut-photo img { max-height: 46vh; }
+  .fc-ut-keys { display: none; }
   .fc-ut-side { flex: 1 1 auto; }
 }
+
+/* Face outlines on the open photo */
+.fc-ut-box { position: absolute; border: 2px solid #fff; border-radius: 6px; box-shadow: 0 0 0 1px rgba(0,0,0,.35); pointer-events: none; }
+.fc-ut-box.is-unknown { border-style: dashed; border-color: rgba(255,255,255,.7); }
+.fc-ut-box span {
+  position: absolute; left: -2px; top: 100%; margin-top: 4px; white-space: nowrap; line-height: 1.2;
+  font-size: .8rem; background: var(--color-bg); color: #fff; padding: 2px 7px; border-radius: 999px;
+}
+.fc-ut-keys { font-size: .8rem; color: #999; margin: -4px 0 10px; }
+.fc-ut-tags .fc-ut-none { background: none; color: #999; padding-left: 0; }
+.fc-list li button.is-first { background: var(--color-orange-lt); border-radius: 8px; }

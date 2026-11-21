@@ -238,20 +238,27 @@
     toast(r.ok ? 'Fingerprints deleted' : (r.error || 'Failed'));
   });
 
-  // ---------- Not tagged ----------
-  let ut = [];          // untagged items
-  let utIdx = -1;       // open item
-  let utTags = [];      // names added to the open item this visit
+  // ---------- Not tagged / All photos (scrub, see who's tagged, add/remove) ----------
+  let utMode = 'untagged'; // 'untagged' | 'all'
+  let ut = [];             // items in the grid
+  let utIdx = -1;          // open item
+  let utTags = [];         // [{id, name}] people on the open item
+  let utFaces = [];        // face boxes on the open item
+  let utReq = 0;           // guards against out-of-order loads when moving fast
+  const tagCache = {};     // itemId -> {tags, faces}
 
   async function loadUntagged() {
-    const r = await api.post('untaggedItems', {});
+    $('ut-hint').textContent = utMode === 'all'
+      ? 'Every photo. Open one and use the arrows to move through them. Add or remove names as you go.'
+      : 'Photos with no one tagged. Tap one to add names, or mark it as having no people.';
+    const r = await api.post('untaggedItems', { all: utMode === 'all' });
     if (!r.ok) { toast(r.error || 'Could not load'); return; }
     ut = r.items;
     renderUntagged();
   }
   function renderUntagged() {
-    $('untagged-count').textContent = ut.length ? '(' + ut.length + ')' : '';
-    $('ut-empty').hidden = ut.length > 0;
+    if (utMode === 'untagged') $('untagged-count').textContent = ut.length ? '(' + ut.length + ')' : '';
+    $('ut-empty').hidden = ut.length > 0 || utMode === 'all';
     $('ut-grid').innerHTML = ut.map((it, i) =>
       `<button type="button" data-i="${i}" class="fc-ut-tile">` +
       (it.thumb ? `<img src="${media(it.thumb)}" alt="" loading="lazy" />` : '<span>Video</span>') +
@@ -263,86 +270,142 @@
     if (b) openUt(Number(b.dataset.i));
   });
 
+  function tagsFrom(r) {
+    const seen = new Set(), tags = [];
+    (r.faces || []).forEach((f) => { if (f.personId && f.name && !seen.has(f.personId)) { seen.add(f.personId); tags.push({ id: f.personId, name: f.name }); } });
+    (r.manual || []).forEach((m) => { if (!seen.has(m.id)) { seen.add(m.id); tags.push({ id: m.id, name: m.name }); } });
+    return tags;
+  }
+  async function fetchTags(it) {
+    const r = await api.post('itemTags', { itemId: it.id });
+    if (!r.ok) return null;
+    tagCache[it.id] = { tags: tagsFrom(r), faces: r.faces || [] };
+    return tagCache[it.id];
+  }
+  function preload(i) {
+    const it = ut[i];
+    if (!it) return;
+    new Image().src = media(it.photo);
+    if (!tagCache[it.id]) fetchTags(it);
+  }
+
   async function openUt(i) {
-    if (i < 0 || i >= ut.length) { closeUt(); return; }
+    if (i < 0 || i >= ut.length) return;
     utIdx = i;
     const it = ut[i];
+    const req = ++utReq;
     $('ut-sheet').hidden = false;
     document.body.style.overflow = 'hidden';
+    $('ut-boxes').innerHTML = '';
     $('ut-img').src = media(it.photo);
     $('ut-pos').textContent = (i + 1) + ' of ' + ut.length;
     $('ut-prev').disabled = i === 0;
     $('ut-next').disabled = i === ut.length - 1;
-    $('ut-input').value = '';
-    utTags = [];
-    renderUtTags();
-    renderUtNames('');
-    const r = await api.post('itemTags', { itemId: it.id });
-    if (utIdx === i && r.ok) { utTags = (r.manual || []).map((m) => ({ id: m.id, name: m.name })); renderUtTags(); }
+    $('ut-nobody').hidden = utMode !== 'untagged';
+    $('ut-done').textContent = 'Next photo';
+    const cached = tagCache[it.id];
+    utTags = cached ? cached.tags.slice() : [];
+    utFaces = cached ? cached.faces : [];
+    renderUtTags(); renderBoxes();
+    renderUtNames($('ut-input').value);
+    preload(i + 1); preload(i + 2);
+    const fresh = await fetchTags(it);
+    if (req !== utReq || !fresh) return;
+    utTags = fresh.tags.slice(); utFaces = fresh.faces;
+    renderUtTags(); renderBoxes();
   }
   function closeUt() {
     $('ut-sheet').hidden = true;
     document.body.style.overflow = '';
     utIdx = -1;
-    // Photos that now have a name drop off the list.
-    ut = ut.filter((it) => !it.done);
-    renderUntagged();
+    if (utMode === 'untagged') { ut = ut.filter((it) => !it.done); renderUntagged(); }
   }
   function renderUtTags() {
-    $('ut-tags').innerHTML = utTags.map((t) =>
+    $('ut-tags').innerHTML = utTags.length ? utTags.map((t) =>
       `<li>${esc(t.name)}<button type="button" data-remove="${t.id}" aria-label="Remove ${esc(t.name)}">&times;</button></li>`
-    ).join('');
+    ).join('') : '<li class="fc-ut-none">No one yet</li>';
+  }
+  // Outline faces on the photo: named ones get a label, unnamed ones a dashed box.
+  function renderBoxes() {
+    const named = new Set(utTags.map((t) => t.id));
+    $('ut-boxes').innerHTML = utFaces.filter((f) => f.box).map((f) => {
+      const [x, y, w, h] = f.box;
+      const on = f.personId && named.has(f.personId);
+      return `<div class="fc-ut-box${on ? '' : ' is-unknown'}" style="left:${x * 100}%;top:${y * 100}%;width:${w * 100}%;height:${h * 100}%">` +
+        (on ? `<span>${esc(f.name)}</span>` : '') + '</div>';
+    }).join('');
+  }
+  function utCandidates(q) {
+    const needle = q.trim().toLowerCase();
+    if (!queue || !needle) return [];
+    const match = (n) => n.toLowerCase().split(/\s+/).some((w) => w.startsWith(needle)) || n.toLowerCase().includes(needle);
+    const have = new Set(utTags.map((t) => t.id));
+    const people = queue.people.filter((p) => !p.ignored && !have.has(p.id) && match(p.name)).slice(0, 20)
+      .map((p) => ({ kind: 'person', id: p.id, name: p.name, sub: p.photos + ' photo' + (p.photos === 1 ? '' : 's') }));
+    const taken = new Set(queue.people.map((p) => p.guestId).filter(Boolean));
+    const guests = queue.guests.filter((g) => !taken.has(g.id) && match(g.name)).slice(0, 30)
+      .map((g) => ({ kind: 'guest', id: g.id, name: g.name, sub: 'guest' }));
+    const out = people.concat(guests);
+    const exact = queue.people.concat(queue.guests).some((x) => x.name.toLowerCase() === needle);
+    if (!exact) out.push({ kind: 'new', name: q.trim() });
+    return out;
   }
   function renderUtNames(q) {
-    const needle = q.trim().toLowerCase();
-    if (!queue) return;
-    const match = (n) => !needle || n.toLowerCase().split(/\s+/).some((w) => w.startsWith(needle)) || n.toLowerCase().includes(needle);
-    const have = new Set(utTags.map((t) => t.id));
-    const people = queue.people.filter((p) => !p.ignored && !have.has(p.id) && match(p.name));
-    const taken = new Set(queue.people.map((p) => p.guestId).filter(Boolean));
-    const guests = queue.guests.filter((g) => !taken.has(g.id) && match(g.name));
-    if (!needle) { $('ut-list').innerHTML = ''; return; }
-    const rows = [];
-    people.slice(0, 20).forEach((p) => rows.push(`<li><button type="button" data-person="${p.id}">${esc(p.name)}<small>${p.photos} photo${p.photos === 1 ? '' : 's'}</small></button></li>`));
-    guests.slice(0, 30).forEach((g) => rows.push(`<li><button type="button" data-guest="${g.id}">${esc(g.name)}<small>guest</small></button></li>`));
-    const exact = queue.people.concat(queue.guests).some((x) => x.name.toLowerCase() === needle);
-    if (!exact) rows.push(`<li class="fc-new"><button type="button" data-new="1">+ Add &ldquo;${esc(q.trim())}&rdquo; as a new name</button></li>`);
-    $('ut-list').innerHTML = rows.join('');
+    const list = utCandidates(q);
+    $('ut-list').innerHTML = list.map((c, i) => c.kind === 'new'
+      ? `<li class="fc-new"><button type="button" data-k="${i}" class="${i === 0 ? 'is-first' : ''}">+ Add &ldquo;${esc(c.name)}&rdquo; as a new name</button></li>`
+      : `<li><button type="button" data-k="${i}" class="${i === 0 ? 'is-first' : ''}">${esc(c.name)}<small>${esc(c.sub)}</small></button></li>`
+    ).join('');
   }
-  $('ut-input').addEventListener('input', (e) => renderUtNames(e.target.value));
-  $('ut-list').addEventListener('click', async (e) => {
-    const b = e.target.closest('button');
-    if (!b || utIdx < 0) return;
+  async function addTag(c) {
+    if (utIdx < 0 || !c) return;
     const it = ut[utIdx];
     const payload = { itemId: it.id };
-    if (b.dataset.person) payload.personId = Number(b.dataset.person);
-    else if (b.dataset.guest) payload.guestId = Number(b.dataset.guest);
-    else payload.name = $('ut-input').value.trim();
-    const name = b.dataset.new ? payload.name : b.firstChild.textContent;
-    const r = await api.post('photoTagAdd', payload);
-    if (!r.ok) { toast(r.error || 'Could not tag'); return; }
-    utTags.push({ id: r.personId, name });
-    it.done = true;
-    renderUtTags();
+    if (c.kind === 'person') payload.personId = c.id;
+    else if (c.kind === 'guest') payload.guestId = c.id;
+    else payload.name = c.name;
     $('ut-input').value = '';
     renderUtNames('');
-    $('ut-input').focus();
-    queue = await api.get('faceQueue');
+    // Show it right away; roll back if the save fails.
+    const temp = { id: -Date.now(), name: c.name };
+    utTags.push(temp); renderUtTags();
+    const r = await api.post('photoTagAdd', payload);
+    if (!r.ok) { utTags = utTags.filter((t) => t !== temp); renderUtTags(); toast(r.error || 'Could not tag'); return; }
+    temp.id = r.personId;
+    it.done = true;
+    tagCache[it.id] = { tags: utTags.slice(), faces: utFaces };
+    renderUtTags(); renderBoxes();
+    if (c.kind !== 'person') queue = await api.get('faceQueue'); // new person ids
+  }
+  $('ut-input').addEventListener('input', (e) => renderUtNames(e.target.value));
+  $('ut-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); addTag(utCandidates($('ut-input').value)[0]); }
+    else if (e.key === 'Escape') { if ($('ut-input').value) { $('ut-input').value = ''; renderUtNames(''); } else $('ut-input').blur(); }
+    else if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !$('ut-input').value) {
+      e.preventDefault(); openUt(utIdx + (e.key === 'ArrowRight' ? 1 : -1));
+    }
+  });
+  $('ut-list').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-k]');
+    if (b) addTag(utCandidates($('ut-input').value)[Number(b.dataset.k)]);
   });
   $('ut-tags').addEventListener('click', async (e) => {
     const b = e.target.closest('button[data-remove]');
     if (!b || utIdx < 0) return;
     const it = ut[utIdx], pid = Number(b.dataset.remove);
-    const r = await api.post('photoTagRemove', { itemId: it.id, personId: pid });
-    if (!r.ok) { toast(r.error || 'Could not remove'); return; }
+    const before = utTags.slice();
     utTags = utTags.filter((t) => t.id !== pid);
+    renderUtTags(); renderBoxes();
+    const r = await api.post('photoTagRemove', { itemId: it.id, personId: pid });
+    if (!r.ok) { utTags = before; renderUtTags(); renderBoxes(); toast(r.error || 'Could not remove'); return; }
+    utFaces = utFaces.map((f) => (f.personId === pid ? { ...f, personId: null, name: '' } : f));
     it.done = utTags.length > 0;
-    renderUtTags();
+    tagCache[it.id] = { tags: utTags.slice(), faces: utFaces };
+    renderBoxes();
   });
-  // Done: move on. Tagged photos are removed from the list as we go.
   function nextUt() {
     const cur = ut[utIdx];
-    if (cur && cur.done) {
+    if (utMode === 'untagged' && cur && cur.done) {
       ut.splice(utIdx, 1);
       renderUntagged();
       if (utIdx < ut.length) openUt(utIdx); else closeUt();
@@ -365,9 +428,18 @@
   });
   document.addEventListener('keydown', (e) => {
     if ($('ut-sheet').hidden || e.target.tagName === 'INPUT') return;
-    if (e.key === 'ArrowRight') openUt(utIdx + 1);
-    else if (e.key === 'ArrowLeft') openUt(utIdx - 1);
+    if (e.key === 'ArrowRight') { e.preventDefault(); openUt(utIdx + 1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); openUt(utIdx - 1); }
     else if (e.key === 'Escape') closeUt();
+    else if (e.key.length === 1 && /\S/.test(e.key) && !e.metaKey && !e.ctrlKey) $('ut-input').focus(); // start typing a name anywhere
+  });
+  // Swipe left/right on the photo (phones).
+  let sx = null;
+  $('ut-img').parentNode.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
+  $('ut-img').parentNode.addEventListener('touchend', (e) => {
+    if (sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx; sx = null;
+    if (Math.abs(dx) > 50) openUt(utIdx + (dx < 0 ? 1 : -1));
   });
 
   // ---------- view switch ----------
@@ -376,9 +448,9 @@
     const view = b.dataset.view;
     $('view-todo').hidden = view !== 'todo';
     $('view-people').hidden = view !== 'people';
-    $('view-untagged').hidden = view !== 'untagged';
+    $('view-untagged').hidden = view !== 'untagged' && view !== 'all';
     if (view === 'people' && queue) renderPeople();
-    if (view === 'untagged') loadUntagged();
+    if (view === 'untagged' || view === 'all') { utMode = view; $('ut-grid').innerHTML = ''; loadUntagged(); }
   }));
 
   load();
