@@ -1270,3 +1270,6 @@ body.ph-has-selbar .ph-main { padding-bottom: 110px; }
 /* Photographer link on Professional Photos page */
 .ph-soon-link{color:inherit;text-decoration:underline;text-decoration-color:#f05a28;text-underline-offset:3px;text-decoration-thickness:2px}
 .ph-soon-link:hover{color:#f05a28}
+
+/* Download sheet sits above the photo viewer */
+.ph-name.ph-dl { z-index: 90; }
