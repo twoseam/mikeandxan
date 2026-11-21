@@ -712,6 +712,11 @@
     document.getElementById('ph-who-count').textContent = filter.person ? '(' + items.length + ')' : '';
     emptyEl.textContent = filtered ? 'No photos here yet.' : 'Nothing here yet — be the first!';
     emptyEl.hidden = items.length > 0;
+    // Professional album with nothing in it yet: show the "notify me" page.
+    const proAlbum = allAlbums.find((x) => x.id === filter.album && !x.guestUploads);
+    const soon = !!proAlbum && items.length === 0 && !filter.person;
+    document.getElementById('ph-soon').hidden = !soon;
+    if (soon) emptyEl.hidden = true;
 
     // Name picker only once people are tagged.
     document.getElementById('ph-pro-btn').hidden = !isAdminView;
@@ -731,6 +736,23 @@
     });
     updateSelBar();
   }
+
+  // "Notify me when the professional photos are ready"
+  document.getElementById('ph-notify').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('ph-notify-email');
+    const msg = document.getElementById('ph-notify-msg');
+    const email = input.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { msg.textContent = 'Enter an email like name@example.com.'; input.focus(); return; }
+    const btn = e.target.querySelector('button');
+    btn.disabled = true;
+    try {
+      const r = await fetch(WORKER_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'photoNotify', payload: { email } }) }).then((x) => x.json());
+      if (r.ok) { e.target.hidden = true; msg.textContent = 'You\u2019re on the list. We\u2019ll email ' + email + ' when they\u2019re ready.'; }
+      else msg.textContent = r.error || 'That didn\u2019t work. Try again.';
+    } catch (err) { msg.textContent = 'No connection. Try again.'; }
+    btn.disabled = false;
+  });
 
   // Album picker: one "All photos ▾" button that opens a short list.
   const albumMenu = document.getElementById('ph-albums');
@@ -914,7 +936,7 @@
     dl.cancelled = false;
     dl.save.hidden = true;
     dl.title.textContent = 'Download ' + items.length + (items.length === 1 ? ' photo' : ' photos');
-    dl.copy.textContent = 'Which size?';
+    dl.copy.textContent = '';
     const sum = (k) => items.reduce((t, i) => t + (i[k] || 0), 0);
     const known = (k) => items.every((i) => i[k]);
     const webBytes = items.reduce((t, i) => t + (i.webBytes || i.bytes || 0), 0);

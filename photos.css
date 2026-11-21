@@ -1194,3 +1194,75 @@
 .ph-sel-dl svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 body.ph-has-selbar .ph-main { padding-bottom: 110px; }
 .ph-main { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+
+/* Professional photos: coming-soon page with "Notify me" */
+.ph-soon { max-width: 560px; margin: 8vh auto 0; padding: 0 1.25rem; text-align: center; }
+.ph-soon[hidden] { display: none; }
+.ph-soon-title { font-family: "new-kansas", Georgia, serif; font-weight: 700; color: var(--color-bg); font-size: clamp(1.8rem, 6vw, 2.5rem); line-height: 1.1; margin: 0 0 0.75rem; }
+.ph-soon-copy { font-size: 1.15rem; line-height: 1.55; color: var(--color-charcoal); margin: 0 0 1.5rem; }
+.ph-notify { display: flex; gap: 0.5rem; max-width: 440px; margin: 0 auto; }
+.ph-notify[hidden] { display: none; }
+.ph-notify input {
+  flex: 1 1 auto; min-width: 0; height: 50px; padding: 0 1.1rem; box-sizing: border-box;
+  font-family: "new-kansas", Georgia, serif; font-size: 1.1rem;
+  border: 1.5px solid rgba(53, 50, 48, 0.25); border-radius: 999px; background: #fff; color: var(--color-charcoal);
+}
+.ph-notify input:focus { outline: none; border-color: var(--color-bg); box-shadow: 0 0 0 3px rgba(241, 88, 38, 0.18); }
+.ph-notify button {
+  flex: 0 0 auto; height: 50px; padding: 0 1.4rem; border: 0; border-radius: 999px;
+  font-family: "new-kansas", Georgia, serif; font-weight: 700; font-size: 1.05rem;
+  background: var(--color-bg); color: #fff; cursor: pointer;
+}
+.ph-notify button:disabled { opacity: 0.6; }
+.ph-notify-msg { margin: 1rem 0 0; font-size: 1.05rem; color: var(--color-charcoal); min-height: 1.4em; }
+@media (max-width: 480px) { .ph-notify { flex-direction: column; } .ph-notify button { width: 100%; } }
+
+/* Download sheet v2 (Nov 21): clean white card, two option rows, × to close.
+   Bottom sheet on phones. */
+.ph-dl .ph-dl-card {
+  background: #fff; color: var(--color-charcoal);
+  width: min(440px, calc(100vw - 32px)); max-width: none;
+  padding: 1.25rem 1.25rem 1.1rem; border-radius: 18px; text-align: left;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+.ph-dl-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; }
+.ph-dl-title { font-family: "new-kansas", Georgia, serif; font-weight: 700; font-size: 1.35rem; color: var(--color-charcoal); margin: 0; }
+.ph-dl-x {
+  width: 36px; height: 36px; border-radius: 50%; border: 0; flex: 0 0 auto;
+  background: var(--color-cream); color: var(--color-charcoal); font-size: 1.45rem; line-height: 1; cursor: pointer;
+}
+.ph-dl-x:hover { background: #f1e2c9; }
+.ph-dl-copy { margin: 0 0 0.75rem; font-size: 0.98rem; color: rgba(53, 50, 48, 0.7); }
+.ph-dl-copy:empty { display: none; }
+.ph-dl .ph-dl-choice { display: grid; gap: 0.5rem; margin: 0; }
+.ph-dl .ph-dl-choice[hidden] { display: none; }
+.ph-dl-opt {
+  display: flex; align-items: center; gap: 0.9rem; width: 100%;
+  padding: 0.95rem 1rem; text-align: left;
+  border: 1.5px solid rgba(53, 50, 48, 0.14); border-radius: 14px; background: #fff;
+  font-family: "new-kansas", Georgia, serif; color: var(--color-charcoal); cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.ph-dl-opt:hover, .ph-dl-opt:focus-visible { border-color: var(--color-bg); background: #fff8f4; outline: none; }
+.ph-dl-opt-text { flex: 1 1 auto; display: flex; flex-direction: column; gap: 0.1rem; }
+.ph-dl-opt-text b { font-size: 1.08rem; }
+.ph-dl-opt-text small { font-size: 0.9rem; color: rgba(53, 50, 48, 0.6); }
+.ph-dl .ph-dl-size { font-size: 0.95rem; color: rgba(53, 50, 48, 0.6); font-weight: 400; opacity: 1; }
+.ph-dl-opt svg {
+  width: 34px; height: 34px; padding: 7px; box-sizing: border-box; border-radius: 50%;
+  background: var(--color-bg); fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto;
+}
+.ph-dl .ph-dl-bar { margin: 0.25rem 0 0.25rem; }
+.ph-dl-save {
+  width: 100%; height: 48px; margin-top: 0.9rem; border: 0; border-radius: 999px;
+  font-family: "new-kansas", Georgia, serif; font-weight: 700; font-size: 1.05rem;
+  background: var(--color-bg); color: #fff; cursor: pointer;
+}
+.ph-dl-save[hidden] { display: none; }
+@media (max-width: 560px) {
+  .ph-dl { align-items: flex-end; padding: 0; }
+  .ph-dl .ph-dl-card {
+    width: 100%; border-radius: 20px 20px 0 0;
+    padding-bottom: calc(1.1rem + env(safe-area-inset-bottom));
+  }
+}

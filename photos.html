@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="photos.css?v=28" />
+  <link rel="stylesheet" href="photos.css?v=30" />
   <link rel="stylesheet" href="admin-nav.css?v=5" />
   <script src="admin-nav.js?v=5" defer></script>
 </head>
@@ -48,6 +48,15 @@
       </div>
       <button type="button" id="ph-dl-all" class="ph-dl-all" hidden>Download all</button>
     </div>
+    <section id="ph-soon" class="ph-soon" hidden>
+      <h2 class="ph-soon-title">Professional photos are on the way</h2>
+      <p class="ph-soon-copy">Juliana Jumper is editing our wedding photos now. Leave your email and we&rsquo;ll let you know the moment they&rsquo;re ready.</p>
+      <form id="ph-notify" class="ph-notify" novalidate>
+        <input id="ph-notify-email" type="email" inputmode="email" autocomplete="email" placeholder="Your email" aria-label="Your email" required />
+        <button type="submit">Notify me</button>
+      </form>
+      <p id="ph-notify-msg" class="ph-notify-msg" role="status"></p>
+    </section>
     <div id="ph-feed" class="ph-feed"></div>
     <p id="ph-empty" class="ph-empty" hidden>Nothing here yet &mdash; be the first!</p>
   </main>
@@ -86,17 +95,27 @@
   </div>
 
   <!-- Download progress / "save" step -->
-  <div id="ph-dl" class="ph-name" hidden>
-    <div class="ph-name-card">
-      <h2 id="ph-dl-title" class="ph-name-title">Getting your photos&hellip;</h2>
-      <p id="ph-dl-copy" class="ph-name-copy"></p>
-      <div id="ph-dl-choice" class="ph-dl-choice" hidden>
-        <button type="button" id="ph-dl-web" class="ph-name-go">Web Size <span id="ph-dl-web-size" class="ph-dl-size"></span><small>For Social and Screens</small></button>
-        <button type="button" id="ph-dl-full" class="ph-name-go ph-dl-alt">Full Size <span id="ph-dl-full-size" class="ph-dl-size"></span><small>For Prints</small></button>
+  <div id="ph-dl" class="ph-name ph-dl" hidden>
+    <div class="ph-name-card ph-dl-card" role="dialog" aria-labelledby="ph-dl-title">
+      <div class="ph-dl-head">
+        <h2 id="ph-dl-title" class="ph-dl-title">Download</h2>
+        <button type="button" id="ph-dl-close" class="ph-dl-x" aria-label="Close">&times;</button>
       </div>
-      <div class="ph-q-bar"><i id="ph-dl-bar"></i></div>
-      <button type="button" id="ph-dl-save" class="ph-name-go" hidden>Save</button>
-      <button type="button" id="ph-dl-close" class="ph-name-skip">Close</button>
+      <p id="ph-dl-copy" class="ph-dl-copy"></p>
+      <div id="ph-dl-choice" class="ph-dl-choice" hidden>
+        <button type="button" id="ph-dl-web" class="ph-dl-opt">
+          <span class="ph-dl-opt-text"><b>Web size</b><small>For social and screens</small></span>
+          <span id="ph-dl-web-size" class="ph-dl-size"></span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+        </button>
+        <button type="button" id="ph-dl-full" class="ph-dl-opt">
+          <span class="ph-dl-opt-text"><b>Full size</b><small>For prints</small></span>
+          <span id="ph-dl-full-size" class="ph-dl-size"></span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+        </button>
+      </div>
+      <div class="ph-q-bar ph-dl-bar"><i id="ph-dl-bar"></i></div>
+      <button type="button" id="ph-dl-save" class="ph-dl-save" hidden>Save</button>
     </div>
   </div>
 
@@ -120,6 +139,6 @@
     <div id="ph-strip" class="ph-strip" aria-label="All photos"></div>
   </div>
 
-  <script src="photos.js?v=29"></script>
+  <script src="photos.js?v=31"></script>
 </body>
 </html>
