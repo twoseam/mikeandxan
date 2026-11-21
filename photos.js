@@ -102,6 +102,9 @@
   }
 
   pickBtn.addEventListener('click', () => {
+    // Logged in as Michael → ask which album (Nov 21: his Fuji batch went
+    // through this button and landed in Guest Photos).
+    if (adminToken()) { document.getElementById('ph-pro-btn').click(); return; }
     pickerOpen = true;
     fileInput.click();
   });
