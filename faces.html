@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="faces.css?v=1" />
+  <link rel="stylesheet" href="faces.css?v=2" />
   <link rel="stylesheet" href="admin-nav.css?v=5" />
   <script src="admin-nav.js?v=5" defer></script>
 </head>
@@ -24,6 +24,7 @@
       <h1 class="fc-title">Faces</h1>
       <div class="fc-switch" role="tablist">
         <button type="button" class="fc-switch-btn is-on" data-view="todo">To do <span id="todo-count"></span></button>
+        <button type="button" class="fc-switch-btn" data-view="untagged">Not tagged <span id="untagged-count"></span></button>
         <button type="button" class="fc-switch-btn" data-view="people">People</button>
       </div>
     </header>
@@ -70,6 +71,13 @@
       <p id="toast" class="fc-toast" hidden></p>
     </main>
 
+    <!-- Not tagged: photos with no one named -->
+    <main id="view-untagged" class="fc-main fc-main-wide" hidden>
+      <p class="fc-hint">Photos with no one tagged. Tap one to add names, or mark it as having no people.</p>
+      <div id="ut-grid" class="fc-ut-grid"></div>
+      <p id="ut-empty" class="fc-done" hidden>Every photo has someone tagged.</p>
+    </main>
+
     <!-- People: everyone tagged so far -->
     <main id="view-people" class="fc-main" hidden>
       <ul id="people" class="fc-people"></ul>
@@ -92,6 +100,33 @@
     </main>
   </div>
 
+  <!-- Tag one untagged photo -->
+  <div id="ut-sheet" class="fc-ut-sheet" hidden>
+    <div class="fc-ut-card" role="dialog" aria-label="Tag this photo">
+      <div class="fc-ut-photo"><img id="ut-img" alt="" /></div>
+      <div class="fc-ut-side">
+        <div class="fc-ut-top">
+          <button type="button" id="ut-prev" class="fc-ut-nav" aria-label="Previous">&lsaquo;</button>
+          <span id="ut-pos" class="fc-ut-pos"></span>
+          <button type="button" id="ut-next" class="fc-ut-nav" aria-label="Next">&rsaquo;</button>
+          <button type="button" id="ut-close" class="fc-ut-x" aria-label="Close">&times;</button>
+        </div>
+        <p class="fc-ut-label">Who&rsquo;s in this photo?</p>
+        <ul id="ut-tags" class="fc-ut-tags"></ul>
+        <div class="fc-name">
+          <input id="ut-input" type="search" placeholder="Type a name&hellip;" autocomplete="off" autocapitalize="words" />
+          <ul id="ut-list" class="fc-list"></ul>
+        </div>
+        <div class="fc-actions">
+          <button type="button" id="ut-done" class="fc-btn fc-yes">Done, next photo</button>
+        </div>
+        <div class="fc-actions fc-actions-small">
+          <button type="button" id="ut-nobody" class="fc-btn-text">No people in this photo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Photo viewer with the face outlined -->
   <div id="viewer" class="fc-viewer" hidden>
     <div class="fc-viewer-inner">
@@ -101,6 +136,6 @@
     <button type="button" id="viewer-close" class="fc-viewer-close" aria-label="Close">&times;</button>
   </div>
 
-  <script src="faces.js?v=1"></script>
+  <script src="faces.js?v=2"></script>
 </body>
 </html>

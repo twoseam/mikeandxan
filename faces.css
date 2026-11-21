@@ -98,3 +98,34 @@
 }
 .fc-viewer[hidden], .fc-toast[hidden], .fc-card[hidden], .fc-done[hidden] { display: none; }
 .fc-body [hidden] { display: none !important; }
+
+/* ---------- Not tagged ---------- */
+.fc-main-wide { max-width: 1100px; }
+.fc-switch { flex-wrap: wrap; }
+.fc-ut-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+.fc-ut-tile { position: relative; padding: 0; border: 0; border-radius: 10px; overflow: hidden; background: #ddd; cursor: pointer; aspect-ratio: 1; }
+.fc-ut-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fc-ut-tile em { position: absolute; left: 6px; bottom: 6px; font-style: normal; font-size: .75rem; color: #fff; background: rgba(0,0,0,.55); padding: 2px 7px; border-radius: 999px; }
+
+.fc-ut-sheet { position: fixed; inset: 0; z-index: 2147483000; background: rgba(20,14,10,.72); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.fc-ut-card { background: #fff; border-radius: 18px; overflow: hidden; display: flex; width: min(1100px, 100%); max-height: calc(100vh - 40px); }
+.fc-ut-photo { flex: 1 1 auto; background: #111; display: flex; align-items: center; justify-content: center; min-width: 0; }
+.fc-ut-photo img { max-width: 100%; max-height: calc(100vh - 40px); display: block; object-fit: contain; }
+.fc-ut-side { flex: 0 0 340px; padding: 16px 18px 20px; overflow-y: auto; display: flex; flex-direction: column; }
+.fc-ut-top { display: flex; align-items: center; gap: 6px; }
+.fc-ut-pos { flex: 1; text-align: center; font-size: .9rem; color: #777; }
+.fc-ut-nav, .fc-ut-x { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--color-cream); color: var(--color-charcoal); font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.fc-ut-nav:disabled { opacity: .35; cursor: default; }
+.fc-ut-label { font-size: 1.2rem; margin: 16px 0 8px; }
+.fc-ut-tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.fc-ut-tags li { display: inline-flex; align-items: center; gap: 4px; background: var(--color-orange-lt); border-radius: 999px; padding: 5px 6px 5px 12px; font-size: .95rem; }
+.fc-ut-tags button { border: 0; background: none; font-size: 1.1rem; line-height: 1; cursor: pointer; color: inherit; padding: 0 4px; }
+.fc-ut-side .fc-list { max-height: 220px; }
+
+@media (max-width: 760px) {
+  .fc-ut-sheet { padding: 0; align-items: stretch; }
+  .fc-ut-card { flex-direction: column; border-radius: 0; max-height: none; height: 100%; }
+  .fc-ut-photo { flex: 0 0 auto; max-height: 46vh; }
+  .fc-ut-photo img { max-height: 46vh; }
+  .fc-ut-side { flex: 1 1 auto; }
+}

@@ -238,15 +238,150 @@
     toast(r.ok ? 'Fingerprints deleted' : (r.error || 'Failed'));
   });
 
+  // ---------- Not tagged ----------
+  let ut = [];          // untagged items
+  let utIdx = -1;       // open item
+  let utTags = [];      // names added to the open item this visit
+
+  async function loadUntagged() {
+    const r = await api.post('untaggedItems', {});
+    if (!r.ok) { toast(r.error || 'Could not load'); return; }
+    ut = r.items;
+    renderUntagged();
+  }
+  function renderUntagged() {
+    $('untagged-count').textContent = ut.length ? '(' + ut.length + ')' : '';
+    $('ut-empty').hidden = ut.length > 0;
+    $('ut-grid').innerHTML = ut.map((it, i) =>
+      `<button type="button" data-i="${i}" class="fc-ut-tile">` +
+      (it.thumb ? `<img src="${media(it.thumb)}" alt="" loading="lazy" />` : '<span>Video</span>') +
+      (it.isVideo ? '<em>Video</em>' : '') + '</button>'
+    ).join('');
+  }
+  $('ut-grid').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-i]');
+    if (b) openUt(Number(b.dataset.i));
+  });
+
+  async function openUt(i) {
+    if (i < 0 || i >= ut.length) { closeUt(); return; }
+    utIdx = i;
+    const it = ut[i];
+    $('ut-sheet').hidden = false;
+    document.body.style.overflow = 'hidden';
+    $('ut-img').src = media(it.photo);
+    $('ut-pos').textContent = (i + 1) + ' of ' + ut.length;
+    $('ut-prev').disabled = i === 0;
+    $('ut-next').disabled = i === ut.length - 1;
+    $('ut-input').value = '';
+    utTags = [];
+    renderUtTags();
+    renderUtNames('');
+    const r = await api.post('itemTags', { itemId: it.id });
+    if (utIdx === i && r.ok) { utTags = (r.manual || []).map((m) => ({ id: m.id, name: m.name })); renderUtTags(); }
+  }
+  function closeUt() {
+    $('ut-sheet').hidden = true;
+    document.body.style.overflow = '';
+    utIdx = -1;
+    // Photos that now have a name drop off the list.
+    ut = ut.filter((it) => !it.done);
+    renderUntagged();
+  }
+  function renderUtTags() {
+    $('ut-tags').innerHTML = utTags.map((t) =>
+      `<li>${esc(t.name)}<button type="button" data-remove="${t.id}" aria-label="Remove ${esc(t.name)}">&times;</button></li>`
+    ).join('');
+  }
+  function renderUtNames(q) {
+    const needle = q.trim().toLowerCase();
+    if (!queue) return;
+    const match = (n) => !needle || n.toLowerCase().split(/\s+/).some((w) => w.startsWith(needle)) || n.toLowerCase().includes(needle);
+    const have = new Set(utTags.map((t) => t.id));
+    const people = queue.people.filter((p) => !p.ignored && !have.has(p.id) && match(p.name));
+    const taken = new Set(queue.people.map((p) => p.guestId).filter(Boolean));
+    const guests = queue.guests.filter((g) => !taken.has(g.id) && match(g.name));
+    if (!needle) { $('ut-list').innerHTML = ''; return; }
+    const rows = [];
+    people.slice(0, 20).forEach((p) => rows.push(`<li><button type="button" data-person="${p.id}">${esc(p.name)}<small>${p.photos} photo${p.photos === 1 ? '' : 's'}</small></button></li>`));
+    guests.slice(0, 30).forEach((g) => rows.push(`<li><button type="button" data-guest="${g.id}">${esc(g.name)}<small>guest</small></button></li>`));
+    const exact = queue.people.concat(queue.guests).some((x) => x.name.toLowerCase() === needle);
+    if (!exact) rows.push(`<li class="fc-new"><button type="button" data-new="1">+ Add &ldquo;${esc(q.trim())}&rdquo; as a new name</button></li>`);
+    $('ut-list').innerHTML = rows.join('');
+  }
+  $('ut-input').addEventListener('input', (e) => renderUtNames(e.target.value));
+  $('ut-list').addEventListener('click', async (e) => {
+    const b = e.target.closest('button');
+    if (!b || utIdx < 0) return;
+    const it = ut[utIdx];
+    const payload = { itemId: it.id };
+    if (b.dataset.person) payload.personId = Number(b.dataset.person);
+    else if (b.dataset.guest) payload.guestId = Number(b.dataset.guest);
+    else payload.name = $('ut-input').value.trim();
+    const name = b.dataset.new ? payload.name : b.firstChild.textContent;
+    const r = await api.post('photoTagAdd', payload);
+    if (!r.ok) { toast(r.error || 'Could not tag'); return; }
+    utTags.push({ id: r.personId, name });
+    it.done = true;
+    renderUtTags();
+    $('ut-input').value = '';
+    renderUtNames('');
+    $('ut-input').focus();
+    queue = await api.get('faceQueue');
+  });
+  $('ut-tags').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-remove]');
+    if (!b || utIdx < 0) return;
+    const it = ut[utIdx], pid = Number(b.dataset.remove);
+    const r = await api.post('photoTagRemove', { itemId: it.id, personId: pid });
+    if (!r.ok) { toast(r.error || 'Could not remove'); return; }
+    utTags = utTags.filter((t) => t.id !== pid);
+    it.done = utTags.length > 0;
+    renderUtTags();
+  });
+  // Done: move on. Tagged photos are removed from the list as we go.
+  function nextUt() {
+    const cur = ut[utIdx];
+    if (cur && cur.done) {
+      ut.splice(utIdx, 1);
+      renderUntagged();
+      if (utIdx < ut.length) openUt(utIdx); else closeUt();
+    } else if (utIdx + 1 < ut.length) openUt(utIdx + 1);
+    else closeUt();
+  }
+  $('ut-done').addEventListener('click', nextUt);
+  $('ut-next').addEventListener('click', () => openUt(utIdx + 1));
+  $('ut-prev').addEventListener('click', () => openUt(utIdx - 1));
+  $('ut-close').addEventListener('click', closeUt);
+  $('ut-sheet').addEventListener('click', (e) => { if (e.target.id === 'ut-sheet') closeUt(); });
+  $('ut-nobody').addEventListener('click', async () => {
+    const it = ut[utIdx];
+    if (!it) return;
+    const r = await api.post('markNoPeople', { itemId: it.id });
+    if (!r.ok) { toast(r.error || 'Failed'); return; }
+    toast('Marked: no people');
+    it.done = true;
+    nextUt();
+  });
+  document.addEventListener('keydown', (e) => {
+    if ($('ut-sheet').hidden || e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight') openUt(utIdx + 1);
+    else if (e.key === 'ArrowLeft') openUt(utIdx - 1);
+    else if (e.key === 'Escape') closeUt();
+  });
+
   // ---------- view switch ----------
   document.querySelectorAll('.fc-switch-btn').forEach((b) => b.addEventListener('click', () => {
     document.querySelectorAll('.fc-switch-btn').forEach((x) => x.classList.toggle('is-on', x === b));
     const view = b.dataset.view;
     $('view-todo').hidden = view !== 'todo';
     $('view-people').hidden = view !== 'people';
+    $('view-untagged').hidden = view !== 'untagged';
     if (view === 'people' && queue) renderPeople();
+    if (view === 'untagged') loadUntagged();
   }));
 
   load();
+  loadUntagged();
   setInterval(() => { if (!document.hidden && $('card').hidden) load(); }, 30000);
 })();
