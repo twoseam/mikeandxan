@@ -934,3 +934,5 @@
   .ph-main .ph-tools .ph-seg { order: 1; }
   .ph-dl-wrap { order: 2; }
 }
+/* Sheet headings in New Kansas (Michael, Nov 21) */
+.ph-name-title { font-family: "new-kansas", Georgia, serif; font-weight: 700; -webkit-text-stroke: 0; }
