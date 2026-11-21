@@ -894,6 +894,7 @@
     document.getElementById('ph-sel-count').textContent = n + ' selected';
     document.getElementById('ph-selbar').hidden = !n;
     document.body.classList.toggle('ph-has-selbar', n > 0);
+    if (typeof syncViewerSel === 'function') syncViewerSel();
     dlAll.hidden = !feedItems.length;
     feedEl.classList.toggle('has-selection', n > 0);
   }
@@ -901,6 +902,20 @@
     if (selected.has(id)) selected.delete(id); else selected.add(id);
     if (tile) tile.classList.toggle('is-selected', selected.has(id));
     updateSelBar();
+  }
+  // Keep the viewer's Select buttons and strip checks in step with the picks.
+  function syncViewerSel() {
+    if (lightbox.hidden) return;
+    lightbox.querySelectorAll('.ph-slide-sel').forEach((b) => {
+      const on = selected.has(Number(b.dataset.id));
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.querySelector('.ph-slide-sel-text').textContent = on ? 'Selected' : 'Select';
+    });
+    Array.from(strip.children).forEach((b, i) => {
+      const it = feedItems[i];
+      b.classList.toggle('is-picked', !!(it && selected.has(it.id)));
+    });
   }
   function setSelecting(on) {  // kept for callers: off = clear the selection
     if (!on) {
@@ -1130,8 +1145,24 @@
     dlb.className = 'ph-slide-dl';
     dlb.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download';
     dlb.addEventListener('click', (e) => { e.stopPropagation(); askSize([item]); });
-    inner.appendChild(dlb);
+    // Pick this photo for a multi-download without leaving the viewer.
+    const selb = document.createElement('button');
+    selb.type = 'button';
+    selb.className = 'ph-slide-sel';
+    selb.dataset.id = item.id;
+    selb.innerHTML = '<span class="ph-slide-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></span><span class="ph-slide-sel-text"></span>';
+    selb.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tile = feedEl.querySelector('.ph-item[data-id="' + item.id + '"]');
+      toggleSelect(item.id, tile);
+    });
+    const row = document.createElement('div');
+    row.className = 'ph-slide-actions';
+    row.appendChild(selb);
+    row.appendChild(dlb);
+    inner.appendChild(row);
     slide.appendChild(inner);
+    syncViewerSel();
   }
 
   function openViewer(startId, tile) {
@@ -1147,6 +1178,7 @@
 
     lightbox.classList.add('is-opening');
     lightbox.hidden = false;
+    document.body.classList.add('ph-lb-open');
 
     const index = Math.max(0, feedItems.findIndex(i => i.id === startId));
     const startSlide = pager.children[index];
@@ -1217,6 +1249,7 @@
   function closeViewer() {
     pager.textContent = ''; // drops any playing video + observers' targets
     lightbox.hidden = true;
+    document.body.classList.remove('ph-lb-open');
   }
   lightbox.querySelector('.ph-lb-close').addEventListener('click', closeViewer);
 
@@ -1249,6 +1282,7 @@
       `<button type="button" data-i="${i}" class="${i === active ? 'is-on' : ''}" aria-label="Photo ${i + 1}">` +
       (it.thumbPath ? `<img src="${WORKER_URL + it.thumbPath}" alt="" loading="lazy">` : '') + '</button>').join('');
     centerStrip(active);
+    syncViewerSel();
   }
   function centerStrip(i) {
     const b = strip.children[i];
