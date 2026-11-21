@@ -134,6 +134,11 @@
   // Send a few files at a time. Firing hundreds at once (Michael, Nov 21:
   // a big Fuji batch) jammed the browser and nothing finished.
   const UPLOAD_AT_ONCE = 3;
+  // Leaving the page mid-upload silently drops the rest (Michael, Nov 21:
+  // 18 picked, 6 arrived) — ask first.
+  window.addEventListener('beforeunload', (e) => {
+    if (active || waiting.length) { e.preventDefault(); e.returnValue = ''; }
+  });
   const waiting = [];
   let active = 0;
   function queueUpload(file, opts) {
