@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="photos.css?v=22" />
+  <link rel="stylesheet" href="photos.css?v=23" />
   <link rel="stylesheet" href="admin-nav.css?v=5" />
   <script src="admin-nav.js?v=5" defer></script>
 </head>
@@ -39,12 +39,6 @@
       <nav id="ph-albums" class="ph-seg" aria-label="Albums">
         <button type="button" class="ph-seg-btn is-on" data-album="all">All</button>
       </nav>
-      <div class="ph-dl-wrap">
-        <button type="button" id="ph-dl-clear" class="ph-link-btn" hidden>Clear</button>
-        <button type="button" id="ph-dl-btn" class="ph-dl-btn" hidden>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Download all</span>
-        </button>
-      </div>
     </div>
     <div id="ph-feed" class="ph-feed"></div>
     <p id="ph-empty" class="ph-empty" hidden>Nothing here yet &mdash; be the first!</p>
@@ -63,7 +57,14 @@
       <button type="button" id="ph-album-close" class="ph-name-skip">Cancel</button>
     </div>
   </div>
-  <button type="button" id="ph-pick" class="ph-fab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add your photos</span></button>
+  <!-- Floating download (stays visible while scrolling) -->
+  <div class="ph-dl-wrap">
+    <button type="button" id="ph-dl-btn" class="ph-dl-btn" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Download all</span>
+    </button>
+    <button type="button" id="ph-dl-clear" class="ph-dl-clear" aria-label="Clear selection" hidden>&times;</button>
+  </div>
+  <button type="button" id="ph-pick" class="ph-fab" aria-label="Add your photos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add your photos</span></button>
 
   <!-- Name picker -->
   <div id="ph-people" class="ph-name" hidden>
@@ -104,10 +105,12 @@
 
   <div id="ph-lightbox" class="ph-lightbox" hidden>
     <button type="button" class="ph-lb-close" aria-label="Close">&times;</button>
-    <button type="button" class="ph-lb-dl" aria-label="Download this photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download</button>
+    <button type="button" class="ph-lb-nav ph-lb-prev" aria-label="Previous photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button type="button" class="ph-lb-nav ph-lb-next" aria-label="Next photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     <div id="ph-pager" class="ph-pager"></div>
+    <div id="ph-strip" class="ph-strip" aria-label="All photos"></div>
   </div>
 
-  <script src="photos.js?v=24"></script>
+  <script src="photos.js?v=25"></script>
 </body>
 </html>

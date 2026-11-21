@@ -1037,7 +1037,7 @@
     entries.forEach((en) => {
       if (en.isIntersecting) { loadSlide(en.target); slideLoadObserver.unobserve(en.target); }
     });
-  }, { root: null, rootMargin: '150% 0px' });
+  }, { root: null, rootMargin: '0px 150%' });
 
   // Videos play when snapped into view, pause when swiped away.
   const slidePlayObserver = new IntersectionObserver((entries) => {
@@ -1080,7 +1080,16 @@
         media.src = src;
       }
     }
-    slide.appendChild(media);
+    const inner = document.createElement('div');
+    inner.className = 'ph-slide-inner';
+    inner.appendChild(media);
+    const dlb = document.createElement('button');
+    dlb.type = 'button';
+    dlb.className = 'ph-slide-dl';
+    dlb.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download';
+    dlb.addEventListener('click', (e) => { e.stopPropagation(); askSize([item]); });
+    inner.appendChild(dlb);
+    slide.appendChild(inner);
   }
 
   function openViewer(startId, tile) {
@@ -1100,7 +1109,8 @@
     const index = Math.max(0, feedItems.findIndex(i => i.id === startId));
     const startSlide = pager.children[index];
     loadSlide(startSlide); // don't wait for the observer on the tapped one
-    pager.scrollTop = index * pager.clientHeight;
+    pager.scrollLeft = index * pager.clientWidth;
+    buildStrip(index);
 
     // Zoom-open: fly the tile's current image up to the slide.
     const tileMedia = tile && tile.querySelector('img, video');
@@ -1108,7 +1118,7 @@
       lightbox.classList.remove('is-opening'); // background fades in
       if (!tileMedia) return;
       const rect = tileMedia.getBoundingClientRect();
-      const target = startSlide.querySelector('img, video');
+      const target = startSlide.querySelector('.ph-slide-inner img, .ph-slide-inner video');
       let end = target ? target.getBoundingClientRect() : null;
       if (!end || !end.width || !end.height) {
         // Full-size media not loaded yet — land on where it WILL sit:
@@ -1167,15 +1177,45 @@
     lightbox.hidden = true;
   }
   lightbox.querySelector('.ph-lb-close').addEventListener('click', closeViewer);
-  // Download the photo that's on screen.
-  lightbox.querySelector('.ph-lb-dl').addEventListener('click', () => {
-    const i = Math.round(pager.scrollTop / Math.max(1, pager.clientHeight));
-    const slide = pager.children[i];
-    const it = slide && allItems.find((x) => String(x.id) === slide.dataset.id);
-    if (it) askSize([it]);
+
+  // Side to side: arrows, arrow keys, and a strip of small photos below.
+  const strip = document.getElementById('ph-strip');
+  const currentIndex = () => Math.round(pager.scrollLeft / Math.max(1, pager.clientWidth));
+  function goTo(i, smooth) {
+    i = Math.max(0, Math.min(feedItems.length - 1, i));
+    pager.scrollTo({ left: i * pager.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+  }
+  function buildStrip(active) {
+    strip.innerHTML = feedItems.map((it, i) =>
+      `<button type="button" data-i="${i}" class="${i === active ? 'is-on' : ''}" aria-label="Photo ${i + 1}">` +
+      (it.thumbPath ? `<img src="${WORKER_URL + it.thumbPath}" alt="" loading="lazy">` : '') + '</button>').join('');
+    centerStrip(active);
+  }
+  function centerStrip(i) {
+    const b = strip.children[i];
+    if (!b) return;
+    strip.querySelectorAll('.is-on').forEach((x) => x.classList.remove('is-on'));
+    b.classList.add('is-on');
+    strip.scrollTo({ left: b.offsetLeft - strip.clientWidth / 2 + b.offsetWidth / 2, behavior: 'smooth' });
+  }
+  let stripTick = null;
+  pager.addEventListener('scroll', () => {
+    clearTimeout(stripTick);
+    stripTick = setTimeout(() => centerStrip(currentIndex()), 80);
+  });
+  strip.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-i]');
+    if (b) goTo(Number(b.dataset.i), true);
+  });
+  lightbox.querySelector('.ph-lb-prev').addEventListener('click', () => goTo(currentIndex() - 1, true));
+  lightbox.querySelector('.ph-lb-next').addEventListener('click', () => goTo(currentIndex() + 1, true));
+  document.addEventListener('keydown', (e) => {
+    if (lightbox.hidden) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); goTo(currentIndex() + 1, true); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(currentIndex() - 1, true); }
   });
   pager.addEventListener('click', (e) => {
-    if (e.target === e.currentTarget || e.target.classList.contains('ph-slide')) closeViewer();
+    if (e.target === e.currentTarget || e.target.classList.contains('ph-slide') || e.target.classList.contains('ph-slide-inner')) closeViewer();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !lightbox.hidden) {
