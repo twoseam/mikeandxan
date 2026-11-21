@@ -632,7 +632,7 @@
     allAlbums = albums;
     const counts = {};
     allItems.forEach((i) => { counts[i.albumId] = (counts[i.albumId] || 0) + 1; });
-    const shown = albums.filter((a) => isAdminView || counts[a.id]);
+    const shown = albums;  // always show every album as a filter (Michael, Nov 21)
     const sig = shown.map((a) => a.id + ':' + a.name).join('|');
     if (sig === albumSig) return;
     albumSig = sig;
@@ -641,8 +641,10 @@
       shown.map((a) => `<button type="button" class="ph-seg-btn" data-album="${a.id}">${escHtml(a.name)}</button>`).join('');
     if (filter.album !== 'all' && !shown.some((a) => a.id === filter.album)) filter.album = 'all';
     wrap.querySelectorAll('.ph-seg-btn').forEach((b) => b.classList.toggle('is-on', String(filter.album) === b.dataset.album));
-    // Only one album → no point showing the switcher.
-    wrap.hidden = shown.length < 2;
+    wrap.querySelectorAll('.ph-seg-btn[data-album]').forEach((b) => {
+      const n = b.dataset.album === 'all' ? allItems.length : (counts[Number(b.dataset.album)] || 0);
+      b.dataset.count = n;
+    });
   }
 
   function filteredItems() {
@@ -658,11 +660,11 @@
     feedItems = items;
 
     const filtered = filter.album !== 'all' || filter.person;
+    document.getElementById('ph-who-count').textContent = filter.person ? '(' + items.length + ')' : '';
     emptyEl.textContent = filtered ? 'No photos here yet.' : 'Nothing here yet — be the first!';
     emptyEl.hidden = items.length > 0;
 
     // Name picker only once people are tagged.
-    document.getElementById('ph-who-btn').hidden = !allPeople.length || !!filter.person;
     document.getElementById('ph-pro-btn').hidden = !isAdminView;
 
     const sig = isAdminView + '|' + items.map(i => i.id + (i.hidden ? 'h' : '')).join(',');
@@ -689,6 +691,59 @@
     window.scrollTo({ top: 0 });
   });
 
+  // Person search bar: type a name, pick from the list, photos filter.
+  const searchEl = document.getElementById('ph-search');
+  const searchList = document.getElementById('ph-search-list');
+  let searchIdx = -1;
+  function searchMatches() {
+    const q = searchEl.value.trim().toLowerCase();
+    return allPeople.filter((p) => !q || p.name.toLowerCase().split(/\s+/).some((w) => w.startsWith(q)) || p.name.toLowerCase().includes(q)).slice(0, 8);
+  }
+  function renderSearch() {
+    const list = searchMatches();
+    searchIdx = Math.min(searchIdx, list.length - 1);
+    searchList.innerHTML = list.length
+      ? list.map((p, i) => `<li role="option"><button type="button" data-id="${p.id}" class="${i === searchIdx ? 'is-active' : ''}"><span>${escHtml(p.name)}</span><small>${p.photos} photo${p.photos === 1 ? '' : 's'}</small></button></li>`).join('')
+      : `<li class="ph-search-none">${allPeople.length ? 'No one by that name yet.' : 'No one is tagged yet.'}</li>`;
+    searchList.hidden = false;
+  }
+  function choosePerson(p) {
+    filter.person = p;
+    searchEl.value = p.name;
+    searchList.hidden = true;
+    document.getElementById('ph-who-name').textContent = p.name.split(' ')[0];
+    document.getElementById('ph-who-on').hidden = false;
+    searchEl.blur();
+    renderFeed();
+    window.scrollTo({ top: 0 });
+  }
+  function clearPerson() {
+    filter.person = null;
+    searchEl.value = '';
+    document.getElementById('ph-who-on').hidden = true;
+    renderFeed();
+  }
+  searchEl.addEventListener('focus', () => { searchIdx = -1; renderSearch(); });
+  searchEl.addEventListener('input', () => {
+    searchIdx = -1;
+    if (!searchEl.value && filter.person) clearPerson();
+    renderSearch();
+  });
+  searchEl.addEventListener('keydown', (e) => {
+    const list = searchMatches();
+    if (e.key === 'ArrowDown') { searchIdx = Math.min(searchIdx + 1, list.length - 1); renderSearch(); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { searchIdx = Math.max(searchIdx - 1, 0); renderSearch(); e.preventDefault(); }
+    else if (e.key === 'Enter') { const p = list[Math.max(searchIdx, 0)]; if (p) choosePerson(p); e.preventDefault(); }
+    else if (e.key === 'Escape') { searchList.hidden = true; searchEl.blur(); }
+  });
+  searchEl.addEventListener('blur', () => setTimeout(() => { searchList.hidden = true; }, 150));
+  searchList.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus while clicking
+  searchList.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-id]');
+    const p = b && allPeople.find((x) => x.id === Number(b.dataset.id));
+    if (p) choosePerson(p);
+  });
+
   // Name picker
   const peopleSheet = document.getElementById('ph-people');
   const peopleInput = document.getElementById('ph-people-input');
@@ -701,7 +756,7 @@
       ? list.map((p) => `<li><button type="button" data-id="${p.id}"><span>${escHtml(p.name)}</span><small>${p.photos}</small></button></li>`).join('')
       : '<li class="ph-people-none">No one by that name yet.</li>';
   }
-  document.getElementById('ph-who-btn').addEventListener('click', () => {
+  (document.getElementById('ph-who-btn') || document.createElement('i')).addEventListener('click', () => {
     peopleInput.value = '';
     renderPeopleList();
     peopleSheet.hidden = false;
@@ -715,17 +770,13 @@
     const p = allPeople.find((x) => x.id === Number(b.dataset.id));
     if (!p) return;
     filter.person = p;
-    document.getElementById('ph-who-name').textContent = p.name;
+    document.getElementById('ph-who-name').textContent = p.name.split(' ')[0];
     document.getElementById('ph-who-on').hidden = false;
     peopleSheet.hidden = true;
     renderFeed();
     window.scrollTo({ top: 0 });
   });
-  document.getElementById('ph-who-clear').addEventListener('click', () => {
-    filter.person = null;
-    document.getElementById('ph-who-on').hidden = true;
-    renderFeed();
-  });
+  document.getElementById('ph-who-clear').addEventListener('click', clearPerson);
 
   // ── Select & download ──
 

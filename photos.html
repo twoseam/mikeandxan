@@ -9,22 +9,37 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="photos.css?v=15" />
+  <link rel="stylesheet" href="photos.css?v=18" />
   <link rel="stylesheet" href="admin-nav.css?v=5" />
   <script src="admin-nav.js?v=5" defer></script>
 </head>
 <body class="ph-body">
 
-  <!-- Filters: who took it, who's in it, select & download -->
+  <header class="ph-hero">
+    <h1 class="ph-title">Mike <span class="ph-amp">&amp;</span> Xan</h1>
+    <p class="ph-sub">Wedding photos &middot; November 14, 2026</p>
+  </header>
+
+  <!-- Albums, who's in it, select & download. Sticks to the top on scroll. -->
   <div id="ph-bar" class="ph-bar">
-    <div id="ph-albums" class="ph-seg" role="group" aria-label="Albums">
-      <button type="button" class="ph-seg-btn is-on" data-album="all">All</button>
+    <div class="ph-bar-inner">
+      <nav id="ph-albums" class="ph-seg" aria-label="Albums">
+        <button type="button" class="ph-seg-btn is-on" data-album="all">All</button>
+      </nav>
+      <div class="ph-search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
+        <input id="ph-search" type="search" placeholder="Find someone" autocomplete="off" autocapitalize="words" aria-label="Find someone in the photos" />
+        <ul id="ph-search-list" class="ph-search-list" role="listbox" hidden></ul>
+      </div>
+      <div class="ph-actions">
+        <button type="button" id="ph-select-btn" class="ph-chip">Download</button>
+        <button type="button" id="ph-pro-btn" class="ph-chip ph-admin-only" hidden>Add to album</button>
+      </div>
     </div>
-    <button type="button" id="ph-who-btn" class="ph-chip" hidden>Find someone</button>
-    <span id="ph-who-on" class="ph-chip ph-chip-on" hidden><span id="ph-who-name"></span>
-      <button type="button" id="ph-who-clear" aria-label="Show everyone">&times;</button></span>
-    <button type="button" id="ph-select-btn" class="ph-chip">Select</button>
-    <button type="button" id="ph-pro-btn" class="ph-chip ph-admin-only" hidden>+ Add to album</button>
+    <div id="ph-who-on" class="ph-who-on" hidden>
+      <h2 class="ph-who-title">Photos of <span id="ph-who-name"></span> <span id="ph-who-count" class="ph-who-count"></span></h2>
+      <button type="button" id="ph-who-clear" class="ph-link-btn">Show everyone</button>
+    </div>
   </div>
 
   <main class="ph-main">
@@ -45,7 +60,7 @@
       <button type="button" id="ph-album-close" class="ph-name-skip">Cancel</button>
     </div>
   </div>
-  <button type="button" id="ph-pick" class="ph-fab">+ Add Photos &amp; Videos</button>
+  <button type="button" id="ph-pick" class="ph-fab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add your photos</span></button>
 
   <!-- Select mode bar (replaces the add button while selecting) -->
   <div id="ph-selbar" class="ph-selbar" hidden>
@@ -92,6 +107,6 @@
     <div id="ph-pager" class="ph-pager"></div>
   </div>
 
-  <script src="photos.js?v=18"></script>
+  <script src="photos.js?v=21"></script>
 </body>
 </html>

@@ -474,3 +474,265 @@
   background: rgba(255, 255, 255, 0.9);
   color: var(--color-charcoal);
 }
+
+/* ═════════ Layout v2 (Nov 21): photo-app grid, real header ═════════
+   Michael: tiles were huge and the controls felt tiny ("web 1.0").
+   3 across on every screen, in a centered column; a proper title;
+   bigger tabs and buttons. Overrides the rules above. */
+
+.ph-body { --ph-max: 1080px; --ph-gap: 4px; }
+@media (min-width: 700px) { .ph-body { --ph-gap: 6px; } }
+
+.ph-hero {
+  max-width: var(--ph-max);
+  margin: 0 auto;
+  padding: 2.2rem 1.25rem 0.6rem;
+  text-align: center;
+}
+.ph-title {
+  font-family: var(--font-display, "new-kansas", Georgia, serif);
+  color: var(--color-bg);
+  font-size: clamp(2.6rem, 9vw, 4.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.ph-sub {
+  margin: 0.6rem 0 0;
+  font-size: clamp(1rem, 2.6vw, 1.2rem);
+  color: rgba(53, 50, 48, 0.75);
+}
+
+/* Sticky bar: album tabs left, actions right */
+.ph-bar {
+  display: block;
+  padding: 0;
+  background: rgba(250, 240, 224, 0.96);
+  border-bottom: 1px solid rgba(53, 50, 48, 0.12);
+}
+.ph-bar-inner {
+  max-width: var(--ph-max);
+  margin: 0 auto;
+  padding: 0.5rem 1rem 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.ph-seg {
+  display: flex;
+  gap: 1.4rem;
+  background: none;
+  border-radius: 0;
+  padding: 0;
+}
+.ph-seg-btn {
+  font-family: "new-kansas", Georgia, serif;
+  font-size: 1.15rem;
+  padding: 0.55rem 0 0.7rem;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  color: rgba(53, 50, 48, 0.6);
+  border-bottom: 3px solid transparent;
+}
+.ph-seg-btn:hover { color: var(--color-charcoal); }
+.ph-seg-btn.is-on {
+  background: none;
+  box-shadow: none;
+  color: var(--color-charcoal);
+  border-bottom-color: var(--color-bg);
+}
+
+.ph-actions { display: flex; gap: 0.5rem; padding-bottom: 0.55rem; margin-left: auto; }
+.ph-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 1rem;
+  padding: 0.6rem 1.05rem;
+  background: #fff;
+  border: 1.5px solid rgba(53, 50, 48, 0.18);
+  box-shadow: none;
+}
+.ph-chip:hover { border-color: var(--color-charcoal); }
+.ph-chip[hidden] { display: none; }
+.ph-chip svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.ph-chip.is-on { background: var(--color-charcoal); border-color: var(--color-charcoal); color: #fff; }
+
+/* "Photos of Jack (12)" */
+.ph-who-on {
+  max-width: var(--ph-max);
+  margin: 0 auto;
+  padding: 0.9rem 1rem 1rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.ph-who-on[hidden] { display: none; }
+.ph-who-title {
+  font-family: "new-kansas", Georgia, serif;
+  font-size: clamp(1.5rem, 4.5vw, 2.1rem);
+  margin: 0;
+  color: var(--color-charcoal);
+}
+.ph-who-count { color: rgba(53, 50, 48, 0.5); font-size: 0.7em; }
+.ph-link-btn {
+  font: inherit;
+  font-size: 1rem;
+  background: none;
+  border: 0;
+  padding: 0.3rem 0;
+  color: var(--color-bg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Grid: 3 square tiles across, everywhere */
+.ph-main {
+  max-width: var(--ph-max);
+  margin: 0 auto;
+  padding: var(--ph-gap) var(--ph-gap) calc(110px + env(safe-area-inset-bottom));
+}
+@media (min-width: 700px) { .ph-main { padding-top: 1rem; } }
+.ph-feed,
+.ph-feed { grid-template-columns: repeat(3, 1fr); gap: var(--ph-gap); }
+@media (min-width: 700px)  { .ph-feed { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1200px) { .ph-feed { grid-template-columns: repeat(3, 1fr); } }
+.ph-item { aspect-ratio: 1 / 1; border-radius: 2px; background: rgba(53, 50, 48, 0.08); }
+.ph-item img, .ph-item video { transition: transform 0.25s ease; }
+@media (hover: hover) { .ph-item:hover img, .ph-item:hover video { transform: scale(1.03); } }
+@media (prefers-reduced-motion: reduce) { .ph-item img, .ph-item video { transition: none; } }
+.ph-item:focus-visible { outline: 3px solid var(--color-bg); outline-offset: 2px; }
+
+/* Admin controls only on hover (computer); compact on touch */
+.ph-feed.is-admin .ph-item-meta { opacity: 0; transition: opacity 0.15s; }
+.ph-feed.is-admin .ph-item:hover .ph-item-meta,
+.ph-feed.is-admin .ph-item:focus-within .ph-item-meta { opacity: 1; }
+@media (hover: none) {
+  .ph-feed.is-admin .ph-item-meta { opacity: 1; padding: 0.25rem; }
+  .ph-feed.is-admin .ph-who { display: none; }
+}
+
+.ph-empty { padding: 18vh 1.5rem 0; font-size: 1.25rem; }
+
+/* Add button: bigger, with an icon */
+.ph-fab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 1.15rem;
+  padding: 1rem 1.7rem 1rem 1.35rem;
+}
+.ph-fab[hidden] { display: none; }
+.ph-fab svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; }
+@media (min-width: 900px) {
+  .ph-fab { left: auto; right: 32px; bottom: 32px; transform: none; }
+  .ph-fab:active { transform: scale(0.97); }
+}
+
+/* Name picker + other sheets: a bit larger */
+.ph-name-card { font-size: 1.05rem; }
+.ph-people-list button { font-size: 1.15rem; padding: 14px 6px; }
+
+/* ═════════ v2.1 (Nov 21): rounded tiles, search bar, albums as filter row ═════════ */
+.ph-item { border-radius: 12px; }
+@media (max-width: 699px) { .ph-item { border-radius: 8px; } }
+
+.ph-bar-inner { align-items: center; padding-top: 0.75rem; }
+.ph-search {
+  position: relative;
+  flex: 1 1 320px;
+  max-width: 460px;
+}
+.ph-search > svg {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  width: 20px; height: 20px; fill: none; stroke: rgba(53, 50, 48, 0.55); stroke-width: 2.2; stroke-linecap: round;
+  pointer-events: none;
+}
+.ph-search input {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: "new-kansas", Georgia, serif;
+  font-size: 1.1rem;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border: 1.5px solid rgba(53, 50, 48, 0.2);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-charcoal);
+}
+.ph-search input:focus { outline: none; border-color: var(--color-bg); box-shadow: 0 0 0 3px rgba(241, 88, 38, 0.18); }
+.ph-search-list {
+  position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 60;
+  list-style: none; margin: 0; padding: 6px;
+  background: #fff; border-radius: 16px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  max-height: 60vh; overflow-y: auto;
+}
+.ph-search-list[hidden] { display: none; }
+.ph-search-list button {
+  width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  font-family: "new-kansas", Georgia, serif; font-size: 1.1rem; text-align: left;
+  background: none; border: 0; border-radius: 10px; padding: 11px 12px; cursor: pointer; color: var(--color-charcoal);
+}
+.ph-search-list button:hover, .ph-search-list button.is-active { background: var(--color-cream); }
+.ph-search-list small { color: rgba(53, 50, 48, 0.55); font-size: 0.85rem; white-space: nowrap; }
+.ph-search-none { padding: 12px; color: rgba(53, 50, 48, 0.6); }
+
+.ph-actions { padding-bottom: 0; margin-left: 0; }
+.ph-chip { padding: 0.72rem 1.15rem; font-size: 1.05rem; }
+
+/* Albums: their own full row of filter tabs */
+.ph-seg { flex: 1 0 100%; gap: 1.6rem; margin-top: 0.15rem; }
+.ph-seg[hidden] { display: flex; }
+.ph-seg-btn { font-size: 1.15rem; }
+
+@media (max-width: 699px) {
+  .ph-search { flex: 1 1 0; min-width: 0; }
+  .ph-seg { gap: 1.2rem; }
+  .ph-seg-btn { font-size: 1.05rem; }
+}
+
+/* ═════════ v2.2 (Nov 21): styled like the main site ═════════
+   Red band with the site's "fat" wordmark (pink ampersand), white tabs,
+   search on the right. Photos sit on cream below. */
+.ph-hero { background: var(--color-bg); max-width: none; padding: 2.4rem 1.25rem 0.4rem; }
+.ph-title {
+  font-family: "fat", Georgia, serif;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.035em;
+  font-size: clamp(2.8rem, 10vw, 5.2rem);
+}
+.ph-amp { font-family: "new-kansas", Georgia, serif; color: var(--color-bg-alt); font-weight: 400; }
+.ph-sub { color: var(--color-muted); }
+
+.ph-bar { background: var(--color-bg); border-bottom: 0; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12); }
+.ph-bar-inner { flex-wrap: nowrap; align-items: center; padding: 0.6rem 1rem 0; gap: 1rem; }
+.ph-seg { flex: 1 1 auto; margin: 0; gap: 1.6rem; min-width: 0; }
+.ph-seg-btn { color: var(--color-muted); font-size: 1.15rem; padding: 0.7rem 0 0.85rem; }
+.ph-seg-btn:hover { color: #fff; }
+.ph-seg-btn.is-on { color: #fff; border-bottom-color: var(--color-bg-alt); }
+.ph-search { flex: 0 1 340px; max-width: 340px; padding-bottom: 0.25rem; }
+.ph-search input { border-color: transparent; }
+.ph-search input:focus { border-color: var(--color-bg-alt); box-shadow: 0 0 0 3px rgba(245, 160, 181, 0.45); }
+.ph-actions { padding-bottom: 0.25rem; flex: 0 0 auto; }
+.ph-chip { background: transparent; color: #fff; border: 2px solid #fff; }
+.ph-chip:hover { background: #fff; color: var(--color-bg); border-color: #fff; }
+.ph-chip.is-on { background: #fff; color: var(--color-bg); border-color: #fff; }
+.ph-who-on { background: transparent; }
+.ph-bar .ph-who-on { max-width: none; background: var(--color-cream); }
+.ph-bar .ph-who-on > * { }
+.ph-who-on { padding-left: max(1rem, calc((100% - var(--ph-max)) / 2 + 1rem)); padding-right: max(1rem, calc((100% - var(--ph-max)) / 2 + 1rem)); }
+
+@media (max-width: 799px) {
+  .ph-bar-inner { flex-wrap: wrap; padding-top: 0.75rem; gap: 0.6rem; }
+  .ph-search { order: 1; flex: 1 1 0; max-width: none; padding-bottom: 0; }
+  .ph-actions { order: 2; padding-bottom: 0; }
+  .ph-seg { order: 3; flex: 1 0 100%; overflow-x: auto; gap: 1.2rem; }
+  .ph-seg-btn { font-size: 1.05rem; }
+}
