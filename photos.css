@@ -793,3 +793,144 @@
   .ph-bar-inner { padding: 0.65rem 12px 0; }
   .ph-main { padding-left: 6px; padding-right: 6px; padding-top: 8px; }
 }
+
+/* ═════════ v3.1 (Nov 21): albums move out of the bar to the top of the feed ═════════ */
+.ph-bar-inner { grid-template-columns: auto 1fr auto auto; grid-template-areas: "brand . search actions"; }
+.ph-main > .ph-seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.25rem 0 1rem;
+  overflow: visible;
+  border: 0;
+}
+.ph-main > .ph-seg .ph-seg-btn {
+  font-family: "new-kansas", Georgia, serif;
+  font-size: 1.05rem;
+  padding: 0.55rem 1.1rem;
+  border: 1.5px solid rgba(53, 50, 48, 0.2);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-charcoal);
+  margin: 0;
+}
+.ph-main > .ph-seg .ph-seg-btn:hover { border-color: var(--color-charcoal); }
+.ph-main > .ph-seg .ph-seg-btn.is-on { background: var(--color-bg); border-color: var(--color-bg); color: #fff; }
+@media (max-width: 899px) {
+  .ph-bar-inner { grid-template-columns: 1fr auto; grid-template-areas: "brand actions" "search search"; padding-bottom: 0.7rem; }
+}
+@media (max-width: 699px) {
+  .ph-main > .ph-seg { flex-wrap: nowrap; overflow-x: auto; margin: 0.5rem 0 0.6rem; padding: 0 6px; scrollbar-width: none; }
+  .ph-main > .ph-seg .ph-seg-btn { flex: 0 0 auto; font-size: 1rem; padding: 0.5rem 0.95rem; }
+}
+
+/* Download: pick a size */
+.ph-dl-choice { display: grid; gap: 0.6rem; margin: 0.8rem 0 0.4rem; }
+.ph-dl-choice[hidden] { display: none; }
+.ph-dl-choice .ph-name-go { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 0.15rem; }
+.ph-dl-choice small { font-size: 0.82rem; font-weight: 400; opacity: 0.85; }
+.ph-dl-alt { background: #fff; color: var(--color-bg); border: 2px solid var(--color-bg); }
+.ph-q-bar[hidden] { display: none; }
+
+/* ═════════ v4 (Nov 21): portfolio-style download — select dots, Download all ═════════ */
+.ph-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin: 0.25rem 0 1rem;
+}
+.ph-tools > .ph-seg { margin: 0; }
+.ph-main .ph-tools .ph-seg {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; border: 0; overflow: visible;
+}
+.ph-main .ph-tools .ph-seg .ph-seg-btn {
+  font-family: "new-kansas", Georgia, serif;
+  font-size: 1.05rem;
+  padding: 0.55rem 1.1rem;
+  border: 1.5px solid rgba(53, 50, 48, 0.2);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-charcoal);
+  margin: 0;
+}
+.ph-main .ph-tools .ph-seg .ph-seg-btn:hover { border-color: var(--color-charcoal); }
+.ph-main .ph-tools .ph-seg .ph-seg-btn.is-on { background: var(--color-charcoal); border-color: var(--color-charcoal); color: #fff; }
+
+.ph-dl-wrap { display: flex; align-items: center; gap: 0.9rem; flex: 0 0 auto; }
+.ph-dl-wrap [hidden] { display: none; }
+.ph-dl-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: "new-kansas", Georgia, serif; font-weight: 700; font-size: 1.05rem;
+  padding: 0.62rem 1.2rem;
+  border: 0; border-radius: 999px;
+  background: var(--color-bg); color: #fff; cursor: pointer;
+  white-space: nowrap;
+}
+.ph-dl-btn:hover { background: #d8461a; }
+.ph-dl-btn svg, .ph-lb-dl svg, .ph-pill svg {
+  width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* Select dot: quiet until hover/selected (michaelmartin.co pattern) */
+.ph-dot {
+  position: absolute; top: 9px; left: 9px; z-index: 2;
+  width: 26px; height: 26px; padding: 0;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  opacity: 0.35;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+}
+.ph-item:hover .ph-dot, .ph-dot:focus-visible, .ph-feed.has-selection .ph-dot { opacity: 1; }
+@media (hover: none) { .ph-dot { opacity: 0.6; } }
+.ph-item.is-selected .ph-dot {
+  opacity: 1;
+  background: var(--color-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center / 72% no-repeat;
+  border-color: #fff;
+}
+.ph-item.is-selected img, .ph-item.is-selected video { opacity: 0.78; }
+.ph-item.is-selected { outline: 3px solid var(--color-bg); outline-offset: -3px; }
+
+/* Per-photo download pill: on hover (computers only) */
+.ph-pill {
+  position: absolute; right: 9px; bottom: 9px; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; padding: 0;
+  border: 0; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92); color: var(--color-charcoal);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  opacity: 0; transition: opacity 0.15s;
+  cursor: pointer;
+}
+.ph-item:hover .ph-pill, .ph-pill:focus-visible { opacity: 1; }
+.ph-pill:hover { background: #fff; color: var(--color-bg); }
+@media (hover: none) { .ph-pill { display: none; } }
+.ph-feed.is-admin .ph-pill { bottom: auto; top: 9px; }
+
+/* Viewer: download the photo on screen */
+.ph-lb-dl {
+  position: absolute; top: 14px; left: 16px; z-index: 5;
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  font-family: "new-kansas", Georgia, serif; font-size: 1rem; font-weight: 700;
+  padding: 0.55rem 1rem; border: 0; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95); color: var(--color-charcoal); cursor: pointer;
+}
+.ph-lb-dl:hover { color: var(--color-bg); }
+
+.ph-dl-size { font-weight: 400; opacity: 0.85; }
+
+@media (max-width: 699px) {
+  .ph-tools { flex-wrap: wrap; margin: 0.5rem 0 0.6rem; padding: 0 6px; }
+  .ph-main .ph-tools .ph-seg { flex: 1 0 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .ph-main .ph-tools .ph-seg .ph-seg-btn { flex: 0 0 auto; font-size: 1rem; padding: 0.5rem 0.95rem; }
+  .ph-dl-wrap { margin-left: auto; }
+  .ph-dot { width: 24px; height: 24px; top: 6px; left: 6px; }
+}
+#ph-dl-save[hidden], .ph-dl .ph-name-go[hidden] { display: none; }
+@media (max-width: 699px) {
+  .ph-main .ph-tools .ph-seg { order: 1; }
+  .ph-dl-wrap { order: 2; }
+}

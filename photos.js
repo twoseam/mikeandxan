@@ -288,6 +288,9 @@
             if (assets && assets.thumb) {
               await xhrSend('POST', WORKER_URL + '/upload-thumb?' + new URLSearchParams({ key }), assets.thumb, 'image/jpeg');
             }
+            if (assets && assets.web) {
+              await xhrSend('POST', WORKER_URL + '/upload-web?' + new URLSearchParams({ key }), assets.web, 'image/jpeg');
+            }
             if (assets && assets.preview) {
               await xhrSend('POST', WORKER_URL + '/upload-preview?' + new URLSearchParams({ key }), assets.preview, assets.previewType);
             }
@@ -326,14 +329,19 @@
   async function makePhotoThumb(file) {
     try {
       const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
-      const s = Math.min(1, 800 / Math.max(bmp.width, bmp.height));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.round(bmp.width * s);
-      canvas.height = Math.round(bmp.height * s);
-      canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+      const sized = async (edge, q) => {
+        const s = Math.min(1, edge / Math.max(bmp.width, bmp.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(bmp.width * s);
+        canvas.height = Math.round(bmp.height * s);
+        canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+        return new Promise((res) => canvas.toBlob(res, 'image/jpeg', q));
+      };
+      const thumb = await sized(800, 0.8);
+      // Web-size copy for viewing (the original is the print download).
+      const web = await sized(2048, 0.84);  // same as michaelmartin.co galleries
       bmp.close && bmp.close();
-      const thumb = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.8));
-      return thumb ? { thumb, preview: null } : null;
+      return thumb ? { thumb, web, preview: null } : null;
     } catch (e) { return null; }
   }
 
@@ -561,6 +569,19 @@
     }
     el.insertBefore(media, el.firstChild);
 
+    // Quiet select dot (top-left) + download pill (bottom-right, on hover).
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = 'ph-dot';
+    dot.setAttribute('aria-label', 'Select');
+    el.appendChild(dot);
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'ph-pill';
+    pill.setAttribute('aria-label', 'Download');
+    pill.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>';
+    el.appendChild(pill);
+
     el.addEventListener('click', (e) => {
       if (e.target.closest('.ph-item-meta')) return; // admin buttons
       openViewer(item.id, el);
@@ -695,7 +716,7 @@
     document.getElementById('ph-pro-btn').hidden = !isAdminView;
 
     const sig = isAdminView + '|' + items.map(i => i.id + (i.hidden ? 'h' : '')).join(',');
-    if (!force && sig === lastSignature) return;
+    if (!force && sig === lastSignature) { updateSelBar(); return; }
     lastSignature = sig;
 
     feedEl.textContent = '';
@@ -707,6 +728,7 @@
       feedEl.appendChild(tile);
       renderedIds.add(item.id);
     });
+    updateSelBar();
   }
 
   document.getElementById('ph-albums').addEventListener('click', (e) => {
@@ -805,55 +827,84 @@
   });
   document.getElementById('ph-who-clear').addEventListener('click', clearPerson);
 
-  // ── Select & download ──
+  // ── Select & download (same pattern as michaelmartin.co galleries) ──
+  // Every tile has a quiet select dot; no select "mode". The button at the
+  // top of the feed says "Download all N" or "Download 3 photos", and asks
+  // Web size or Full quality (with sizes) before downloading.
 
   const selected = new Set();
-  let selecting = false;
-  const selBar = document.getElementById('ph-selbar');
-  const selGo = document.getElementById('ph-sel-go');
-  const selectBtn = document.getElementById('ph-select-btn');
+  const dlBtn = document.getElementById('ph-dl-btn');
+  const dlClear = document.getElementById('ph-dl-clear');
 
+  function fmtBytes(n) {
+    if (!n) return '';
+    if (n >= 1e9) return (n / 1e9).toFixed(1) + ' GB';
+    if (n >= 1e6) return Math.round(n / 1e6) + ' MB';
+    return Math.max(1, Math.round(n / 1e3)) + ' KB';
+  }
+  function dlTargets() {
+    const picked = feedItems.filter((i) => selected.has(i.id));
+    return picked.length ? picked : feedItems;
+  }
   function updateSelBar() {
-    selGo.disabled = !selected.size;
-    selGo.textContent = selected.size ? 'Download ' + selected.size : 'Download';
-    const allOn = feedItems.length && feedItems.every((i) => selected.has(i.id));
-    document.getElementById('ph-sel-all').textContent = allOn ? 'Select none' : 'Select all';
+    const n = feedItems.filter((i) => selected.has(i.id)).length;
+    dlBtn.querySelector('span').textContent = n
+      ? 'Download ' + n + (n === 1 ? ' photo' : ' photos')
+      : 'Download all ' + feedItems.length;
+    dlBtn.hidden = !feedItems.length;
+    dlClear.hidden = !n;
+    feedEl.classList.toggle('has-selection', n > 0);
   }
-  function setSelecting(on) {
-    selecting = on;
-    if (!on) selected.clear();
-    feedEl.classList.toggle('is-selecting', on);
-    feedEl.querySelectorAll('.ph-item.is-selected').forEach((t) => { if (!on) t.classList.remove('is-selected'); });
-    selBar.hidden = !on;
-    pickBtn.hidden = on;
-    selectBtn.classList.toggle('is-on', on);
+  function toggleSelect(id, tile) {
+    if (selected.has(id)) selected.delete(id); else selected.add(id);
+    if (tile) tile.classList.toggle('is-selected', selected.has(id));
     updateSelBar();
   }
-  selectBtn.addEventListener('click', () => setSelecting(!selecting));
-  document.getElementById('ph-sel-cancel').addEventListener('click', () => setSelecting(false));
-  document.getElementById('ph-sel-all').addEventListener('click', () => {
-    const allOn = feedItems.every((i) => selected.has(i.id));
-    feedItems.forEach((i) => { if (allOn) selected.delete(i.id); else selected.add(i.id); });
-    feedEl.querySelectorAll('.ph-item').forEach((t) => t.classList.toggle('is-selected', selected.has(Number(t.dataset.id))));
-    updateSelBar();
-  });
-  // Tile taps toggle selection while selecting (capture phase beats the viewer).
+  function setSelecting(on) {  // kept for callers: off = clear the selection
+    if (!on) {
+      selected.clear();
+      feedEl.querySelectorAll('.ph-item.is-selected').forEach((t) => t.classList.remove('is-selected'));
+      updateSelBar();
+    }
+  }
+  dlClear.addEventListener('click', () => setSelecting(false));
+  // Dot and per-photo download pill (capture phase beats the viewer).
   feedEl.addEventListener('click', (e) => {
-    if (!selecting) return;
     const tile = e.target.closest('.ph-item');
     if (!tile) return;
-    e.stopPropagation();
-    e.preventDefault();
     const id = Number(tile.dataset.id);
-    if (selected.has(id)) selected.delete(id); else selected.add(id);
-    tile.classList.toggle('is-selected', selected.has(id));
-    updateSelBar();
+    if (e.target.closest('.ph-dot')) {
+      e.stopPropagation(); e.preventDefault();
+      toggleSelect(id, tile);
+    } else if (e.target.closest('.ph-pill')) {
+      e.stopPropagation(); e.preventDefault();
+      const it = allItems.find((i) => i.id === id);
+      if (it) askSize([it]);
+    } else if (selected.size && !e.target.closest('.ph-item-meta')) {
+      // While some are picked, tapping a photo picks it too (quick multi-select).
+      e.stopPropagation(); e.preventDefault();
+      toggleSelect(id, tile);
+    }
   }, true);
+  dlBtn.addEventListener('click', () => askSize(dlTargets()));
 
-  selGo.addEventListener('click', () => {
-    const items = allItems.filter((i) => selected.has(i.id));
-    if (items.length) downloadItems(items);
-  });
+  // Web size or Full quality, with the total size of each.
+  function askSize(items) {
+    if (!items.length) return;
+    dl.cancelled = false;
+    dl.save.hidden = true;
+    dl.title.textContent = 'Download ' + items.length + (items.length === 1 ? ' photo' : ' photos');
+    dl.copy.textContent = 'Which size?';
+    const sum = (k) => items.reduce((t, i) => t + (i[k] || 0), 0);
+    const known = (k) => items.every((i) => i[k]);
+    const webBytes = items.reduce((t, i) => t + (i.webBytes || i.bytes || 0), 0);
+    document.getElementById('ph-dl-web-size').textContent = known('bytes') ? fmtBytes(webBytes) : '';
+    document.getElementById('ph-dl-full-size').textContent = known('bytes') ? fmtBytes(sum('bytes')) : '';
+    dl.bar.parentElement.hidden = true;
+    dl.choice.hidden = false;
+    dl.sheet.hidden = false;
+    dl.pending = items;
+  }
 
   const dl = {
     sheet: document.getElementById('ph-dl'),
@@ -861,11 +912,16 @@
     copy: document.getElementById('ph-dl-copy'),
     bar: document.getElementById('ph-dl-bar'),
     save: document.getElementById('ph-dl-save'),
+    choice: document.getElementById('ph-dl-choice'),
+    pending: null,
     cancelled: false
   };
+  document.getElementById('ph-dl-web').addEventListener('click', () => downloadItems(dl.pending || [], 'web'));
+  document.getElementById('ph-dl-full').addEventListener('click', () => downloadItems(dl.pending || [], 'full'));
   document.getElementById('ph-dl-close').addEventListener('click', () => { dl.cancelled = true; dl.sheet.hidden = true; });
 
-  function fileName(item, n) {
+  function fileName(item, n, size) {
+    if (size === 'web' && item.webPath) return 'mike-and-xan' + (filter.person ? '-' + filter.person.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() : '') + '-' + String(n + 1).padStart(3, '0') + '.jpg';
     const ext = (item.mediaPath.match(/\.[a-z0-9]+$/i) || [''])[0] || (item.contentType.startsWith('video/') ? '.mp4' : '.jpg');
     const who = filter.person ? '-' + filter.person.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() : '';
     return 'mike-and-xan' + who + '-' + String(n + 1).padStart(3, '0') + ext;
@@ -873,7 +929,11 @@
 
   // Phones: hand the files to the share sheet ("Save to Photos").
   // Computers (or big batches): one zip file.
-  async function downloadItems(items) {
+  async function downloadItems(items, size) {
+    if (!items.length) return;
+    dl.choice.hidden = true;
+    dl.bar.parentElement.hidden = false;
+    const pathOf = (it) => (size === 'web' && it.webPath ? it.webPath : it.mediaPath);
     const isPhone = /iPhone|iPad|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent));
     const useShare = isPhone && items.length <= 20 && navigator.canShare;
     dl.cancelled = false;
@@ -888,9 +948,9 @@
         const files = [];
         for (let n = 0; n < items.length; n++) {
           if (dl.cancelled) return;
-          const res = await fetch(WORKER_URL + items[n].mediaPath);
+          const res = await fetch(WORKER_URL + pathOf(items[n]));
           const blob = await res.blob();
-          files.push(new File([blob], fileName(items[n], n), { type: items[n].contentType }));
+          files.push(new File([blob], fileName(items[n], n, size), { type: size === 'web' && items[n].webPath ? 'image/jpeg' : items[n].contentType }));
           dl.bar.style.width = Math.round(((n + 1) / items.length) * 100) + '%';
         }
         if (navigator.canShare({ files })) {
@@ -910,8 +970,8 @@
       async function* files() {
         for (let n = 0; n < items.length; n++) {
           if (dl.cancelled) return;
-          const res = await fetch(WORKER_URL + items[n].mediaPath);
-          yield { name: fileName(items[n], n), input: res };
+          const res = await fetch(WORKER_URL + pathOf(items[n]));
+          yield { name: fileName(items[n], n, size), input: res };
           done++;
           dl.bar.style.width = Math.round((done / total) * 100) + '%';
         }
@@ -1010,9 +1070,12 @@
       media.alt = 'Guest photo';
       if (item.thumbPath) {
         media.src = WORKER_URL + item.thumbPath;
+        const big = item.webPath ? WORKER_URL + item.webPath : src;  // web size, not the 20 MB original
         const full = new Image();
-        full.onload = () => { media.src = src; };
-        full.src = src;
+        full.onload = () => { media.src = big; };
+        full.src = big;
+      } else if (item.webPath) {
+        media.src = WORKER_URL + item.webPath;
       } else {
         media.src = src;
       }
@@ -1104,6 +1167,13 @@
     lightbox.hidden = true;
   }
   lightbox.querySelector('.ph-lb-close').addEventListener('click', closeViewer);
+  // Download the photo that's on screen.
+  lightbox.querySelector('.ph-lb-dl').addEventListener('click', () => {
+    const i = Math.round(pager.scrollTop / Math.max(1, pager.clientHeight));
+    const slide = pager.children[i];
+    const it = slide && allItems.find((x) => String(x.id) === slide.dataset.id);
+    if (it) askSize([it]);
+  });
   pager.addEventListener('click', (e) => {
     if (e.target === e.currentTarget || e.target.classList.contains('ph-slide')) closeViewer();
   });

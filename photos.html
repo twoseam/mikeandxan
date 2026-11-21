@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://use.typekit.net/suk4ocy.css" />
   <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="photos.css?v=19" />
+  <link rel="stylesheet" href="photos.css?v=21" />
   <link rel="stylesheet" href="admin-nav.css?v=5" />
   <script src="admin-nav.js?v=5" defer></script>
 </head>
@@ -19,16 +19,12 @@
   <div id="ph-bar" class="ph-bar">
     <div class="ph-bar-inner">
       <a href="/" class="brand ph-brand" aria-label="Mike &amp; Xan home"><span class="b-m">m</span> <span class="brand-amp">&amp;</span> <span class="b-a">a</span></a>
-      <nav id="ph-albums" class="ph-seg" aria-label="Albums">
-        <button type="button" class="ph-seg-btn is-on" data-album="all">All</button>
-      </nav>
       <div class="ph-search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
         <input id="ph-search" type="search" placeholder="Find someone" autocomplete="off" autocapitalize="words" aria-label="Find someone in the photos" />
         <ul id="ph-search-list" class="ph-search-list" role="listbox" hidden></ul>
       </div>
       <div class="ph-actions">
-        <button type="button" id="ph-select-btn" class="ph-chip">Download</button>
         <button type="button" id="ph-pro-btn" class="ph-chip ph-admin-only" hidden>Add to album</button>
       </div>
     </div>
@@ -39,6 +35,17 @@
   </div>
 
   <main class="ph-main">
+    <div class="ph-tools">
+      <nav id="ph-albums" class="ph-seg" aria-label="Albums">
+        <button type="button" class="ph-seg-btn is-on" data-album="all">All</button>
+      </nav>
+      <div class="ph-dl-wrap">
+        <button type="button" id="ph-dl-clear" class="ph-link-btn" hidden>Clear</button>
+        <button type="button" id="ph-dl-btn" class="ph-dl-btn" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Download all</span>
+        </button>
+      </div>
+    </div>
     <div id="ph-feed" class="ph-feed"></div>
     <p id="ph-empty" class="ph-empty" hidden>Nothing here yet &mdash; be the first!</p>
   </main>
@@ -58,13 +65,6 @@
   </div>
   <button type="button" id="ph-pick" class="ph-fab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add your photos</span></button>
 
-  <!-- Select mode bar (replaces the add button while selecting) -->
-  <div id="ph-selbar" class="ph-selbar" hidden>
-    <button type="button" id="ph-sel-cancel" class="ph-sel-text">Cancel</button>
-    <button type="button" id="ph-sel-all" class="ph-sel-text">Select all</button>
-    <button type="button" id="ph-sel-go" class="ph-sel-go" disabled>Download</button>
-  </div>
-
   <!-- Name picker -->
   <div id="ph-people" class="ph-name" hidden>
     <div class="ph-name-card ph-people-card">
@@ -80,6 +80,10 @@
     <div class="ph-name-card">
       <h2 id="ph-dl-title" class="ph-name-title">Getting your photos&hellip;</h2>
       <p id="ph-dl-copy" class="ph-name-copy"></p>
+      <div id="ph-dl-choice" class="ph-dl-choice" hidden>
+        <button type="button" id="ph-dl-web" class="ph-name-go">Web size <span id="ph-dl-web-size" class="ph-dl-size"></span><small>Fast. Great for phones and sharing.</small></button>
+        <button type="button" id="ph-dl-full" class="ph-name-go ph-dl-alt">Full quality <span id="ph-dl-full-size" class="ph-dl-size"></span><small>The original files. Best for printing.</small></button>
+      </div>
       <div class="ph-q-bar"><i id="ph-dl-bar"></i></div>
       <button type="button" id="ph-dl-save" class="ph-name-go" hidden>Save</button>
       <button type="button" id="ph-dl-close" class="ph-name-skip">Close</button>
@@ -100,9 +104,10 @@
 
   <div id="ph-lightbox" class="ph-lightbox" hidden>
     <button type="button" class="ph-lb-close" aria-label="Close">&times;</button>
+    <button type="button" class="ph-lb-dl" aria-label="Download this photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download</button>
     <div id="ph-pager" class="ph-pager"></div>
   </div>
 
-  <script src="photos.js?v=22"></script>
+  <script src="photos.js?v=24"></script>
 </body>
 </html>
