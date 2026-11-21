@@ -125,8 +125,25 @@
     const files = Array.from(fileInput.files || []);
     fileInput.value = '';
     if (files.length) await askName();
-    files.forEach(uploadFile);
+    files.forEach((f) => queueUpload(f));
   });
+
+  // Send a few files at a time. Firing hundreds at once (Michael, Nov 21:
+  // a big Fuji batch) jammed the browser and nothing finished.
+  const UPLOAD_AT_ONCE = 3;
+  const waiting = [];
+  let active = 0;
+  function queueUpload(file, opts) {
+    waiting.push([file, opts, queueRow(file)]);  // counts in the bar right away
+    pump();
+  }
+  function pump() {
+    while (active < UPLOAD_AT_ONCE && waiting.length) {
+      const [file, opts, row] = waiting.shift();
+      active++;
+      Promise.resolve(uploadFile(file, opts, row)).catch(() => {}).finally(() => { active--; pump(); });
+    }
+  }
 
   // One combined bar for everything being shared (Michael, Nov 5: a row
   // per file was too busy). Files picked while a batch is still going join
@@ -218,9 +235,9 @@
     });
   }
 
-  async function uploadFile(file, opts) {
+  async function uploadFile(file, opts, existingRow) {
     const albumId = opts && opts.album;
-    const row = queueRow(file);
+    const row = existingRow || queueRow(file);
 
     if (!/^(image|video)\//.test(file.type)) { row.fail('Not a photo or video'); return; }
 
@@ -853,7 +870,7 @@
     const files = Array.from(proInput.files || []);
     proInput.value = '';
     const album = allAlbums.find((a) => a.id === uploadAlbumId);
-    files.forEach((f) => uploadFile(f, { album: uploadAlbumId, albumName: album ? album.name : '' }));
+    files.forEach((f) => queueUpload(f, { album: uploadAlbumId, albumName: album ? album.name : '' }));
   });
 
   async function moveToAlbum(itemId, albumId) {
