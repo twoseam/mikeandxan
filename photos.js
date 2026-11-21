@@ -835,6 +835,13 @@
   const selected = new Set();
   const dlBtn = document.getElementById('ph-dl-btn');
   const dlClear = document.getElementById('ph-dl-clear');
+  const selAll = document.getElementById('ph-sel-all');
+  selAll.addEventListener('click', () => {
+    const allOn = feedItems.length && feedItems.every((i) => selected.has(i.id));
+    feedItems.forEach((i) => { if (allOn) selected.delete(i.id); else selected.add(i.id); });
+    feedEl.querySelectorAll('.ph-item').forEach((t) => t.classList.toggle('is-selected', selected.has(Number(t.dataset.id))));
+    updateSelBar();
+  });
 
   function fmtBytes(n) {
     if (!n) return '';
@@ -848,11 +855,13 @@
   }
   function updateSelBar() {
     const n = feedItems.filter((i) => selected.has(i.id)).length;
-    dlBtn.querySelector('span').textContent = n
-      ? 'Download ' + n + (n === 1 ? ' photo' : ' photos')
-      : 'Download all ' + feedItems.length;
-    dlBtn.hidden = !feedItems.length;
+    // Floating Download shows only once something is picked (Michael, Nov 21).
+    dlBtn.querySelector('span').textContent = 'Download ' + n + (n === 1 ? ' photo' : ' photos');
+    dlBtn.hidden = !n;
     dlClear.hidden = !n;
+    const allOn = feedItems.length && n === feedItems.length;
+    selAll.textContent = allOn ? 'Select none' : 'Select all';
+    selAll.hidden = !feedItems.length;
     feedEl.classList.toggle('has-selection', n > 0);
   }
   function toggleSelect(id, tile) {
@@ -886,7 +895,7 @@
       toggleSelect(id, tile);
     }
   }, true);
-  dlBtn.addEventListener('click', () => askSize(dlTargets()));
+  dlBtn.addEventListener('click', () => askSize(feedItems.filter((i) => selected.has(i.id))));
 
   // Web size or Full quality, with the total size of each.
   function askSize(items) {

@@ -1058,3 +1058,6 @@
   .ph-strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
 }
 @media (min-width: 1300px) { .ph-feed { columns: 4; } }
+.ph-sel-all { color: var(--color-charcoal); font-size: 1rem; flex: 0 0 auto; }
+.ph-sel-all[hidden] { display: none; }
+@media (max-width: 699px) { .ph-sel-all { order: 2; margin-left: auto; padding: 0 4px; font-size: 0.95rem; } }
