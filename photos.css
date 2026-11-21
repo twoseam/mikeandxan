@@ -1108,3 +1108,5 @@
   .ph-strip button.is-on { opacity: 1; border-color: #fff; }
   .ph-strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
 }
+/* 2 across on phones (Michael, Nov 21) */
+@media (max-width: 699px) { .ph-feed { grid-template-columns: repeat(2, 1fr); gap: 6px; } }
