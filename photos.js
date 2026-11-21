@@ -795,11 +795,18 @@
       : `<li class="ph-search-none">${allPeople.length ? 'No one by that name yet.' : 'No one is tagged yet.'}</li>`;
     searchList.hidden = false;
   }
+  // Tags that aren't people (e.g. "Polaroids") read as a plain heading.
+  const TAG_NAMES = ['polaroids'];
+  function setWhoTitle(p) {
+    const isTag = TAG_NAMES.includes(p.name.toLowerCase());
+    document.getElementById('ph-who-pre').textContent = isTag ? '' : 'Photos of ';
+    document.getElementById('ph-who-name').textContent = isTag ? p.name : p.name.split(' ')[0];
+  }
   function choosePerson(p) {
     filter.person = p;
     searchEl.value = p.name;
     searchList.hidden = true;
-    document.getElementById('ph-who-name').textContent = p.name.split(' ')[0];
+    setWhoTitle(p);
     document.getElementById('ph-who-on').hidden = false;
     searchEl.blur();
     renderFeed();
@@ -858,7 +865,7 @@
     const p = allPeople.find((x) => x.id === Number(b.dataset.id));
     if (!p) return;
     filter.person = p;
-    document.getElementById('ph-who-name').textContent = p.name.split(' ')[0];
+    setWhoTitle(p);
     document.getElementById('ph-who-on').hidden = false;
     peopleSheet.hidden = true;
     renderFeed();
